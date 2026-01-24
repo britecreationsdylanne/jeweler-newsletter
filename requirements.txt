@@ -19,9 +19,11 @@ openai>=1.12.0
 anthropic>=0.18.0
 
 # Google (Gemini & Docs)
-google-generativeai>=0.4.0
+google-genai>=1.0.0
 google-auth>=2.27.0
 google-api-python-client>=2.118.0
+google-auth-oauthlib>=1.1.0
+google-auth-httplib2>=0.1.1
 
 # Image Processing
 Pillow>=10.2.0
