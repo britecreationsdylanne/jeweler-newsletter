@@ -112,10 +112,11 @@ def health_check():
 # HELPER FUNCTIONS - LLM ENRICHMENT (Matching BriteCo Brief)
 # ============================================================================
 
-def enrich_results_with_llm(results: list, original_query: str) -> list:
+def enrich_results_with_llm(results: list, original_query: str, section: str = 'general') -> list:
     """
     Use LLM to generate newsletter-ready content from research results.
     Produces three-section format: headline, industry_data, so_what
+    Section-specific prompts for The Good, The Bad, The Ugly.
     """
     if not results:
         return results
@@ -125,7 +126,7 @@ def enrich_results_with_llm(results: list, original_query: str) -> list:
         model_id = model_config.get('id', 'gpt-4o')
         max_tokens_param = model_config.get('max_tokens_param', 'max_tokens')
 
-        safe_print(f"[Enrichment] Using model: {model_id}")
+        safe_print(f"[Enrichment] Using model: {model_id} for section: {section}")
 
         results_text = ""
         for i, r in enumerate(results):
@@ -136,16 +137,47 @@ Result {i+1}:
 - Raw snippet: {r.get('snippet', '')[:500]}
 """
 
-        prompt = f"""You are analyzing research findings for a jewelry industry newsletter. The user searched for: "{original_query}"
+        # Section-specific prompts from style guide
+        section_prompts = {
+            'the_good': """You are analyzing research findings for "The Good" section of a jewelry newsletter.
+This section features POSITIVE jewelry news: new designs, trends, sales records, success stories, innovations, positive industry developments.
+
+Focus on uplifting, inspiring stories that jewelers can share with their customers or use to feel good about the industry.
+Headlines should be catchy and fun with wordplay when possible (max 8 words).
+Copy should be brief but impactful (max 30 words).
+Always include the source link relevance.""",
+
+            'the_bad': """You are analyzing research findings for "The Bad" section of a jewelry newsletter.
+This section features CAUTIONARY TALES: heists, thefts, scams, fraud, market downturns, security breaches, negative news that jewelers should know about.
+
+Focus on stories that serve as warnings or lessons for jewelers to protect their business.
+Headlines should be catchy with a serious undertone (max 8 words).
+Copy should be brief but impactful (max 30 words).
+Always include the source link relevance.""",
+
+            'the_ugly': """You are analyzing research findings for "The Ugly" section of a jewelry newsletter.
+This section features BIZARRE, UNUSUAL, or EYEBROW-RAISING jewelry stories: weird finds, strange news, unusual circumstances, quirky stories, celebrity jewelry drama, odd discoveries.
+
+Focus on stories that are entertaining, surprising, or make people say "wow, really?"
+Headlines should be catchy and fun with humor when appropriate (max 8 words).
+Copy should be brief but impactful (max 30 words).
+Always include the source link relevance."""
+        }
+
+        section_context = section_prompts.get(section, f"""You are analyzing research findings for a jewelry industry newsletter. The user searched for: "{original_query}"
+
+Focus on content relevant to jewelers and their business.""")
+
+        prompt = f"""{section_context}
 
 Here are research findings to transform into newsletter-ready content:
 {results_text}
 
 For EACH result, extract/generate:
-1. headline: A compelling newsletter headline (5-12 words, specific and actionable)
-2. industry_data: The key statistic, fact, or data point from this article (1-2 sentences). Extract actual numbers/percentages when available.
-3. so_what: What should jewelers DO with this information? (1 actionable sentence)
-4. impact: HIGH (immediate action needed), MEDIUM (worth monitoring), or LOW (FYI only)
+1. headline: A compelling newsletter headline (5-8 words max, catchy with wordplay)
+2. industry_data: The key fact or story hook (1-2 sentences, max 30 words). Extract the most interesting detail.
+3. so_what: Why this matters to jewelers (1 actionable sentence)
+4. impact: HIGH (must read), MEDIUM (interesting), or LOW (nice to know)
 
 Return a JSON array with exactly {len(results)} objects:
 [
@@ -154,12 +186,10 @@ Return a JSON array with exactly {len(results)} objects:
 ]
 
 Guidelines:
-- Headlines should be specific with data when available (e.g., "Gold Prices Up 8% - Jewelers Should Adjust Pricing")
-- industry_data should contain the actual facts/stats from the article, not commentary
-- so_what should be a specific action: "Review your...", "Consider updating...", "Check your..."
-- HIGH impact: significant market changes, trends affecting sales
-- MEDIUM impact: emerging trends, forecasts, industry shifts
-- LOW impact: general news, minor updates
+- Headlines should be catchy, clever, with wordplay when possible
+- industry_data should be the compelling story hook, not dry facts
+- so_what should connect to jeweler relevance
+- Prioritize stories that fit the section theme perfectly
 
 Return ONLY the JSON array, no other text."""
 
@@ -409,14 +439,16 @@ def transform_to_shared_schema(results: list, source_card: str) -> list:
 def search_perplexity_v2():
     """
     Perplexity Research Card - uses Perplexity sonar model for research with citations
+    Section-specific searches for The Good, The Bad, The Ugly
     """
     try:
         data = request.json
-        query = data.get('query', 'jewelry industry news trends')
+        query = data.get('query', 'jewelry industry news')
         time_window = data.get('time_window', '30d')
+        section = data.get('section', 'general')
         exclude_urls = data.get('exclude_urls', [])
 
-        safe_print(f"\n[API v2] Perplexity Research: query='{query}', time_window={time_window}")
+        safe_print(f"\n[API v2] Perplexity Research: query='{query}', section={section}, time_window={time_window}")
 
         # Check if Perplexity is available
         if not perplexity_client or not perplexity_client.is_available():
@@ -426,9 +458,25 @@ def search_perplexity_v2():
                 'results': []
             }), 503
 
-        # Search using Perplexity - build jewelry-focused query
+        # Section-specific search queries based on style guide
+        section_queries = {
+            'the_good': 'positive jewelry news new designs trends sales records success stories innovations awards',
+            'the_bad': 'jewelry heists thefts scams fraud robbery security breaches crime negative news',
+            'the_ugly': 'bizarre unusual strange jewelry stories weird finds quirky celebrity jewelry drama odd discoveries'
+        }
+
+        # Build section-specific query
+        section_focus = section_queries.get(section, '')
+        if section_focus:
+            search_query = f"jewelry {section_focus} {query}"
+        else:
+            search_query = f"jewelry industry {query}"
+
+        safe_print(f"[API v2] Search query: {search_query}")
+
+        # Search using Perplexity
         search_results = perplexity_client.search(
-            query=f"jewelry industry {query}",
+            query=search_query,
             time_window=time_window,
             max_results=8
         )
@@ -440,10 +488,10 @@ def search_perplexity_v2():
         # Take top 8 results
         results = search_results[:8]
 
-        # Enrich results with LLM-generated titles and jeweler guidance
+        # Enrich results with LLM-generated titles and jeweler guidance (section-specific)
         if results:
-            safe_print(f"[API v2] Enriching {len(results)} Perplexity results with LLM...")
-            results = enrich_results_with_llm(results, query)
+            safe_print(f"[API v2] Enriching {len(results)} Perplexity results for section: {section}")
+            results = enrich_results_with_llm(results, query, section)
 
         # Build query description for UI
         time_desc = {
@@ -452,11 +500,18 @@ def search_perplexity_v2():
             '90d': 'past 3 months'
         }.get(time_window, 'recent')
 
+        section_label = {
+            'the_good': 'The Good (positive news)',
+            'the_bad': 'The Bad (cautionary tales)',
+            'the_ugly': 'The Ugly (bizarre stories)'
+        }.get(section, 'general news')
+
         return jsonify({
             'success': True,
             'results': results,
-            'queries_used': [f"Jewelry industry news from {time_desc}: {query}"],
+            'queries_used': [f"Jewelry {section_label} from {time_desc}: {query}"],
             'source': 'perplexity',
+            'section': section,
             'generated_at': datetime.now().isoformat()
         })
 

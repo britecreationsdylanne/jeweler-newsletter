@@ -2473,9 +2473,16 @@
                 const key = 'the_' + currentGBUTab;
                 selectedArticles[key] = article;
 
-                // Update UI
-                document.querySelectorAll('#gbuResearchDashboard .research-result-item').forEach(i => i.classList.remove('selected'));
+                // Update UI - uncheck all checkboxes and remove selection
+                document.querySelectorAll('#gbuResearchDashboard .research-result-item').forEach(i => {
+                    i.classList.remove('selected');
+                    const cb = i.querySelector('.research-result-checkbox');
+                    if (cb) cb.checked = false;
+                });
                 element.classList.add('selected');
+                // Check the checkbox on selected item
+                const checkbox = element.querySelector('.research-result-checkbox');
+                if (checkbox) checkbox.checked = true;
 
                 // Show check on tab and progress
                 document.getElementById(currentGBUTab + '-check').textContent = '✓';
@@ -2484,13 +2491,16 @@
             } else if (section === 'pulse') {
                 const key = 'industry_pulse';
                 const existingIndex = selectedArticles[key].findIndex(a => a.url === article.url);
+                const checkbox = element.querySelector('.research-result-checkbox');
 
                 if (existingIndex >= 0) {
                     selectedArticles[key].splice(existingIndex, 1);
                     element.classList.remove('selected');
+                    if (checkbox) checkbox.checked = false;
                 } else if (selectedArticles[key].length < 5) {
                     selectedArticles[key].push(article);
                     element.classList.add('selected');
+                    if (checkbox) checkbox.checked = true;
                 } else {
                     alert('Maximum 5 articles allowed');
                 }
@@ -2501,13 +2511,16 @@
                 const key = currentStep5Tab === 'partner' ? 'partner_advantage' : 'industry_news';
                 const maxItems = currentStep5Tab === 'partner' ? 2 : 5;
                 const existingIndex = selectedArticles[key].findIndex(a => a.url === article.url);
+                const checkbox = element.querySelector('.research-result-checkbox');
 
                 if (existingIndex >= 0) {
                     selectedArticles[key].splice(existingIndex, 1);
                     element.classList.remove('selected');
+                    if (checkbox) checkbox.checked = false;
                 } else if (selectedArticles[key].length < maxItems) {
                     selectedArticles[key].push(article);
                     element.classList.add('selected');
+                    if (checkbox) checkbox.checked = true;
                 } else {
                     alert(`Maximum ${maxItems} articles allowed`);
                 }
