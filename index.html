@@ -3492,7 +3492,7 @@
                     body: document.getElementById('briteSpotBody').value
                 };
 
-                // STAGE 1: Research phase with GPT-5.2
+                // STAGE 1: Research phase with GPT-5.2 (actual API call)
                 console.log('[Stage 1] Starting GPT-5.2 research phase...');
                 titleEl.textContent = 'Researching Your Articles...';
                 phaseEl.textContent = 'GPT-5.2 is analyzing your selections and building detailed summaries';
@@ -3505,24 +3505,41 @@
                 updateSectionStatus('Partner', 'Waiting...');
                 updateSectionStatus('News', 'Waiting...');
 
-                await new Promise(r => setTimeout(r, 600));
+                // Build articles object from selectedArticles for research
+                const articlesToResearch = {};
+                if (selectedArticles.the_good) articlesToResearch.the_good = selectedArticles.the_good;
+                if (selectedArticles.the_bad) articlesToResearch.the_bad = selectedArticles.the_bad;
+                if (selectedArticles.the_ugly) articlesToResearch.the_ugly = selectedArticles.the_ugly;
+                if (selectedArticles.industry_pulse) articlesToResearch.industry_pulse = selectedArticles.industry_pulse;
+                if (selectedArticles.partner_advantage) articlesToResearch.partner_advantage = selectedArticles.partner_advantage;
+
+                // Call the actual GPT-5.2 research endpoint
+                const researchResponse = await fetch(`${API_BASE}/api/research-articles`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        articles: articlesToResearch,
+                        month: selectedMonth
+                    })
+                });
+
+                const researchData = await researchResponse.json();
+
+                if (!researchData.success) {
+                    throw new Error(researchData.error || 'Failed to research articles');
+                }
+
+                console.log('[Stage 1] GPT-5.2 research complete:', researchData.researched);
+
+                // Mark all research sections as done
                 updateSectionStatus('GBU', 'Done');
-                updateSectionStatus('BriteSpot', 'Researching...', true);
-
-                await new Promise(r => setTimeout(r, 500));
                 updateSectionStatus('BriteSpot', 'Done');
-                updateSectionStatus('Pulse', 'Researching...', true);
-
-                await new Promise(r => setTimeout(r, 500));
                 updateSectionStatus('Pulse', 'Done');
-                updateSectionStatus('Partner', 'Researching...', true);
-
-                await new Promise(r => setTimeout(r, 500));
                 updateSectionStatus('Partner', 'Done');
-                updateSectionStatus('News', 'Researching...', true);
-
-                await new Promise(r => setTimeout(r, 500));
                 updateSectionStatus('News', 'Done');
+
+                // Brief pause to show completion before moving to Stage 2
+                await new Promise(r => setTimeout(r, 500));
 
                 // STAGE 2: Writing phase with Claude Opus 4.5
                 console.log('[Stage 2] Starting Claude Opus 4.5 writing phase...');
@@ -3541,6 +3558,7 @@
                     body: JSON.stringify({
                         month: selectedMonth,
                         sections: selectedArticles,
+                        research: researchData.researched,  // Pass GPT-5.2 research results
                         intro: intro,
                         brite_spot: briteSpot
                     })

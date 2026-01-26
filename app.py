@@ -869,6 +869,9 @@ Rewritten version:"""
             )
             rewritten = response.choices[0].message.content.strip()
 
+        # Convert markdown formatting to HTML (bold, italic, links)
+        rewritten = convert_markdown_to_html(rewritten)
+
         return jsonify({
             'success': True,
             'rewritten': rewritten,
@@ -883,6 +886,35 @@ Rewritten version:"""
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+def convert_markdown_to_html(text):
+    """Convert markdown formatting to HTML (bold, italic, links)"""
+    import re
+    if not text:
+        return text
+    text = str(text)
+    # Convert markdown links [text](url) to HTML links
+    text = re.sub(
+        r'\[([^\]]+)\]\(([^)]+)\)',
+        r'<a href="\2" target="_blank" style="color: #008181; text-decoration: underline;">\1</a>',
+        text
+    )
+    # Convert **bold** to <strong>
+    text = re.sub(r'\*\*([^*]+)\*\*', r'<strong>\1</strong>', text)
+    # Convert *italic* to <em> (but not if it's already part of bold)
+    text = re.sub(r'(?<!\*)\*([^*]+)\*(?!\*)', r'<em>\1</em>', text)
+    return text
+
+def process_generated_content(content):
+    """Process generated content to convert markdown to HTML"""
+    if isinstance(content, dict):
+        return {k: process_generated_content(v) for k, v in content.items()}
+    elif isinstance(content, list):
+        return [process_generated_content(item) for item in content]
+    elif isinstance(content, str):
+        return convert_markdown_to_html(content)
+    return content
+
+
 @app.route('/api/generate-newsletter', methods=['POST'])
 def generate_newsletter():
     """Generate newsletter content using Claude Opus 4.5"""
@@ -890,10 +922,18 @@ def generate_newsletter():
         data = request.json
         month = data.get('month', '')
         sections_data = data.get('sections', {})
+        research_data = data.get('research', {})  # GPT-5.2 research results
         brite_spot_content = data.get('brite_spot', '')
         intro_content = data.get('intro', '')
 
         safe_print(f"\n[API] Generating newsletter content for {month}...")
+
+        # Merge research results into sections data
+        for section_key, research in research_data.items():
+            if section_key in sections_data and sections_data[section_key]:
+                # Add research to the article data
+                sections_data[section_key]['research'] = research.get('research', '')
+                safe_print(f"  Merged research for {section_key}: {len(research.get('research', ''))} chars")
 
         generated = {
             'intro': intro_content,
@@ -972,7 +1012,7 @@ Requirements:
 - Intro: 1-2 paragraphs, 1-4 sentences each, max 50 words per paragraph
 - H3 Section 1: Heading (max 10 words) + 1-2 paragraphs (max 60 words each)
 - H3 Section 2: Heading (max 10 words) + 1-2 paragraphs (max 60 words each)
-- Include source URLs as hyperlinks where relevant
+- IMPORTANT: Include hyperlinks to source articles using markdown format [link text](URL) whenever referencing data or claims
 
 Return JSON:
 {{
@@ -1030,8 +1070,8 @@ Requirements:
 - Intro: 1 short paragraph introducing the tips
 - 5 bullet points, each with:
   - Mini-title: Max 10 words
-  - Supporting text: 1-3 sentences
-- Include source URLs as hyperlinks
+  - Supporting text: 1-3 sentences with markdown links [text](URL) to sources
+- IMPORTANT: Include hyperlinks using markdown format [link text](URL) in the content
 
 Return JSON:
 {{
@@ -1115,6 +1155,9 @@ Return JSON:
                     'bullets': [{'text': art.get('title', ''), 'url': art.get('url', '')} for art in articles[:5]]
                 }
 
+        # Convert markdown links to HTML in all generated content
+        generated = process_generated_content(generated)
+
         return jsonify({
             'success': True,
             'generated': generated,
@@ -1148,33 +1191,55 @@ def check_brand_guidelines():
         prompt = f"""Review this jewelry newsletter content against brand guidelines.
 
 Content:
-{content_text[:3000]}
+{content_text[:4000]}
 
-Brand Guidelines:
-- Tone: Professional but approachable, knowledgeable about jewelry
-- Avoid: Overly salesy language, personnel news, political content
-- Word limits: Good/Bad/Ugly copy max 30 words, Industry Pulse paragraphs max 60 words
+BRAND GUIDELINES FOR "STAY IN THE LOUPE" NEWSLETTER:
 
-Check for:
-1. Tone and voice consistency
-2. Word count compliance
-3. Content relevance to jewelry industry
-4. Excluded topics (personnel news, deaths, political)
-5. Hyperlink presence where required
+1. VOICE & TONE:
+- Professional but personable - like a well-connected colleague sharing the latest scoop
+- Industry-savvy and knowledgeable about jewelry trends, materials, and market dynamics
+- Warm and helpful - uses "we" and "you" frequently
+- Playful but professional - incorporates wordplay and light humor without being corny
+
+2. CONTENT RESTRICTIONS:
+- EXCLUDE: Personnel announcements, deaths/obituaries, political content
+- EXCLUDE: Non-jewelry topics, overly salesy language
+- Word limits: Good/Bad/Ugly copy max 30 words each, paragraphs max 60 words
+
+3. PUNCTUATION & FORMATTING:
+- Use serial comma in lists (red, white, and blue)
+- Use em dash (—) with spaces around it
+- Put punctuation inside quotation marks
+
+4. BRITECO BRAND TERMINOLOGY:
+- DO: Call BriteCo an "insurtech company" or "insurance provider"
+- DO: Say "backed by an AM Best A+ rated Insurance Carrier"
+- DON'T: Call BriteCo an "insurance company"
+- DON'T: Say "we have AM Best policies" or "we are AM Best"
+
+Review the content and identify SPECIFIC phrases that need to be changed.
+
+IMPORTANT: Skip over hyperlinks and URLs - do not flag them as issues. Hyperlinks in formats like [text](url) or <a href="...">text</a> should be left as-is.
 
 Return JSON:
 {{
-    "overall_score": 1-10,
-    "issues": [
-        {{"section": "...", "issue": "...", "suggestion": "..."}}
-    ],
-    "passed": true/false
-}}"""
+    "suggestions": [
+        {{
+            "section": "intro" | "brite_spot" | "the_good" | "the_bad" | "the_ugly" | "industry_pulse" | "partner_advantage" | "industry_news",
+            "issue": "Brief description of the issue",
+            "original": "exact phrase from content that needs changing",
+            "suggested": "what it should be changed to",
+            "reason": "why this change is needed per brand guidelines"
+        }}
+    ]
+}}
+
+Only include items that actually need to be changed. If the content is perfect, return an empty suggestions array."""
 
         response = claude_client.generate_content(
             prompt=prompt,
-            max_tokens=1000,
-            temperature=0.3
+            max_tokens=1500,
+            temperature=0.2
         )
 
         result_content = response.get('content', '{}')
@@ -1183,10 +1248,20 @@ Return JSON:
         elif '```' in result_content:
             result_content = result_content.split('```')[1].split('```')[0].strip()
 
-        check_results = json.loads(result_content)
+        try:
+            check_results = json.loads(result_content)
+        except json.JSONDecodeError as e:
+            safe_print(f"[API WARNING] Failed to parse brand check JSON: {e}")
+            check_results = {"suggestions": []}
+
+        num_suggestions = len(check_results.get('suggestions', []))
+        passed = num_suggestions == 0
+
+        safe_print(f"[API] Brand check complete - {num_suggestions} suggestions found")
 
         return jsonify({
             'success': True,
+            'passed': passed,
             'check_results': check_results
         })
 
@@ -1218,6 +1293,14 @@ def generate_image_prompts():
 
             title = content.get('title', content.get('subtitle', ''))
             body = content.get('content', content.get('copy', content.get('intro', '')))
+
+            # Handle case where body is a dict/object instead of string
+            if isinstance(body, dict):
+                # Extract text from nested object structure
+                body = body.get('intro', '') or body.get('content', '') or body.get('copy', '') or str(body)
+
+            # Ensure body is a string before slicing
+            body = str(body) if body else ''
 
             prompt_request = f"""Create an image prompt for a jewelry newsletter section.
 
@@ -1595,9 +1678,10 @@ def export_to_docs():
 
         data = request.json
         content = data.get('content', {})
-        title = data.get('title', f"Stay In The Loupe ({datetime.now().strftime('%B')}, {datetime.now().year})")
         month = data.get('month', datetime.now().strftime('%B'))
         year = data.get('year', datetime.now().year)
+        # Format: "2026 January - Jeweler Newsletter"
+        title = data.get('title', f"{year} {month} - Jeweler Newsletter")
         send_email = data.get('send_email', False)
         recipients = data.get('recipients', [])
 
@@ -1782,7 +1866,7 @@ def export_to_docs():
                         message = Mail(
                             from_email=(from_email, from_name),
                             to_emails=recipient,
-                            subject=f"Stay In The Loupe ({month}, {year}) - Ready for Review",
+                            subject=f"Stay In The Loupe - {month} {year} - Ready for Review",
                             html_content=email_html
                         )
 
@@ -1970,7 +2054,7 @@ def send_doc_notification():
                 message = Mail(
                     from_email=(from_email, from_name),
                     to_emails=recipient,
-                    subject=f"Stay In The Loupe ({month} {year}) - Ready for Review",
+                    subject=f"Stay In The Loupe - {month} {year} - Ready for Review",
                     html_content=email_html
                 )
 
