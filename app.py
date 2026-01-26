@@ -8,11 +8,14 @@ import sys
 import json
 import re
 import base64
+import secrets
 from datetime import datetime
 from io import BytesIO
 
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, redirect, session, url_for, Response
 from flask_cors import CORS
+from authlib.integrations.flask_client import OAuth
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # SendGrid for email
 try:
@@ -53,6 +56,28 @@ from config.model_config import get_model_for_task
 # Initialize Flask app
 app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)
+
+# Fix for running behind Cloud Run's proxy - ensures correct HTTPS URLs
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
+# Session configuration for OAuth
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
+
+# OAuth configuration
+oauth = OAuth(app)
+google = oauth.register(
+    name='google',
+    client_id=os.environ.get('GOOGLE_CLIENT_ID'),
+    client_secret=os.environ.get('GOOGLE_CLIENT_SECRET'),
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid email profile'}
+)
+
+ALLOWED_DOMAIN = 'brite.co'
+
+def get_current_user():
+    """Get current authenticated user from session"""
+    return session.get('user')
 
 # Initialize AI clients with error handling
 openai_client = None
@@ -96,12 +121,90 @@ def safe_print(text):
 
 
 # ============================================================================
+# OAUTH AUTHENTICATION ROUTES
+# ============================================================================
+
+@app.route('/auth/login')
+def auth_login():
+    """Redirect to Google OAuth"""
+    if get_current_user():
+        return redirect('/')
+    redirect_uri = url_for('auth_callback', _external=True)
+    return google.authorize_redirect(redirect_uri)
+
+
+@app.route('/auth/callback')
+def auth_callback():
+    """Handle OAuth callback from Google"""
+    try:
+        token = google.authorize_access_token()
+        user_info = token.get('userinfo')
+
+        if not user_info:
+            return 'Failed to get user info', 400
+
+        email = user_info.get('email', '')
+
+        # Enforce domain restriction
+        if not email.endswith(f'@{ALLOWED_DOMAIN}'):
+            return f'''
+            <html>
+            <head><title>Access Denied</title></head>
+            <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #272D3F;">
+                <div style="text-align: center; color: white; padding: 2rem;">
+                    <h1 style="color: #FC883A;">Access Denied</h1>
+                    <p>Only @{ALLOWED_DOMAIN} email addresses are allowed.</p>
+                    <p style="color: #A9C1CB;">You tried to sign in with: {email}</p>
+                    <a href="/auth/login" style="color: #31D7CA;">Try again with a different account</a>
+                </div>
+            </body>
+            </html>
+            ''', 403
+
+        # Store user in session
+        session['user'] = {
+            'email': email,
+            'name': user_info.get('name', ''),
+            'picture': user_info.get('picture', '')
+        }
+
+        return redirect('/')
+
+    except Exception as e:
+        print(f"[AUTH ERROR] OAuth callback failed: {e}")
+        return f'Authentication failed: {str(e)}', 500
+
+
+@app.route('/auth/logout')
+def auth_logout():
+    """Clear session and redirect to login"""
+    session.pop('user', None)
+    return redirect('/auth/login')
+
+
+# ============================================================================
 # ROUTES - STATIC FILES
 # ============================================================================
 
 @app.route('/')
 def serve_index():
-    return send_from_directory('.', 'index.html')
+    """Serve the main app with auth check"""
+    user = get_current_user()
+    if not user:
+        return redirect('/auth/login')
+
+    # Read and serve the index.html with user info injected
+    with open('index.html', 'r', encoding='utf-8') as f:
+        html = f.read()
+
+    # Inject user info for the frontend
+    user_script = f'''<script>
+    window.AUTH_USER = {json.dumps(user)};
+    </script>
+</head>'''
+    html = html.replace('</head>', user_script, 1)
+
+    return Response(html, mimetype='text/html')
 
 @app.route('/health')
 def health_check():
