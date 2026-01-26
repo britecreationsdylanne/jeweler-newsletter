@@ -757,8 +757,58 @@ def research_articles():
 
         researched = {}
 
-        for section, article in articles.items():
-            if not article:
+        for section, article_data in articles.items():
+            if not article_data:
+                continue
+
+            # Handle lists of articles (industry_pulse, partner_advantage)
+            if isinstance(article_data, list):
+                if not article_data:
+                    continue
+                safe_print(f"  Researching {section}: {len(article_data)} articles...")
+
+                researched_list = []
+                for i, art in enumerate(article_data[:5]):  # Limit to first 5
+                    if not art or not isinstance(art, dict):
+                        continue
+                    title = art.get('title', '')
+                    url = art.get('url', '')
+                    snippet = art.get('snippet', '')
+
+                    prompt = f"""Research this article for a jewelry newsletter:
+
+Title: {title}
+URL: {url}
+Snippet: {snippet}
+
+Provide a concise summary (75-100 words) covering the key facts and why it matters to jewelry professionals."""
+
+                    try:
+                        response = openai_client.client.chat.completions.create(
+                            model="gpt-5.2",
+                            messages=[{"role": "user", "content": prompt}],
+                            temperature=0.5,
+                            max_completion_tokens=200
+                        )
+                        researched_list.append({
+                            'title': title,
+                            'url': url,
+                            'research': response.choices[0].message.content.strip()
+                        })
+                    except Exception as e:
+                        safe_print(f"    Error researching article {i+1}: {e}")
+                        researched_list.append({
+                            'title': title,
+                            'url': url,
+                            'research': snippet
+                        })
+
+                researched[section] = researched_list
+                continue
+
+            # Handle single article (dict) - the_good, the_bad, the_ugly
+            article = article_data
+            if not isinstance(article, dict):
                 continue
 
             safe_print(f"  Researching {section}: {article.get('title', '')[:50]}...")
@@ -869,8 +919,12 @@ Rewritten version:"""
             )
             rewritten = response.choices[0].message.content.strip()
 
-        # Convert markdown formatting to HTML (bold, italic, links)
-        rewritten = convert_markdown_to_html(rewritten)
+        # Strip markdown formatting for textarea display (don't convert to HTML)
+        # Remove **bold** markers but keep the text
+        import re
+        rewritten = re.sub(r'\*\*([^*]+)\*\*', r'\1', rewritten)
+        # Remove *italic* markers but keep the text
+        rewritten = re.sub(r'(?<!\*)\*([^*]+)\*(?!\*)', r'\1', rewritten)
 
         return jsonify({
             'success': True,
@@ -931,9 +985,20 @@ def generate_newsletter():
         # Merge research results into sections data
         for section_key, research in research_data.items():
             if section_key in sections_data and sections_data[section_key]:
-                # Add research to the article data
-                sections_data[section_key]['research'] = research.get('research', '')
-                safe_print(f"  Merged research for {section_key}: {len(research.get('research', ''))} chars")
+                # Handle list research (for industry_pulse, partner_advantage)
+                if isinstance(research, list):
+                    # For list sections, merge research into each article
+                    section_articles = sections_data[section_key]
+                    if isinstance(section_articles, list):
+                        for i, art in enumerate(section_articles):
+                            if i < len(research) and isinstance(art, dict):
+                                art['research'] = research[i].get('research', '') if isinstance(research[i], dict) else ''
+                    safe_print(f"  Merged research for {section_key}: {len(research)} articles")
+                elif isinstance(research, dict):
+                    # Single article research
+                    if isinstance(sections_data[section_key], dict):
+                        sections_data[section_key]['research'] = research.get('research', '')
+                        safe_print(f"  Merged research for {section_key}: {len(research.get('research', ''))} chars")
 
         generated = {
             'intro': intro_content,
