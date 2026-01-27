@@ -2678,7 +2678,8 @@ def save_draft():
         data = request.json
         month = data.get('month', 'unknown').lower()
         year = data.get('year', datetime.now().year)
-        blob_name = f"drafts/{month}-{year}.json"
+        saved_by = data.get('savedBy', 'unknown').split('@')[0].replace('.', '-')
+        blob_name = f"drafts/{month}-{year}-{saved_by}.json"
 
         draft = {
             'month': month,

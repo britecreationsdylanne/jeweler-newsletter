@@ -2404,13 +2404,18 @@
     </div>
 
     <!-- Saved Drafts Section -->
-    <div id="draftsSection" class="previous-newsletters-section" style="display: none;">
+    <div id="draftsSection" class="previous-newsletters-section">
         <div style="max-width: 1200px; margin: 0 auto;">
             <div style="margin-bottom: 40px; text-align: center;">
                 <h2>Saved Drafts</h2>
                 <p class="subtitle">Resume an in-progress newsletter</p>
             </div>
             <div id="draftsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 28px;"></div>
+            <div id="draftsEmpty" class="newsletter-placeholder">
+                <div class="icon">📝</div>
+                <h3 class="title">No Drafts In Progress</h3>
+                <p class="message">Any newsletters in progress will appear here automatically</p>
+            </div>
         </div>
     </div>
 
@@ -4740,20 +4745,18 @@ a { color: #018181; }
 <tr><td style="padding:0;border:1px solid #282D3E;background-color:#ffffff;">
 <img src="https://accidentpros.linkgama.com/wp-content/uploads/2025/10/industry-pulse.png" alt="Industry Pulse" width="600" style="width:100%;display:block;">
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="30" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
+<!-- Full-width image -->
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
+<img src="${pulseImage}" alt="" width="570" style="display:block;width:100%;max-width:570px;height:auto;">
+</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 <!-- Title -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
 <h2 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:22px;line-height:28px;font-weight:700;color:#282D3E;">${pulseTitle}</h2>
 </td></tr></table>
-<!-- Intro with image -->
+<!-- Intro -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr>
-<td align="left" valign="top" style="padding-right:15px;" width="50%">
-<img src="${pulseImage}" alt="" width="203" style="display:block;width:203px;max-width:100%;height:auto;">
-</td>
-<td valign="top" width="50%">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${pulseIntro}</p>
-</td>
-</tr></table>
 </td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 <!-- H3 Section 1 -->
@@ -4781,18 +4784,16 @@ a { color: #018181; }
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
 <h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:20px;line-height:28px;font-weight:600;color:#3B3B3B;">${partnerSubheader}</h3>
 </td></tr></table>
-<!-- Intro with image -->
+<!-- Intro -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr>
-<td valign="top" style="padding-right:15px;" width="50%">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${partnerIntro}</p>
-</td>
-<td valign="top" align="right" width="50%">
-<img src="${partnerImage}" alt="" width="203" style="display:block;width:203px;max-width:100%;height:auto;">
-</td>
-</tr></table>
 </td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="35" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
+<!-- Full-width image -->
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
+<img src="${partnerImage}" alt="" width="570" style="display:block;width:100%;max-width:570px;height:auto;">
+</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="25" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 <!-- Tips with tick images -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
 ${partnerTipsHtml}
@@ -4904,9 +4905,10 @@ ${newsHtml}
                 const response = await fetch(`${API_BASE}/api/list-drafts`);
                 const data = await response.json();
                 if (data.success && data.drafts && data.drafts.length > 0) {
-                    const section = document.getElementById('draftsSection');
                     const grid = document.getElementById('draftsGrid');
-                    section.style.display = 'block';
+                    const empty = document.getElementById('draftsEmpty');
+                    if (empty) empty.style.display = 'none';
+                    grid.style.display = 'grid';
                     grid.innerHTML = '';
                     data.drafts.forEach(d => {
                         const monthCap = d.month ? d.month.charAt(0).toUpperCase() + d.month.slice(1) : '?';
@@ -4982,10 +4984,11 @@ ${newsHtml}
             if (!selectedMonth) return;
             try {
                 const year = new Date().getFullYear();
+                const userPrefix = ((window.AUTH_USER && window.AUTH_USER.email) || 'unknown').split('@')[0].replace(/\./g, '-');
                 await fetch(`${API_BASE}/api/delete-draft`, {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ file: `drafts/${selectedMonth}-${year}.json` })
+                    body: JSON.stringify({ file: `drafts/${selectedMonth}-${year}-${userPrefix}.json` })
                 });
                 console.log('[Draft] Deleted');
             } catch (e) {
@@ -4997,11 +5000,22 @@ ${newsHtml}
         // FINAL COPY - Populate & Save
         // ============================================================
 
+        // Convert HTML <a> tags to markdown [text](url) for textarea display
+        function htmlLinksToMarkdown(str) {
+            if (!str) return '';
+            return str.replace(/<a\s[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi, '[$2]($1)');
+        }
+        // Convert markdown [text](url) back to HTML <a> tags
+        function markdownLinksToHtml(str) {
+            if (!str) return '';
+            return str.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: #008181; text-decoration: underline;">$1</a>');
+        }
+
         function populateFinalCopy() {
             const c = generatedContent;
             // Intro
             const fcIntro = document.getElementById('fc-intro');
-            if (fcIntro) fcIntro.value = c.intro || '';
+            if (fcIntro) fcIntro.value = htmlLinksToMarkdown(c.intro || '');
 
             // Brite Spot
             const bs = c.brite_spot || {};
@@ -5018,11 +5032,11 @@ ${newsHtml}
             // Pulse
             const p = c.industry_pulse || {};
             document.getElementById('fc-pulse-title').value = p.title || '';
-            document.getElementById('fc-pulse-intro').value = p.intro || '';
+            document.getElementById('fc-pulse-intro').value = htmlLinksToMarkdown(p.intro || '');
             document.getElementById('fc-pulse-h3-1-title').value = p.h3_1_title || '';
-            document.getElementById('fc-pulse-h3-1-content').value = p.h3_1_content || '';
+            document.getElementById('fc-pulse-h3-1-content').value = htmlLinksToMarkdown(p.h3_1_content || '');
             document.getElementById('fc-pulse-h3-2-title').value = p.h3_2_title || '';
-            document.getElementById('fc-pulse-h3-2-content').value = p.h3_2_content || '';
+            document.getElementById('fc-pulse-h3-2-content').value = htmlLinksToMarkdown(p.h3_2_content || '');
 
             // Partner Advantage
             const pa = c.partner_advantage || {};
@@ -5036,7 +5050,7 @@ ${newsHtml}
                         <label style="font-weight:600;font-size:13px;">Tip ${i+1} Title</label>
                         <input id="fc-partner-tip-${i}-title" type="text" value="${(tip.title || '').replace(/"/g, '&quot;')}" style="width:100%;padding:8px 10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;margin-bottom:6px;">
                         <label style="font-weight:600;font-size:13px;">Tip ${i+1} Content</label>
-                        <textarea id="fc-partner-tip-${i}-content" rows="2" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;">${tip.content || ''}</textarea>
+                        <textarea id="fc-partner-tip-${i}-content" rows="2" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;">${htmlLinksToMarkdown(tip.content || '')}</textarea>
                     </div>`;
             });
 
@@ -5050,7 +5064,7 @@ ${newsHtml}
                 bulletsContainer.innerHTML += `
                     <div style="margin-bottom:10px;padding:10px;background:#f9fafb;border-radius:6px;">
                         <label style="font-weight:600;font-size:13px;">Bullet ${i+1} Text</label>
-                        <textarea id="fc-news-${i}-text" rows="2" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;">${text}</textarea>
+                        <textarea id="fc-news-${i}-text" rows="2" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;">${htmlLinksToMarkdown(text)}</textarea>
                         <label style="font-weight:600;font-size:13px;">URL</label>
                         <input id="fc-news-${i}-url" type="text" value="${(url || '').replace(/"/g, '&quot;')}" style="width:100%;padding:8px 10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;">
                     </div>`;
@@ -5078,11 +5092,11 @@ ${newsHtml}
             generatedContent.industry_pulse = {
                 ...(generatedContent.industry_pulse || {}),
                 title: document.getElementById('fc-pulse-title')?.value || '',
-                intro: document.getElementById('fc-pulse-intro')?.value || '',
+                intro: markdownLinksToHtml(document.getElementById('fc-pulse-intro')?.value || ''),
                 h3_1_title: document.getElementById('fc-pulse-h3-1-title')?.value || '',
-                h3_1_content: document.getElementById('fc-pulse-h3-1-content')?.value || '',
+                h3_1_content: markdownLinksToHtml(document.getElementById('fc-pulse-h3-1-content')?.value || ''),
                 h3_2_title: document.getElementById('fc-pulse-h3-2-title')?.value || '',
-                h3_2_content: document.getElementById('fc-pulse-h3-2-content')?.value || ''
+                h3_2_content: markdownLinksToHtml(document.getElementById('fc-pulse-h3-2-content')?.value || '')
             };
 
             // Partner tips
@@ -5091,7 +5105,7 @@ ${newsHtml}
             while (document.getElementById('fc-partner-tip-' + i + '-title')) {
                 tips.push({
                     title: document.getElementById('fc-partner-tip-' + i + '-title').value || '',
-                    content: document.getElementById('fc-partner-tip-' + i + '-content').value || ''
+                    content: markdownLinksToHtml(document.getElementById('fc-partner-tip-' + i + '-content').value || '')
                 });
                 i++;
             }
@@ -5107,7 +5121,7 @@ ${newsHtml}
             let j = 0;
             while (document.getElementById('fc-news-' + j + '-text')) {
                 bullets.push({
-                    text: document.getElementById('fc-news-' + j + '-text').value || '',
+                    text: markdownLinksToHtml(document.getElementById('fc-news-' + j + '-text').value || ''),
                     url: document.getElementById('fc-news-' + j + '-url').value || ''
                 });
                 j++;
