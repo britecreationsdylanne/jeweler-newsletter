@@ -1707,7 +1707,6 @@ def generate_single_image():
         aspect_ratio = ASPECT_RATIOS.get(section, '1:1')
         result = gemini_client.generate_image(
             prompt=prompt,
-            model="gemini-2.0-flash-exp",
             aspect_ratio=aspect_ratio
         )
 
