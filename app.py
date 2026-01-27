@@ -2782,6 +2782,40 @@ def delete_draft():
         return jsonify({'success': True})  # Non-critical, don't fail
 
 
+@app.route('/api/upload-images', methods=['POST'])
+def upload_images():
+    """Upload base64 newsletter images to GCS and return public URLs"""
+    if not gcs_client:
+        return jsonify({'success': False, 'error': 'GCS not available'}), 500
+    try:
+        data = request.json
+        images = data.get('images', {})  # { sectionName: "base64data", ... }
+        month = data.get('month', 'unknown')
+        year = data.get('year', datetime.now().year)
+
+        bucket = gcs_client.bucket(GCS_BUCKET_NAME)
+        urls = {}
+
+        for section, b64data in images.items():
+            if not b64data:
+                continue
+            # Decode base64
+            image_bytes = base64.b64decode(b64data)
+            blob_name = f"images/{month}-{year}/{section}.png"
+            blob = bucket.blob(blob_name)
+            blob.upload_from_string(image_bytes, content_type='image/png')
+            blob.make_public()
+            urls[section] = blob.public_url
+
+        return jsonify({'success': True, 'urls': urls})
+
+    except Exception as e:
+        safe_print(f"[IMAGE UPLOAD ERROR] {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 # ============================================================================
 # MAIN
 # ============================================================================

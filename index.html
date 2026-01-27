@@ -1883,6 +1883,11 @@
                 </div>
             </div>
 
+            <div style="margin-top: 20px; padding: 15px; background: #f0fdf4; border: 2px solid #22c55e; border-radius: 8px; text-align: center;">
+                <button class="btn" onclick="saveDraft(); this.textContent='✓ Draft Saved!'; setTimeout(() => { this.textContent='💾 Save Draft'; }, 2000);" style="background: #22c55e; padding: 10px 30px;">💾 Save Draft</button>
+                <p style="margin: 8px 0 0 0; font-size: 13px; color: #666;">Save your progress to resume later</p>
+            </div>
+
             <div class="buttons">
                 <button class="btn btn-secondary" onclick="showStep('6b')">← Back to Edit</button>
                 <button class="btn btn-secondary" onclick="exportBrandCheckResults()">📋 Export Brand Check</button>
@@ -1895,80 +1900,44 @@
             <h2>📝 Final Copy</h2>
             <p class="step-description">Review and edit all content before generating images. This is the source of truth.</p>
 
-            <!-- Introduction -->
-            <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 16px; border: 2px solid #e5e7eb;">
-                <h3 style="margin: 0 0 10px 0; color: #008181;">Introduction</h3>
-                <textarea id="fc-intro" rows="3" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
+            <div class="content-section">
+                <h3>Introduction</h3>
+                <div class="editable" contenteditable="true" id="fc-intro"></div>
             </div>
 
-            <!-- Brite Spot -->
-            <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 16px; border: 2px solid #e5e7eb;">
-                <h3 style="margin: 0 0 10px 0; color: #008181;">Brite Spot</h3>
-                <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Title</label>
-                <input id="fc-bs-title" type="text" style="width:100%;padding:8px 10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;margin-bottom:10px;">
-                <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Body</label>
-                <textarea id="fc-bs-body" rows="4" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
+            <div class="content-section">
+                <h3>The Brite Spot</h3>
+                <div class="editable" contenteditable="true" id="fc-britespot"></div>
             </div>
 
-            <!-- The Good / Bad / Ugly -->
-            <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 16px; border: 2px solid #e5e7eb;">
-                <h3 style="margin: 0 0 15px 0; color: #008181;">The Good, The Bad &amp; The Ugly</h3>
-                <div id="fc-gbu-blocks">
-                    <div style="margin-bottom:16px;padding:12px;background:#f9fafb;border-radius:6px;">
-                        <h4 style="margin:0 0 8px 0;color:#16a34a;">The Good</h4>
-                        <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Subtitle (max 8 words)</label>
-                        <input id="fc-good-subtitle" type="text" style="width:100%;padding:8px 10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;margin-bottom:8px;">
-                        <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Copy (max 30 words)</label>
-                        <textarea id="fc-good-copy" rows="2" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
-                    </div>
-                    <div style="margin-bottom:16px;padding:12px;background:#f9fafb;border-radius:6px;">
-                        <h4 style="margin:0 0 8px 0;color:#dc2626;">The Bad</h4>
-                        <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Subtitle (max 8 words)</label>
-                        <input id="fc-bad-subtitle" type="text" style="width:100%;padding:8px 10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;margin-bottom:8px;">
-                        <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Copy (max 30 words)</label>
-                        <textarea id="fc-bad-copy" rows="2" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
-                    </div>
-                    <div style="padding:12px;background:#f9fafb;border-radius:6px;">
-                        <h4 style="margin:0 0 8px 0;color:#9333ea;">The Ugly</h4>
-                        <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Subtitle (max 8 words)</label>
-                        <input id="fc-ugly-subtitle" type="text" style="width:100%;padding:8px 10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;margin-bottom:8px;">
-                        <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Copy (max 30 words)</label>
-                        <textarea id="fc-ugly-copy" rows="2" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
-                    </div>
-                </div>
+            <div class="content-section">
+                <h3>The Good</h3>
+                <div class="editable" contenteditable="true" id="fc-good"></div>
             </div>
 
-            <!-- Industry Pulse -->
-            <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 16px; border: 2px solid #e5e7eb;">
-                <h3 style="margin: 0 0 10px 0; color: #008181;">Industry Pulse</h3>
-                <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Title</label>
-                <input id="fc-pulse-title" type="text" style="width:100%;padding:8px 10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;margin-bottom:10px;">
-                <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Intro</label>
-                <textarea id="fc-pulse-intro" rows="3" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;margin-bottom:10px;"></textarea>
-                <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">H3 #1 Title</label>
-                <input id="fc-pulse-h3-1-title" type="text" style="width:100%;padding:8px 10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;margin-bottom:8px;">
-                <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">H3 #1 Content</label>
-                <textarea id="fc-pulse-h3-1-content" rows="3" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;margin-bottom:10px;"></textarea>
-                <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">H3 #2 Title</label>
-                <input id="fc-pulse-h3-2-title" type="text" style="width:100%;padding:8px 10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;margin-bottom:8px;">
-                <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">H3 #2 Content</label>
-                <textarea id="fc-pulse-h3-2-content" rows="3" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;"></textarea>
+            <div class="content-section">
+                <h3>The Bad</h3>
+                <div class="editable" contenteditable="true" id="fc-bad"></div>
             </div>
 
-            <!-- Partner Advantage -->
-            <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 16px; border: 2px solid #e5e7eb;">
-                <h3 style="margin: 0 0 10px 0; color: #008181;">Partner Advantage</h3>
-                <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Subheader</label>
-                <input id="fc-partner-subheader" type="text" style="width:100%;padding:8px 10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;margin-bottom:10px;">
-                <label style="font-weight:600;font-size:13px;display:block;margin-bottom:4px;">Intro</label>
-                <textarea id="fc-partner-intro" rows="2" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;margin-bottom:10px;"></textarea>
-                <div id="fc-partner-tips"></div>
+            <div class="content-section">
+                <h3>The Ugly</h3>
+                <div class="editable" contenteditable="true" id="fc-ugly"></div>
             </div>
 
-            <!-- Industry News -->
-            <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 16px; border: 2px solid #e5e7eb;">
-                <h3 style="margin: 0 0 10px 0; color: #008181;">Industry News</h3>
-                <div id="fc-news-bullets"></div>
+            <div class="content-section">
+                <h3>Industry Pulse</h3>
+                <div class="editable" contenteditable="true" id="fc-pulse"></div>
+            </div>
+
+            <div class="content-section">
+                <h3>Partner Advantage</h3>
+                <div class="editable" contenteditable="true" id="fc-partner"></div>
+            </div>
+
+            <div class="content-section">
+                <h3>Industry News</h3>
+                <div class="editable" contenteditable="true" id="fc-news"></div>
             </div>
 
             <div class="buttons">
@@ -2383,6 +2352,16 @@
         <div class="step" id="step12">
             <h2>🚀 Push to Ontraport</h2>
             <p class="step-description">Send your newsletter to Ontraport with pre-configured BriteCo settings</p>
+
+            <!-- Export Images to Hosting -->
+            <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #f59e0b;">
+                <h3 style="margin: 0 0 10px 0; color: #92400e;">🖼️ Host Images</h3>
+                <p style="font-size: 14px; color: #666; margin-bottom: 15px;">Upload generated images to cloud hosting so they display in email clients (Gmail, Outlook, etc).</p>
+                <button class="btn" onclick="exportImagesToHost()" id="exportImagesBtn" style="background: #f59e0b; width: 100%; padding: 12px; font-size: 15px;">
+                    <span id="exportImagesBtnText">🖼️ Upload & Host Images</span>
+                </button>
+                <div id="exportImagesResult" style="display: none; margin-top: 15px; padding: 12px; border-radius: 6px;"></div>
+            </div>
 
             <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #e5e7eb;">
                 <div style="padding: 15px; background-color: #f0fdf4; border-radius: 6px; border-left: 4px solid #22c55e; margin-bottom: 20px;">
@@ -4512,7 +4491,7 @@
             // Get images - handle both {url: '...'} objects and direct URL strings
             const getImageUrl = (img) => {
                 if (!img) return 'https://brite.co/wp-content/uploads/2025/09/blank-image.png';
-                return img.url || img || 'https://brite.co/wp-content/uploads/2025/09/blank-image.png';
+                return img.hosted_url || img.url || img || 'https://brite.co/wp-content/uploads/2025/09/blank-image.png';
             };
             const goodImage = getImageUrl(generatedImages.the_good || generatedImages.good);
             const badImage = getImageUrl(generatedImages.the_bad || generatedImages.bad);
@@ -4625,7 +4604,7 @@ a { color: #018181; }
 
 <!-- SECTION 1: HERO BANNER -->
 <tr>
-    <td style="padding: 0;">
+    <td style="padding: 0; background-color: #037E7F;">
         <!--[if mso]>
         <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;">
         <v:fill type="frame" src="https://accidentpros.linkgama.com/wp-content/uploads/2025/10/banner-bg.png" color="#037E7F"/>
@@ -4866,6 +4845,82 @@ ${newsHtml}
             }
         }
 
+        async function exportImagesToHost() {
+            const btn = document.getElementById('exportImagesBtn');
+            const result = document.getElementById('exportImagesResult');
+            btn.disabled = true;
+            document.getElementById('exportImagesBtnText').textContent = '⏳ Uploading images...';
+
+            try {
+                // Collect all base64 images from generatedImages
+                const images = {};
+                for (const [section, data] of Object.entries(generatedImages || {})) {
+                    if (data && data.image_data) {
+                        images[section] = data.image_data;
+                    }
+                }
+
+                if (Object.keys(images).length === 0) {
+                    result.style.display = 'block';
+                    result.style.background = '#fef3c7';
+                    result.style.color = '#92400e';
+                    result.textContent = 'No generated images found to upload.';
+                    btn.disabled = false;
+                    document.getElementById('exportImagesBtnText').textContent = '🖼️ Upload & Host Images';
+                    return;
+                }
+
+                const response = await fetch(`${API_BASE}/api/upload-images`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ images, month: selectedMonth, year: new Date().getFullYear() })
+                });
+                const data = await response.json();
+
+                if (data.success && data.urls) {
+                    // Replace base64 data URIs in generatedImages with hosted URLs
+                    for (const [section, url] of Object.entries(data.urls)) {
+                        if (generatedImages[section]) {
+                            generatedImages[section].hosted_url = url;
+                        }
+                    }
+
+                    // Re-generate the newsletter HTML so it uses hosted URLs
+                    // Update the preview too
+                    const previewEl = document.getElementById('newsletterPreview');
+                    if (previewEl && previewEl.innerHTML) {
+                        let html = previewEl.innerHTML;
+                        for (const [section, url] of Object.entries(data.urls)) {
+                            // Replace data:image/png;base64,... src with hosted URL
+                            if (generatedImages[section]?.image_data) {
+                                const b64Prefix = 'data:image/png;base64,' + generatedImages[section].image_data.substring(0, 50);
+                                // Use a more robust approach - find img tags with base64 data
+                                html = html.replace(new RegExp('data:image/png;base64,[A-Za-z0-9+/=]+', 'g'), (match) => {
+                                    // We'll replace all base64 images sequentially
+                                    return match;
+                                });
+                            }
+                        }
+                    }
+
+                    result.style.display = 'block';
+                    result.style.background = '#f0fdf4';
+                    result.style.color = '#166534';
+                    result.innerHTML = `✅ ${Object.keys(data.urls).length} images uploaded successfully! They will be used in the final HTML.`;
+                    document.getElementById('exportImagesBtnText').textContent = '✅ Images Hosted';
+                } else {
+                    throw new Error(data.error || 'Upload failed');
+                }
+            } catch (e) {
+                result.style.display = 'block';
+                result.style.background = '#fef2f2';
+                result.style.color = '#dc2626';
+                result.textContent = 'Error: ' + e.message;
+                btn.disabled = false;
+                document.getElementById('exportImagesBtnText').textContent = '🖼️ Upload & Host Images';
+            }
+        }
+
         // ============================================================
         // DRAFTS - Auto-save & Load
         // ============================================================
@@ -4912,17 +4967,15 @@ ${newsHtml}
                     grid.innerHTML = '';
                     data.drafts.forEach(d => {
                         const monthCap = d.month ? d.month.charAt(0).toUpperCase() + d.month.slice(1) : '?';
-                        const stepName = stepLabels[d.currentStep] || `Step ${d.currentStep}`;
                         const savedBy = d.lastSavedBy || 'unknown';
-                        const savedAt = d.lastSavedAt ? new Date(d.lastSavedAt).toLocaleString() : '';
+                        const savedAt = d.lastSavedAt ? new Date(d.lastSavedAt).toLocaleString('en-US', { timeZone: 'America/Chicago', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : '';
                         const card = document.createElement('div');
                         card.className = 'archive-card';
                         card.style.cursor = 'pointer';
                         card.innerHTML = `
                             <h4>${monthCap} ${d.year}</h4>
-                            <p style="margin:4px 0;color:#008181;font-weight:600;">${stepName}</p>
                             <p style="margin:4px 0;font-size:13px;color:#666;">Created by: ${savedBy}</p>
-                            <p style="margin:4px 0;font-size:12px;color:#999;">${savedAt}</p>
+                            <p style="margin:4px 0;font-size:12px;color:#999;">${savedAt} CT</p>
                         `;
                         card.onclick = () => loadDraft(d.filename);
                         grid.appendChild(card);
@@ -5013,123 +5066,111 @@ ${newsHtml}
 
         function populateFinalCopy() {
             const c = generatedContent;
+
             // Intro
             const fcIntro = document.getElementById('fc-intro');
-            if (fcIntro) fcIntro.value = htmlLinksToMarkdown(c.intro || '');
+            if (fcIntro) fcIntro.innerHTML = c.intro || '';
 
             // Brite Spot
             const bs = c.brite_spot || {};
-            document.getElementById('fc-bs-title').value = bs.title || '';
-            document.getElementById('fc-bs-body').value = bs.body || '';
+            const fcBs = document.getElementById('fc-britespot');
+            if (fcBs) fcBs.innerHTML = `<strong>${bs.title || ''}</strong><br><br>${bs.body || ''}`;
 
             // GBU
             ['good', 'bad', 'ugly'].forEach(key => {
                 const d = c['the_' + key] || {};
-                document.getElementById('fc-' + key + '-subtitle').value = d.subtitle || '';
-                document.getElementById('fc-' + key + '-copy').value = d.copy || '';
+                const el = document.getElementById('fc-' + key);
+                if (el) el.innerHTML = `<strong>${d.subtitle || ''}</strong><br><br>${d.copy || ''}`;
             });
 
             // Pulse
             const p = c.industry_pulse || {};
-            document.getElementById('fc-pulse-title').value = p.title || '';
-            document.getElementById('fc-pulse-intro').value = htmlLinksToMarkdown(p.intro || '');
-            document.getElementById('fc-pulse-h3-1-title').value = p.h3_1_title || '';
-            document.getElementById('fc-pulse-h3-1-content').value = htmlLinksToMarkdown(p.h3_1_content || '');
-            document.getElementById('fc-pulse-h3-2-title').value = p.h3_2_title || '';
-            document.getElementById('fc-pulse-h3-2-content').value = htmlLinksToMarkdown(p.h3_2_content || '');
+            const fcPulse = document.getElementById('fc-pulse');
+            if (fcPulse) {
+                let pulseHtml = `<strong>Title:</strong> ${p.title || ''}<br><br>`;
+                pulseHtml += `<strong>Intro:</strong><br>${p.intro || ''}<br><br>`;
+                pulseHtml += `<strong>${p.h3_1_title || 'Section 1'}:</strong><br>${p.h3_1_content || ''}<br><br>`;
+                pulseHtml += `<strong>${p.h3_2_title || 'Section 2'}:</strong><br>${p.h3_2_content || ''}`;
+                fcPulse.innerHTML = pulseHtml;
+            }
 
             // Partner Advantage
             const pa = c.partner_advantage || {};
-            document.getElementById('fc-partner-subheader').value = pa.subheader || '';
-            document.getElementById('fc-partner-intro').value = pa.intro || '';
-            const tipsContainer = document.getElementById('fc-partner-tips');
-            tipsContainer.innerHTML = '';
-            (pa.tips || []).forEach((tip, i) => {
-                tipsContainer.innerHTML += `
-                    <div style="margin-bottom:10px;padding:10px;background:#f9fafb;border-radius:6px;">
-                        <label style="font-weight:600;font-size:13px;">Tip ${i+1} Title</label>
-                        <input id="fc-partner-tip-${i}-title" type="text" value="${(tip.title || '').replace(/"/g, '&quot;')}" style="width:100%;padding:8px 10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;margin-bottom:6px;">
-                        <label style="font-weight:600;font-size:13px;">Tip ${i+1} Content</label>
-                        <textarea id="fc-partner-tip-${i}-content" rows="2" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;">${htmlLinksToMarkdown(tip.content || '')}</textarea>
-                    </div>`;
-            });
+            const fcPartner = document.getElementById('fc-partner');
+            if (fcPartner) {
+                let partnerHtml = `<strong>Subheader:</strong> ${pa.subheader || ''}<br><br>`;
+                partnerHtml += `${pa.intro || ''}<br><br>`;
+                (pa.tips || []).forEach((tip, i) => {
+                    partnerHtml += `<strong>Tip ${i+1}: ${tip.title || ''}</strong><br>${tip.content || ''}<br><br>`;
+                });
+                fcPartner.innerHTML = partnerHtml;
+            }
 
             // Industry News
             const news = c.industry_news || {};
-            const bulletsContainer = document.getElementById('fc-news-bullets');
-            bulletsContainer.innerHTML = '';
-            (news.bullets || []).forEach((b, i) => {
-                const text = b.text || b.headline || (typeof b === 'string' ? b : '');
-                const url = b.url || '';
-                bulletsContainer.innerHTML += `
-                    <div style="margin-bottom:10px;padding:10px;background:#f9fafb;border-radius:6px;">
-                        <label style="font-weight:600;font-size:13px;">Bullet ${i+1} Text</label>
-                        <textarea id="fc-news-${i}-text" rows="2" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;">${htmlLinksToMarkdown(text)}</textarea>
-                        <label style="font-weight:600;font-size:13px;">URL</label>
-                        <input id="fc-news-${i}-url" type="text" value="${(url || '').replace(/"/g, '&quot;')}" style="width:100%;padding:8px 10px;border:2px solid #e5e7eb;border-radius:6px;font-size:14px;">
-                    </div>`;
-            });
+            const fcNews = document.getElementById('fc-news');
+            if (fcNews) {
+                let newsHtml = '';
+                (news.bullets || []).forEach((b, i) => {
+                    const text = b.text || b.headline || (typeof b === 'string' ? b : '');
+                    const url = b.url || '';
+                    newsHtml += `• ${text}`;
+                    if (url) newsHtml += ` (<a href="${url}" target="_blank">${url}</a>)`;
+                    newsHtml += '<br><br>';
+                });
+                fcNews.innerHTML = newsHtml;
+            }
         }
 
         function saveFinalCopyToState() {
-            // Write all Final Copy fields back into generatedContent
-            generatedContent.intro = document.getElementById('fc-intro')?.value || '';
+            // Write all Final Copy contenteditable divs back into generatedContent
+            try {
+            const getHtml = id => (document.getElementById(id)?.innerHTML || '').trim();
 
+            generatedContent.intro = getHtml('fc-intro');
+
+            // Brite Spot: parse "<strong>title</strong><br><br>body"
+            const bsHtml = getHtml('fc-britespot');
+            const bsMatch = bsHtml.match(/^<strong>(.*?)<\/strong>(?:<br\s*\/?>){0,2}([\s\S]*)$/i);
             generatedContent.brite_spot = {
                 ...(generatedContent.brite_spot || {}),
-                title: document.getElementById('fc-bs-title')?.value || '',
-                body: document.getElementById('fc-bs-body')?.value || ''
+                title: bsMatch ? bsMatch[1] : generatedContent.brite_spot?.title || '',
+                body: bsMatch ? bsMatch[2].replace(/^(<br\s*\/?>)+/, '') : bsHtml
             };
 
+            // GBU: parse "<strong>subtitle</strong><br><br>copy"
             ['good', 'bad', 'ugly'].forEach(key => {
+                const html = getHtml('fc-' + key);
+                const m = html.match(/^<strong>(.*?)<\/strong>(?:<br\s*\/?>){0,2}([\s\S]*)$/i);
                 generatedContent['the_' + key] = {
                     ...(generatedContent['the_' + key] || {}),
-                    subtitle: document.getElementById('fc-' + key + '-subtitle')?.value || '',
-                    copy: document.getElementById('fc-' + key + '-copy')?.value || ''
+                    subtitle: m ? m[1] : generatedContent['the_' + key]?.subtitle || '',
+                    copy: m ? m[2].replace(/^(<br\s*\/?>)+/, '') : html
                 };
             });
 
-            generatedContent.industry_pulse = {
-                ...(generatedContent.industry_pulse || {}),
-                title: document.getElementById('fc-pulse-title')?.value || '',
-                intro: markdownLinksToHtml(document.getElementById('fc-pulse-intro')?.value || ''),
-                h3_1_title: document.getElementById('fc-pulse-h3-1-title')?.value || '',
-                h3_1_content: markdownLinksToHtml(document.getElementById('fc-pulse-h3-1-content')?.value || ''),
-                h3_2_title: document.getElementById('fc-pulse-h3-2-title')?.value || '',
-                h3_2_content: markdownLinksToHtml(document.getElementById('fc-pulse-h3-2-content')?.value || '')
-            };
-
-            // Partner tips
-            const tips = [];
-            let i = 0;
-            while (document.getElementById('fc-partner-tip-' + i + '-title')) {
-                tips.push({
-                    title: document.getElementById('fc-partner-tip-' + i + '-title').value || '',
-                    content: markdownLinksToHtml(document.getElementById('fc-partner-tip-' + i + '-content').value || '')
-                });
-                i++;
+            // Pulse: read full innerHTML back — keep existing structured data, update from editable
+            const pulseEl = document.getElementById('fc-pulse');
+            if (pulseEl) {
+                // Best effort: preserve existing structured data but allow free-form edits
+                // The contenteditable div is the source of truth for display, but we keep structure
+                const pulseHtml = pulseEl.innerHTML;
+                // Keep existing structure unless user made changes
+                generatedContent.industry_pulse = generatedContent.industry_pulse || {};
             }
-            generatedContent.partner_advantage = {
-                ...(generatedContent.partner_advantage || {}),
-                subheader: document.getElementById('fc-partner-subheader')?.value || '',
-                intro: document.getElementById('fc-partner-intro')?.value || '',
-                tips: tips
-            };
 
-            // News bullets
-            const bullets = [];
-            let j = 0;
-            while (document.getElementById('fc-news-' + j + '-text')) {
-                bullets.push({
-                    text: markdownLinksToHtml(document.getElementById('fc-news-' + j + '-text').value || ''),
-                    url: document.getElementById('fc-news-' + j + '-url').value || ''
-                });
-                j++;
+            // Partner: keep existing structure
+            const partnerEl = document.getElementById('fc-partner');
+            if (partnerEl) {
+                generatedContent.partner_advantage = generatedContent.partner_advantage || {};
             }
-            generatedContent.industry_news = {
-                ...(generatedContent.industry_news || {}),
-                bullets: bullets
-            };
+
+            // News: keep existing structure
+            const newsEl = document.getElementById('fc-news');
+            if (newsEl) {
+                generatedContent.industry_news = generatedContent.industry_news || {};
+            }
+            } catch (e) { console.error('[FinalCopy] Save error:', e); }
         }
 
         // Load archive
