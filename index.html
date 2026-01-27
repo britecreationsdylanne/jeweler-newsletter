@@ -2732,6 +2732,15 @@
         </div>
     </div>
 
+    <!-- Published Newsletter View Modal -->
+    <div id="publishedModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 10000; overflow: auto;">
+        <div style="max-width: 800px; margin: 40px auto; background: white; border-radius: 12px; position: relative;">
+            <button onclick="closePublishedModal()" style="position: absolute; top: 20px; right: 20px; background: white; border: 2px solid #e5e7eb; border-radius: 50%; width: 40px; height: 40px; font-size: 24px; cursor: pointer; z-index: 10;">&times;</button>
+            <div id="publishedModalContent" style="padding: 20px; max-height: 80vh; overflow: auto;">
+            </div>
+        </div>
+    </div>
+
     <!-- Previous Newsletters Section -->
     <div class="previous-newsletters-section">
         <div style="max-width: 1200px; margin: 0 auto;">
@@ -5415,7 +5424,7 @@ ${newsHtml}
 
                 const data = await response.json();
                 if (data.success) {
-                    deleteDraft(); // Remove draft after successful push
+                    publishDraft(); // Move draft to published
                     alert('Newsletter pushed to Ontraport successfully!');
                 } else {
                     alert('Failed to push to Ontraport: ' + (data.error || 'Unknown error'));
@@ -5581,6 +5590,115 @@ ${newsHtml}
                 console.error('[Draft] Delete failed:', e);
             }
         }
+
+        async function publishDraft() {
+            if (!selectedMonth) return;
+            try {
+                const year = new Date().getFullYear();
+                const userPrefix = ((window.AUTH_USER && window.AUTH_USER.email) || 'unknown').split('@')[0].replace(/\./g, '-');
+                await fetch(`${API_BASE}/api/publish-draft`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ file: `drafts/${selectedMonth}-${year}-${userPrefix}.json` })
+                });
+                console.log('[Draft] Published');
+                loadDrafts();
+                loadPublishedNewsletters();
+            } catch (e) {
+                console.error('[Draft] Publish failed:', e);
+            }
+        }
+
+        async function loadPublishedNewsletters() {
+            try {
+                const response = await fetch(`${API_BASE}/api/list-published`);
+                const data = await response.json();
+                const grid = document.getElementById('archiveGrid');
+                const empty = document.getElementById('archiveContent');
+                if (data.success && data.newsletters && data.newsletters.length > 0) {
+                    if (empty) empty.style.display = 'none';
+                    grid.style.display = 'grid';
+                    grid.innerHTML = '';
+                    data.newsletters.forEach(n => {
+                        const monthCap = n.month ? n.month.charAt(0).toUpperCase() + n.month.slice(1) : '?';
+                        const savedBy = n.lastSavedBy || 'unknown';
+                        const savedAt = n.lastSavedAt ? new Date(n.lastSavedAt).toLocaleString('en-US', { timeZone: 'America/Chicago', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : '';
+                        const card = document.createElement('div');
+                        card.style.cssText = 'background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;';
+                        card.onmouseenter = () => { card.style.transform = 'translateY(-4px)'; card.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)'; };
+                        card.onmouseleave = () => { card.style.transform = ''; card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'; };
+                        card.innerHTML = `
+                            <div style="width: 100%; height: 140px; background: #272D3F; display: flex; align-items: center; justify-content: center;">
+                                <div style="font-size: 48px; color: #008181; opacity: 0.4;">📰</div>
+                            </div>
+                            <div style="padding: 20px;">
+                                <span style="display: inline-block; background: #272D3F; color: white; padding: 6px 14px; border-radius: 4px; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 12px;">${monthCap} ${n.year}</span>
+                                <div style="margin: 12px 0;">
+                                    <div style="margin-bottom: 10px; padding-left: 12px; border-left: 3px solid #008181;">
+                                        <div style="font-size: 11px; text-transform: uppercase; color: #008181; font-weight: 700; letter-spacing: 0.5px;">GBU</div>
+                                        <div style="font-size: 13px; color: #272D3F; font-weight: 600;">${n.sections?.gbu?.title || 'The Good, Bad & Ugly'}</div>
+                                    </div>
+                                    <div style="margin-bottom: 10px; padding-left: 12px; border-left: 3px solid #008181;">
+                                        <div style="font-size: 11px; text-transform: uppercase; color: #008181; font-weight: 700; letter-spacing: 0.5px;">PULSE</div>
+                                        <div style="font-size: 13px; color: #272D3F; font-weight: 600;">${n.sections?.pulse?.title || 'Industry Pulse'}</div>
+                                    </div>
+                                    <div style="margin-bottom: 10px; padding-left: 12px; border-left: 3px solid #008181;">
+                                        <div style="font-size: 11px; text-transform: uppercase; color: #008181; font-weight: 700; letter-spacing: 0.5px;">PARTNER</div>
+                                        <div style="font-size: 13px; color: #272D3F; font-weight: 600;">${n.sections?.partner?.title || 'Partner Advantage'}</div>
+                                    </div>
+                                </div>
+                                <p style="margin: 8px 0 0; font-size: 12px; color: #999;">${savedBy} · ${savedAt} CT</p>
+                                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee;">
+                                    <button onclick="viewPublishedNewsletter('${n.filename}')" style="width: 100%; padding: 12px 16px; background: #008181; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">View Newsletter</button>
+                                </div>
+                            </div>
+                        `;
+                        grid.appendChild(card);
+                    });
+                } else {
+                    if (empty) empty.style.display = 'block';
+                    grid.style.display = 'none';
+                }
+            } catch (e) {
+                console.error('[Published] Load list failed:', e);
+            }
+        }
+
+        async function viewPublishedNewsletter(filename) {
+            try {
+                const resp = await fetch(`${API_BASE}/api/load-published?file=${encodeURIComponent(filename)}`);
+                const data = await resp.json();
+                if (!data.success || !data.draft) { alert('Could not load newsletter'); return; }
+                const d = data.draft;
+                // Temporarily store current state
+                const origMonth = selectedMonth;
+                const origContent = generatedContent;
+                const origImages = generatedImages;
+                // Set state from published draft
+                selectedMonth = d.month || '';
+                generatedContent = d.generatedContent || {};
+                generatedImages = d.generatedImages || {};
+                // Generate preview
+                const html = generateNewsletterHTML();
+                document.getElementById('publishedModalContent').innerHTML = html;
+                document.getElementById('publishedModal').style.display = 'block';
+                // Restore original state
+                selectedMonth = origMonth;
+                generatedContent = origContent;
+                generatedImages = origImages;
+            } catch (e) {
+                console.error('Error viewing newsletter:', e);
+                alert('Failed to load newsletter preview');
+            }
+        }
+
+        function closePublishedModal() {
+            document.getElementById('publishedModal').style.display = 'none';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closePublishedModal();
+        });
 
         // ============================================================
         // FINAL COPY - Populate & Save
@@ -5853,6 +5971,11 @@ ${newsHtml}
                 pwInput.focus();
             }
         });
+
+        // Load published newsletters on page load
+        loadPublishedNewsletters();
+
+        window.scrollTo(0, 0);
     </script>
 </body>
 </html>
