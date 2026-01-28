@@ -11,6 +11,10 @@ import base64
 import secrets
 from datetime import datetime
 from io import BytesIO
+import pytz
+
+# Chicago timezone for timestamps
+CHICAGO_TZ = pytz.timezone('America/Chicago')
 
 from flask import Flask, request, jsonify, send_from_directory, redirect, session, url_for, Response
 from flask_cors import CORS
@@ -116,8 +120,9 @@ try:
 except Exception as e:
     print(f"[WARNING] Perplexity not available: {e}")
 
-# Google Cloud Storage for drafts
+# Google Cloud Storage for drafts and images
 GCS_BUCKET_NAME = 'stay-in-the-loupe-drafts'
+GCS_IMAGES_BUCKET = 'stay-in-the-loupe-images'  # Public bucket for newsletter images
 gcs_client = None
 try:
     from google.cloud import storage as gcs_storage
@@ -2698,7 +2703,7 @@ def save_draft():
             'preheader': data.get('preheader'),
             'customLinks': data.get('customLinks'),
             'lastSavedBy': data.get('savedBy', 'unknown'),
-            'lastSavedAt': datetime.now().isoformat()
+            'lastSavedAt': datetime.now(CHICAGO_TZ).isoformat()
         }
 
         bucket = gcs_client.bucket(GCS_BUCKET_NAME)
@@ -2905,8 +2910,8 @@ def add_saved_article():
         if any(a.get('url') == article['url'] for a in articles):
             return jsonify({'success': True, 'message': 'Already saved', 'articles': articles})
 
-        # Add with timestamp
-        article['dateSaved'] = datetime.now().isoformat()
+        # Add with timestamp (Chicago time)
+        article['dateSaved'] = datetime.now(CHICAGO_TZ).isoformat()
         articles.insert(0, article)
 
         blob.upload_from_string(json.dumps({'articles': articles}), content_type='application/json')
@@ -2941,6 +2946,82 @@ def delete_saved_article():
 
     except Exception as e:
         safe_print(f"[SAVED ARTICLES] Error deleting: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================================
+# IMAGE HOSTING - Upload images to GCS for email
+# ============================================================================
+
+@app.route('/api/upload-images-to-gcs', methods=['POST'])
+def upload_images_to_gcs():
+    """Upload newsletter images to GCS and return public URLs"""
+    if not gcs_client:
+        return jsonify({'success': False, 'error': 'GCS not configured'}), 500
+
+    try:
+        data = request.json
+        images = data.get('images', {})  # { section_name: base64_data_url }
+        month = data.get('month', 'unknown')
+        year = data.get('year', datetime.now().year)
+
+        if not images:
+            return jsonify({'success': False, 'error': 'No images provided'}), 400
+
+        bucket = gcs_client.bucket(GCS_IMAGES_BUCKET)
+        uploaded_urls = {}
+        timestamp = datetime.now(CHICAGO_TZ).strftime('%Y%m%d-%H%M%S')
+
+        for section, data_url in images.items():
+            if not data_url or not data_url.startswith('data:image'):
+                continue
+
+            # Parse base64 data URL
+            # Format: data:image/png;base64,iVBORw0KGgo...
+            try:
+                header, b64_data = data_url.split(',', 1)
+                # Extract image format
+                img_format = 'png'
+                if 'jpeg' in header or 'jpg' in header:
+                    img_format = 'jpg'
+                elif 'webp' in header:
+                    img_format = 'webp'
+
+                # Decode base64
+                image_bytes = base64.b64decode(b64_data)
+
+                # Create unique filename
+                safe_section = section.replace('_', '-')
+                filename = f"newsletters/{year}/{month.lower()}/{timestamp}-{safe_section}.{img_format}"
+
+                # Upload to GCS
+                blob = bucket.blob(filename)
+                blob.upload_from_string(
+                    image_bytes,
+                    content_type=f'image/{img_format}'
+                )
+
+                # Make publicly accessible
+                blob.make_public()
+
+                # Get public URL
+                uploaded_urls[section] = blob.public_url
+                safe_print(f"[GCS] Uploaded {section} -> {blob.public_url}")
+
+            except Exception as img_error:
+                safe_print(f"[GCS] Error uploading {section}: {str(img_error)}")
+                continue
+
+        return jsonify({
+            'success': True,
+            'urls': uploaded_urls,
+            'count': len(uploaded_urls)
+        })
+
+    except Exception as e:
+        safe_print(f"[GCS UPLOAD] Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 

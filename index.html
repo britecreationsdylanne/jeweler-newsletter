@@ -2283,6 +2283,11 @@
                 <div class="editable" contenteditable="true" id="fc-news"></div>
             </div>
 
+            <div style="margin-top: 20px; padding: 15px; background: #f0fdf4; border-radius: 8px; border: 1px solid #86efac;">
+                <button class="btn btn-secondary" onclick="saveDraft(); this.textContent='✓ Saved'; setTimeout(() => this.textContent='💾 Save Draft', 2000);" style="background: #16a34a; color: white; border: none;">💾 Save Draft</button>
+                <span style="margin-left: 10px; color: #166534; font-size: 14px;">Save your progress before continuing</span>
+            </div>
+
             <div class="buttons">
                 <button class="btn btn-secondary" onclick="goToStep(7)">← Back to Brand Check</button>
                 <button class="btn" onclick="saveFinalCopyToState(); generateImagePrompts();">Continue to Image Prompts →</button>
@@ -3674,7 +3679,7 @@
                     <div class="research-result-meta">
                         <span>${article.publisher}</span>
                         <a href="${article.url}" target="_blank">Source →</a>
-                        <input type="checkbox" class="research-result-checkbox" onclick="event.stopPropagation()">
+                        <input type="checkbox" class="research-result-checkbox" onclick="handleCheckboxClick(this, event)">
                     </div>
                 </div>
                 <div class="research-result-title">${article.headline}</div>
@@ -3800,7 +3805,7 @@
                     <div class="research-result-meta">
                         <span>${article.publisher}</span>
                         <a href="${article.url}" target="_blank">Source →</a>
-                        <input type="checkbox" class="research-result-checkbox" onclick="event.stopPropagation()">
+                        <input type="checkbox" class="research-result-checkbox" onclick="handleCheckboxClick(this, event)">
                     </div>
                 </div>
                 <div class="research-result-title">${article.headline}</div>
@@ -4042,7 +4047,7 @@
                             <span>${r.publisher || ''}</span>
                             <a href="${r.url || '#'}" target="_blank">Source →</a>
                             <button class="save-article-btn ${isSaved ? 'is-saved' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleSaveArticle(this, window._displayedArticles[${articleIdx}])" title="${isSaved ? 'Saved' : 'Save for later'}">📌</button>
-                            <input type="checkbox" class="research-result-checkbox" onclick="event.stopPropagation(); event.stopImmediatePropagation();">
+                            <input type="checkbox" class="research-result-checkbox" onclick="handleCheckboxClick(this, event)">
                         </div>
                     </div>
                     <div class="research-result-title">${headline}</div>
@@ -4072,6 +4077,17 @@
             if (section === 'step5' && step5SearchState[currentStep5Tab]) {
                 step5SearchState[currentStep5Tab].htmlCache[source] = resultsDiv.innerHTML;
                 step5SearchState[currentStep5Tab][source] = results;
+            }
+        }
+
+        // Helper to handle checkbox clicks - triggers parent item's selection
+        function handleCheckboxClick(checkbox, e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            const item = checkbox.closest('.research-result-item');
+            if (item && item.onclick) {
+                item.onclick();
             }
         }
 
@@ -5415,21 +5431,94 @@ ${newsHtml}
         }
 
         // Push to Ontraport
+        async function uploadImagesToGCS() {
+            // Collect all generated images for upload
+            const sections = ['the_good', 'the_bad', 'the_ugly', 'brite_spot', 'industry_pulse', 'partner_advantage'];
+            const images = {};
+
+            for (const section of sections) {
+                const img = generatedImages[section] || generatedImages[section.replace('the_', '')] || null;
+                if (!img) continue;
+                const dataUrl = (typeof img === 'string') ? img : (img.url || (img.image_data ? 'data:image/png;base64,' + img.image_data : null));
+                if (dataUrl && dataUrl.startsWith('data:image')) {
+                    images[section] = dataUrl;
+                }
+            }
+
+            if (Object.keys(images).length === 0) {
+                return { success: true, urls: {} };
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/upload-images-to-gcs`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        images: images,
+                        month: selectedMonth,
+                        year: new Date().getFullYear()
+                    })
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('GCS upload error:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
         async function pushToOntraport() {
             const subject = document.getElementById('ontraportSubjectInput')?.value || document.getElementById('finalSubjectLine')?.value;
             if (!subject) { alert('Please enter a subject line'); return; }
 
+            const btn = document.getElementById('ontraportBtn');
+            const btnText = document.getElementById('ontraportBtnText');
+            const originalText = btnText.textContent;
+
             try {
+                // Step 1: Upload images to GCS
+                btnText.textContent = '📤 Uploading images...';
+                btn.disabled = true;
+
+                const uploadResult = await uploadImagesToGCS();
+                const gcsUrls = uploadResult.success ? uploadResult.urls : {};
+                console.log('GCS upload result:', uploadResult);
+
+                // Step 2: Generate HTML
+                btnText.textContent = '📝 Generating HTML...';
                 let html = generateNewsletterHTML();
-                // Replace any base64 data URIs with placeholder URLs for Ontraport
-                // (Gmail/Outlook strip base64 images — user must host on WP and replace)
+
+                // Step 3: Replace base64 images with GCS URLs or placeholders
+                const sectionMap = {
+                    'the_good': 'good', 'the_bad': 'bad', 'the_ugly': 'ugly',
+                    'brite_spot': 'brite-spot', 'industry_pulse': 'industry-pulse', 'partner_advantage': 'partner-advantage'
+                };
+
+                // Build a map of base64 -> GCS URL
+                const base64ToUrl = {};
+                for (const [section, gcsUrl] of Object.entries(gcsUrls)) {
+                    const img = generatedImages[section] || generatedImages[section.replace('the_', '')] || null;
+                    if (img) {
+                        const dataUrl = (typeof img === 'string') ? img : (img.url || (img.image_data ? 'data:image/png;base64,' + img.image_data : null));
+                        if (dataUrl) base64ToUrl[dataUrl] = gcsUrl;
+                    }
+                }
+
+                // Replace base64 with GCS URLs
                 let imgIndex = 0;
-                const imgLabels = ['image-1', 'image-2', 'image-3', 'image-4', 'image-5', 'image-6'];
-                html = html.replace(/data:image\/[a-z]+;base64,[A-Za-z0-9+\/=]+/g, () => {
+                const imgLabels = ['good', 'bad', 'ugly', 'brite-spot', 'industry-pulse', 'partner-advantage'];
+                html = html.replace(/data:image\/[a-z]+;base64,[A-Za-z0-9+\/=]+/g, (match) => {
+                    // Check if we have a GCS URL for this image
+                    if (base64ToUrl[match]) {
+                        return base64ToUrl[match];
+                    }
+                    // Fallback to placeholder
                     const label = imgLabels[imgIndex] || 'image-' + (imgIndex + 1);
                     imgIndex++;
                     return 'https://REPLACE-WITH-HOSTED-URL/' + label + '.png';
                 });
+
+                // Step 4: Push to Ontraport
+                btnText.textContent = '🚀 Pushing to Ontraport...';
                 const response = await fetch(`${API_BASE}/api/push-to-ontraport`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -5439,12 +5528,20 @@ ${newsHtml}
                 const data = await response.json();
                 if (data.success) {
                     publishDraft(); // Move draft to published
-                    alert('Newsletter pushed to Ontraport successfully!');
+                    const uploadedCount = Object.keys(gcsUrls).length;
+                    if (uploadedCount > 0) {
+                        alert(`Newsletter pushed to Ontraport successfully!\n\n${uploadedCount} images auto-hosted on GCS.`);
+                    } else {
+                        alert('Newsletter pushed to Ontraport successfully!');
+                    }
                 } else {
                     alert('Failed to push to Ontraport: ' + (data.error || 'Unknown error'));
                 }
             } catch (error) {
                 alert('Error: ' + error.message);
+            } finally {
+                btnText.textContent = originalText;
+                btn.disabled = false;
             }
         }
 
