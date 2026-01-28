@@ -4321,9 +4321,9 @@
 
             if (generatedContent.partner_advantage) {
                 const pa = generatedContent.partner_advantage;
-                let html = `<strong>${pa.subheader || ''}</strong><p>${pa.intro || ''}</p><ul>`;
+                let html = `<strong>${pa.subheader || ''}</strong><p>${pa.intro || ''}</p><ul style="margin: 10px 0; padding-left: 20px; list-style-position: inside;">`;
                 (pa.tips || []).forEach(tip => {
-                    html += `<li><strong>${tip.title || ''}</strong>: ${tip.content || ''}</li>`;
+                    html += `<li style="margin-bottom: 8px;"><strong>${tip.title || ''}</strong>: ${tip.content || ''}</li>`;
                 });
                 html += '</ul>';
                 document.getElementById('review-partner').innerHTML = html;
@@ -4331,7 +4331,7 @@
 
             if (generatedContent.industry_news) {
                 const news = generatedContent.industry_news;
-                let html = '<ul>';
+                let html = '<ul style="margin: 10px 0; padding-left: 20px; list-style-position: inside;">';
                 (news.bullets || []).forEach(b => {
                     // Get text which may contain markdown links [text](url)
                     let bulletText = b.text || b.headline || b;
@@ -4342,7 +4342,7 @@
                         '<a href="$2" target="_blank" style="color: #018181; text-decoration: underline;">$1</a>'
                     );
 
-                    html += `<li>${bulletText}</li>`;
+                    html += `<li style="margin-bottom: 8px;">${bulletText}</li>`;
                 });
                 html += '</ul>';
                 document.getElementById('review-news').innerHTML = html;
@@ -5197,7 +5197,7 @@ a { color: #018181; }
 
 <!-- SECTION 1: HERO BANNER -->
 <tr>
-    <td align="center" style="padding:0;background-color:#037E7F;background-image:url('https://accidentpros.linkgama.com/wp-content/uploads/2025/10/banner-bg.png');background-repeat:no-repeat;background-position:center;background-size:cover;">
+    <td align="center" style="padding:0;background-color:#037E7F;background-image:url('https://accidentpros.linkgama.com/wp-content/uploads/2025/10/banner-bg.png');background-repeat:no-repeat;background-position:center top;background-size:100% auto;">
         <!--[if mso]>
         <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;">
         <v:fill type="frame" src="https://accidentpros.linkgama.com/wp-content/uploads/2025/10/banner-bg.png" color="#037E7F"/>
