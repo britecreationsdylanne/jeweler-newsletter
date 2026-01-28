@@ -667,8 +667,8 @@
         }
 
         .research-result-checkbox {
-            width: 16px;
-            height: 16px;
+            width: 12px;
+            height: 12px;
             accent-color: #018181;
         }
 
@@ -1203,62 +1203,6 @@
             gap: 10px;
         }
 
-        /* Password Overlay */
-        .password-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #272d3f;
-            z-index: 99999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .password-box {
-            background: white;
-            padding: 3rem;
-            border-radius: 12px;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .password-box h2 {
-            color: #272d3f;
-            margin-bottom: 0.5rem;
-        }
-
-        .password-box .subtitle {
-            color: #FE8916;
-            font-size: 12px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 1.5rem;
-        }
-
-        .password-box input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .password-box input:focus {
-            outline: none;
-            border-color: #018181;
-        }
-
-        .password-error {
-            color: #dc2626;
-            margin-top: 1rem;
-            display: none;
-        }
-
         /* Tips Box */
         .tips-box {
             background: #f0f9ff;
@@ -1419,17 +1363,6 @@
     </style>
 </head>
 <body>
-    <!-- Password Protection Overlay -->
-    <div class="password-overlay" id="passwordOverlay">
-        <div class="password-box">
-            <h2>Stay In The Loupe</h2>
-            <p style="color: #666; margin-bottom: 1.5rem;">Enter password to access the tool</p>
-            <input type="password" id="passwordInput" placeholder="Enter password" onkeypress="if(event.key==='Enter')checkPassword()">
-            <button class="btn" onclick="checkPassword()" style="width: 100%;">Access Tool</button>
-            <p class="password-error" id="passwordError">Incorrect password</p>
-        </div>
-    </div>
-
     <!-- Add Custom Link Modal -->
     <div class="modal-overlay" id="customLinkModal">
         <div class="modal-content">
@@ -2819,6 +2752,36 @@
         let promptsAlreadyGenerated = false;
         let exportedDocUrl = '';
 
+        // Tracking state
+        let lastSearchQuery = '';
+        let lastSearchSource = '';
+
+        // Track article selection for learning/analysis
+        async function trackSelection(section, article, deselected = false) {
+            // Fire and forget - don't block user workflow
+            try {
+                fetch(`${API_BASE}/api/track-selection`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        section: section,
+                        url: article.url,
+                        title: article.title,
+                        headline: article.headline,
+                        publisher: article.publisher,
+                        snippet: article.snippet,
+                        impact: article.impact,
+                        searchQuery: lastSearchQuery || '',
+                        searchSource: lastSearchSource || '',
+                        timeFilter: document.querySelector('[id$="-time-select"]')?.value || '',
+                        user: (window.AUTH_USER && window.AUTH_USER.email) || 'unknown',
+                        month: selectedMonth,
+                        deselected: deselected
+                    })
+                });
+            } catch (e) { /* silent */ }
+        }
+
         // Team members
         const TEAM_MEMBERS = [
             { name: 'John Ortbal', email: 'john.ortbal@brite.co' },
@@ -2849,22 +2812,8 @@
             12: 'Ontraport'
         };
 
-        // Password
-        function checkPassword() {
-            const password = document.getElementById('passwordInput').value;
-            if (password === 'gobriteco') {
-                document.getElementById('passwordOverlay').style.display = 'none';
-                sessionStorage.setItem('authenticated', 'true');
-                initApp();
-            } else {
-                document.getElementById('passwordError').style.display = 'block';
-            }
-        }
-
-        if (sessionStorage.getItem('authenticated') === 'true') {
-            document.getElementById('passwordOverlay').style.display = 'none';
-            document.addEventListener('DOMContentLoaded', initApp);
-        }
+        // Initialize on load (OAuth handles auth)
+        document.addEventListener('DOMContentLoaded', initApp);
 
         // Initialize
         function initApp() {
@@ -3796,6 +3745,16 @@
 
             if (!resultsDiv) return;
 
+            // Check for duplicate - don't add if article URL already exists in results
+            const existingItems = resultsDiv.querySelectorAll('.research-result-item');
+            for (const existing of existingItems) {
+                const link = existing.querySelector('a[href]');
+                if (link && link.href === article.url) {
+                    alert('This article is already in the results.');
+                    return;
+                }
+            }
+
             const item = document.createElement('div');
             item.className = 'research-result-item';
             item.style.borderLeft = '4px solid #7c3aed';
@@ -3816,7 +3775,8 @@
                     </div>
                 ` : ''}
             `;
-            item.onclick = () => selectArticle(section === 'pulse' || section === 'partner' || section === 'news' ? 'step5' : section, article, item);
+            const actualSection = section === 'pulse' || section === 'partner' || section === 'news' ? 'step5' : section;
+            item.onclick = () => selectArticle(actualSection, article, item);
 
             if (resultsDiv.firstChild) {
                 resultsDiv.insertBefore(item, resultsDiv.firstChild);
@@ -3827,6 +3787,11 @@
             if (stateCache) {
                 stateCache.htmlCache.perplexity = resultsDiv.innerHTML;
             }
+
+            // Auto-select the article immediately after adding
+            setTimeout(() => {
+                selectArticle(actualSection, article, item);
+            }, 50);
         }
 
         async function toggleSaveArticle(btn, article) {
@@ -3936,6 +3901,10 @@
             const query = queryInput.value || 'jewelry industry news';
             const timeWindow = timeSelect ? timeSelect.value : '30d';
 
+            // Track search query
+            lastSearchQuery = query;
+            lastSearchSource = 'perplexity';
+
             resultsDiv.innerHTML = '<div style="text-align: center; padding: 20px;"><div class="spinner"></div></div>';
 
             try {
@@ -3960,6 +3929,10 @@
             const timeSelect = document.getElementById(section + '-insight-time');
             const resultsDiv = document.getElementById(section + '-insight-results');
             const timeWindow = timeSelect ? timeSelect.value : '30d';
+
+            // Track search query
+            lastSearchQuery = 'insights';
+            lastSearchSource = 'insights';
 
             resultsDiv.innerHTML = '<div style="text-align: center; padding: 20px;"><div class="spinner"></div></div>';
 
@@ -3987,6 +3960,10 @@
 
             const query = queryInput ? queryInput.value : 'jewelry news';
             const timeWindow = timeSelect ? timeSelect.value : '30d';
+
+            // Track search query
+            lastSearchQuery = query;
+            lastSearchSource = 'sources';
 
             resultsDiv.innerHTML = '<div style="text-align: center; padding: 20px;"><div class="spinner"></div></div>';
 
@@ -4111,6 +4088,9 @@
                 document.getElementById(currentGBUTab + '-check').textContent = '✓';
                 document.getElementById('progress-' + currentGBUTab).classList.add('completed');
 
+                // Track selection
+                trackSelection(key, article, false);
+
             } else if (section === 'pulse') {
                 const key = 'industry_pulse';
                 const existingIndex = selectedArticles[key].findIndex(a => a.url === article.url);
@@ -4120,10 +4100,14 @@
                     selectedArticles[key].splice(existingIndex, 1);
                     element.classList.remove('selected');
                     if (checkbox) checkbox.checked = false;
+                    // Track deselection
+                    trackSelection(key, article, true);
                 } else if (selectedArticles[key].length < 5) {
                     selectedArticles[key].push(article);
                     element.classList.add('selected');
                     if (checkbox) checkbox.checked = true;
+                    // Track selection
+                    trackSelection(key, article, false);
                 } else {
                     alert('Maximum 5 articles allowed');
                 }
@@ -4151,10 +4135,14 @@
                     selectedArticles[key].splice(existingIndex, 1);
                     element.classList.remove('selected');
                     if (checkbox) checkbox.checked = false;
+                    // Track deselection
+                    trackSelection(key, article, true);
                 } else if (selectedArticles[key].length < maxItems) {
                     selectedArticles[key].push(article);
                     element.classList.add('selected');
                     if (checkbox) checkbox.checked = true;
+                    // Track selection
+                    trackSelection(key, article, false);
                 } else {
                     alert(`Maximum ${maxItems} articles allowed`);
                 }
@@ -5320,7 +5308,7 @@ a { color: #018181; }
 <p style="font-size:16px;line-height:28px;color:#3B3B3B;margin:0;">${briteSpot}</p>
 </td>
 <td valign="top" align="right" width="50%">
-<img src="${briteSpotImage}" alt="" width="203" style="width:203px;height:auto;">
+<img src="${briteSpotImage}" alt="" width="254" style="width:254px;height:auto;">
 </td>
 </tr></table>
 </td></tr></table>
@@ -6074,14 +6062,6 @@ ${newsHtml}
                 console.error('Failed to load archive:', error);
             }
         }
-
-        // Focus password input
-        document.addEventListener('DOMContentLoaded', () => {
-            const pwInput = document.getElementById('passwordInput');
-            if (pwInput && document.getElementById('passwordOverlay').style.display !== 'none') {
-                pwInput.focus();
-            }
-        });
 
         // Load published newsletters on page load
         loadPublishedNewsletters();

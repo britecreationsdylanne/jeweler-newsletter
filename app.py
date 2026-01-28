@@ -3026,6 +3026,60 @@ def upload_images_to_gcs():
 
 
 # ============================================================================
+# ARTICLE SELECTION TRACKING
+# ============================================================================
+
+@app.route('/api/track-selection', methods=['POST'])
+def track_selection():
+    """Track article selection for learning/analysis"""
+    if not gcs_client:
+        return jsonify({'success': False, 'error': 'GCS not configured'}), 500
+
+    try:
+        data = request.json
+        selection = {
+            'timestamp': datetime.now(CHICAGO_TZ).isoformat(),
+            'app': 'jeweler',
+            'section': data.get('section'),  # e.g., 'the_good', 'industry_pulse'
+            'article': {
+                'url': data.get('url'),
+                'title': data.get('title'),
+                'headline': data.get('headline'),
+                'publisher': data.get('publisher'),
+                'snippet': data.get('snippet'),
+                'impact': data.get('impact')
+            },
+            'searchQuery': data.get('searchQuery'),
+            'searchSource': data.get('searchSource'),  # 'perplexity' or 'google'
+            'timeFilter': data.get('timeFilter'),
+            'user': data.get('user', 'unknown'),
+            'month': data.get('month'),
+            'deselected': data.get('deselected', False)  # True if user unselected
+        }
+
+        # Store in GCS: selection-history/jeweler/2026-01.jsonl
+        year_month = datetime.now(CHICAGO_TZ).strftime('%Y-%m')
+        blob_name = f'selection-history/jeweler/{year_month}.jsonl'
+
+        bucket = gcs_client.bucket(GCS_BUCKET_NAME)
+        blob = bucket.blob(blob_name)
+
+        # Append to existing file (JSONL format - one JSON per line)
+        existing = ''
+        if blob.exists():
+            existing = blob.download_as_text()
+
+        new_content = existing + json.dumps(selection) + '\n'
+        blob.upload_from_string(new_content, content_type='application/jsonl')
+
+        return jsonify({'success': True})
+    except Exception as e:
+        # Silent fail - don't interrupt user workflow
+        safe_print(f"[TRACK] Error: {str(e)}")
+        return jsonify({'success': True})  # Return success anyway
+
+
+# ============================================================================
 # MAIN
 # ============================================================================
 
