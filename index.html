@@ -4301,7 +4301,9 @@
                 const el = document.getElementById('review-' + key.replace('the_', ''));
                 if (generatedContent[key]) {
                     const s = generatedContent[key];
-                    el.innerHTML = `<strong>${s.subtitle || ''}</strong><br>${s.copy || ''}`;
+                    const sourceUrl = selectedArticles[key]?.url || selectedArticles[key]?.source_url || '';
+                    const sourceLink = sourceUrl ? `<br><a href="${sourceUrl}" target="_blank" style="color: #018181; text-decoration: underline; font-size: 13px;">Read more →</a>` : '';
+                    el.innerHTML = `<strong>${s.subtitle || ''}</strong><br>${s.copy || ''}${sourceLink}`;
                 }
             });
 
@@ -5605,12 +5607,21 @@ ${newsHtml}
                         const savedAt = d.lastSavedAt ? new Date(d.lastSavedAt).toLocaleString('en-US', { timeZone: 'America/Chicago', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : '';
                         const card = document.createElement('div');
                         card.className = 'archive-card';
-                        card.style.cursor = 'pointer';
+                        card.style.cssText = 'cursor: pointer; position: relative;';
                         card.innerHTML = `
+                            <button class="draft-delete-btn" title="Delete draft" style="position: absolute; top: 8px; right: 8px; background: #dc3545; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 14px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s;">&times;</button>
                             <h4>${monthCap} ${d.year}</h4>
                             <p style="margin:4px 0;font-size:13px;color:#666;">Created by: ${savedBy}</p>
                             <p style="margin:4px 0;font-size:12px;color:#999;">${savedAt} CT</p>
                         `;
+                        card.querySelector('.draft-delete-btn').onclick = (e) => {
+                            e.stopPropagation();
+                            if (confirm(`Delete draft for ${monthCap} ${d.year}?`)) {
+                                deleteDraft(d.filename);
+                            }
+                        };
+                        card.querySelector('.draft-delete-btn').onmouseenter = (e) => e.target.style.opacity = '1';
+                        card.querySelector('.draft-delete-btn').onmouseleave = (e) => e.target.style.opacity = '0.7';
                         card.onclick = () => loadDraft(d.filename);
                         grid.appendChild(card);
                     });
@@ -5667,17 +5678,22 @@ ${newsHtml}
             }
         }
 
-        async function deleteDraft() {
-            if (!selectedMonth) return;
-            try {
+        async function deleteDraft(filename) {
+            // If no filename provided, use current draft
+            if (!filename) {
+                if (!selectedMonth) return;
                 const year = new Date().getFullYear();
                 const userPrefix = ((window.AUTH_USER && window.AUTH_USER.email) || 'unknown').split('@')[0].replace(/\./g, '-');
+                filename = `drafts/${selectedMonth}-${year}-${userPrefix}.json`;
+            }
+            try {
                 await fetch(`${API_BASE}/api/delete-draft`, {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ file: `drafts/${selectedMonth}-${year}-${userPrefix}.json` })
+                    body: JSON.stringify({ file: filename })
                 });
-                console.log('[Draft] Deleted');
+                console.log('[Draft] Deleted:', filename);
+                loadDrafts();
             } catch (e) {
                 console.error('[Draft] Delete failed:', e);
             }
