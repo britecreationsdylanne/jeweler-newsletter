@@ -1799,7 +1799,7 @@
 
             <div class="research-tabs">
                 <button class="research-tab active" onclick="switchStep5Tab('pulse', this)">
-                    <span class="tab-icon">📊</span> Industry Pulse (2-5) <span class="tab-check" id="pulse-check"></span>
+                    <span class="tab-icon">📊</span> Industry Pulse <span style="font-size: 11px; color: #6b7280;">(select 2-5)</span> <span class="tab-check" id="pulse-check"></span>
                 </button>
                 <button class="research-tab" onclick="switchStep5Tab('partner', this)">
                     <span class="tab-icon">💡</span> Partner Advantage (1-2) <span class="tab-check" id="partner-check"></span>
@@ -3849,8 +3849,8 @@
             menu.className = 'dots-menu';
             menu.style.display = 'block';
             menu.innerHTML = `
-                <div class="dots-menu-item save" onclick="event.stopPropagation(); doSaveForLater(${articleIdx}); this.closest('.dots-menu').remove();">
-                    <span class="icon">${alreadySaved ? '✓' : '📌'}</span> ${alreadySaved ? 'Already Saved' : 'Save for Later'}
+                <div class="dots-menu-item save" onclick="event.stopPropagation(); ${alreadySaved ? `doRemoveFromSaved(${articleIdx})` : `doSaveForLater(${articleIdx})`}; this.closest('.dots-menu').remove();">
+                    <span class="icon">${alreadySaved ? '🗑' : '📌'}</span> ${alreadySaved ? 'Remove from Saved' : 'Save for Later'}
                 </div>
                 <div class="dots-menu-divider"></div>
                 <div class="dots-menu-item notfit" onclick="event.stopPropagation(); doNotGoodFit(${articleIdx}); this.closest('.dots-menu').remove();">
@@ -3883,6 +3883,32 @@
                 if (dotsBtn) dotsBtn.style.color = '#f59e0b';
             });
             showCardToast('Saved for later');
+        }
+
+        async function doRemoveFromSaved(articleIdx) {
+            const article = window._displayedArticles[articleIdx];
+            if (!article) return;
+            try {
+                const res = await fetch(`${API_BASE}/api/saved-articles`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: article.url })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    savedArticlesCache = data.articles || [];
+                    renderSavedArticlesList();
+                    // Reset dots button color
+                    const cards = document.querySelectorAll(`.research-result-item[data-article-idx="${articleIdx}"]`);
+                    cards.forEach(card => {
+                        const dotsBtn = card.querySelector('.dots-btn');
+                        if (dotsBtn) dotsBtn.style.color = '#9ca3af';
+                    });
+                }
+            } catch (e) {
+                console.error('[SavedArticles] Remove error:', e);
+            }
+            showCardToast('Removed from saved');
         }
 
         async function doNotGoodFit(articleIdx) {
@@ -4205,25 +4231,31 @@
         function selectArticle(section, article, element) {
             if (section === 'gbu') {
                 const key = 'the_' + currentGBUTab;
-                selectedArticles[key] = article;
 
-                // Update UI - uncheck all checkboxes and remove selection
-                document.querySelectorAll('#gbuResearchDashboard .research-result-item').forEach(i => {
-                    i.classList.remove('selected');
-                    const cb = i.querySelector('.research-result-checkbox');
-                    if (cb) cb.checked = false;
-                });
-                element.classList.add('selected');
-                // Check the checkbox on selected item
-                const checkbox = element.querySelector('.research-result-checkbox');
-                if (checkbox) checkbox.checked = true;
-
-                // Show check on tab and progress
-                document.getElementById(currentGBUTab + '-check').textContent = '✓';
-                document.getElementById('progress-' + currentGBUTab).classList.add('completed');
-
-                // Track selection
-                trackSelection(key, article, false);
+                // Toggle: if clicking the already-selected article, deselect it
+                if (selectedArticles[key] && selectedArticles[key].url === article.url) {
+                    selectedArticles[key] = null;
+                    element.classList.remove('selected');
+                    const checkbox = element.querySelector('.research-result-checkbox');
+                    if (checkbox) checkbox.checked = false;
+                    document.getElementById(currentGBUTab + '-check').textContent = '';
+                    document.getElementById('progress-' + currentGBUTab).classList.remove('completed');
+                    trackSelection(key, article, true);
+                } else {
+                    selectedArticles[key] = article;
+                    // Update UI - uncheck all checkboxes and remove selection
+                    document.querySelectorAll('#gbuResearchDashboard .research-result-item').forEach(i => {
+                        i.classList.remove('selected');
+                        const cb = i.querySelector('.research-result-checkbox');
+                        if (cb) cb.checked = false;
+                    });
+                    element.classList.add('selected');
+                    const checkbox = element.querySelector('.research-result-checkbox');
+                    if (checkbox) checkbox.checked = true;
+                    document.getElementById(currentGBUTab + '-check').textContent = '✓';
+                    document.getElementById('progress-' + currentGBUTab).classList.add('completed');
+                    trackSelection(key, article, false);
+                }
 
             } else if (section === 'pulse') {
                 const key = 'industry_pulse';
@@ -4298,6 +4330,18 @@
 
         // Generate content - Two-stage process: GPT-5.2 Research → Claude Opus 4.5 Writing
         async function generateContent() {
+            // Enforce minimum selections before generating
+            const pulseCount = selectedArticles.industry_pulse?.length || 0;
+            const partnerCount = selectedArticles.partner_advantage?.length || 0;
+            const newsCount = selectedArticles.industry_news?.length || 0;
+            const missing = [];
+            if (pulseCount < 2) missing.push(`Industry Pulse (need ${2 - pulseCount} more, min 2)`);
+            if (partnerCount < 1) missing.push('Partner Advantage (need at least 1)');
+            if (newsCount < 5) missing.push(`Industry News (need ${5 - newsCount} more, need 5)`);
+            if (missing.length > 0) {
+                alert('Please complete your selections before generating:\n\n• ' + missing.join('\n• '));
+                return;
+            }
             goToStep(6);
             const statusEl = document.getElementById('generatingStatus');
             const phaseEl = document.getElementById('generatingPhase');

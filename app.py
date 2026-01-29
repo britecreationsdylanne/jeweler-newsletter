@@ -1320,48 +1320,53 @@ Return JSON:
             if not isinstance(articles, list):
                 articles = [articles]
 
+            # Deduplicate articles by URL
+            seen_urls = set()
+            unique_articles = []
+            for art in articles[:5]:
+                url = art.get('url', '')
+                if url and url not in seen_urls:
+                    seen_urls.add(url)
+                    unique_articles.append(art)
+                elif not url:
+                    unique_articles.append(art)
+
             articles_text = ""
-            for i, art in enumerate(articles[:5], 1):
+            for i, art in enumerate(unique_articles, 1):
                 # Use research summary if available (from GPT-5.2), otherwise snippet
                 detail = art.get('research', '') or art.get('snippet', art.get('content', ''))
-                articles_text += f"ARTICLE {i}:\n  Title: {art.get('title', '')}\n  URL: {art.get('url', '')}\n  Content: {str(detail)[:300]}\n\n"
+                articles_text += f"ARTICLE {i}: \"{art.get('title', '')}\"\n  Source URL: {art.get('url', '')}\n  Key Details: {str(detail)[:400]}\n\n"
 
-            prompt = f"""Write exactly ONE unique "Industry News" bullet point for EACH of the following {min(len(articles), 5)} articles.
-Each bullet MUST be about the SPECIFIC topic of its corresponding article — do NOT write generic bullets.
+            prompt = f"""You must write exactly {len(unique_articles)} DIFFERENT "Industry News" bullet points — one per article below.
 
 {articles_text}
 
-Requirements:
-- Write bullet 1 about ARTICLE 1, bullet 2 about ARTICLE 2, etc.
-- Each bullet is ONE complete sentence that naturally incorporates a hyperlink to that article's URL
-- The link text should be ORGANIC and VARIED — it could be:
-  - A source name ("according to National Jeweler")
-  - A key phrase ("new diamond grading standards")
-  - A trend name ("lab-grown market expansion")
-  - An action ("reports show" or "reveals that")
-- The link text should NOT be the entire sentence, just a natural phrase within it
-- Keep each bullet to 15-25 words total
-- Each bullet MUST cover a DIFFERENT topic since each article is different
+CRITICAL RULES:
+1. Bullet 1 MUST be about ARTICLE 1's specific topic: "{unique_articles[0].get('title', '')}" — and ONLY that topic
+2. Bullet 2 MUST be about ARTICLE 2's specific topic: "{unique_articles[1].get('title', '') if len(unique_articles) > 1 else ''}" — and ONLY that topic
+3. Bullet 3 MUST be about ARTICLE 3's specific topic: "{unique_articles[2].get('title', '') if len(unique_articles) > 2 else ''}" — and ONLY that topic
+4. Bullet 4 MUST be about ARTICLE 4's specific topic: "{unique_articles[3].get('title', '') if len(unique_articles) > 3 else ''}" — and ONLY that topic
+5. Bullet 5 MUST be about ARTICLE 5's specific topic: "{unique_articles[4].get('title', '') if len(unique_articles) > 4 else ''}" — and ONLY that topic
+6. NO TWO BULLETS can have similar phrasing, structure, or topic — they must all be completely different
+7. Each bullet naturally incorporates a markdown hyperlink [link text](url) to its article URL
+8. Link text should be organic (source name, key phrase, or trend name) — NOT the full sentence
+9. Each bullet: ONE sentence, 15-25 words
 
-Return JSON:
+Return JSON only:
 {{
     "bullets": [
-        {{"text": "Full sentence with [link text](url) embedded naturally within it.", "url": "article_url"}},
+        {{"text": "Sentence with [link text](article1_url) embedded.", "url": "article1_url"}},
+        {{"text": "Different sentence with [link text](article2_url) embedded.", "url": "article2_url"}},
         ...
     ]
 }}
-
-Example good formats:
-- "The [surge in estate jewelry demand](url) is driving renewed focus on authentication services for vintage pieces."
-- "According to [JCK Online](url), lab-grown diamonds now account for 20% of engagement ring sales."
-- "Retailers are embracing [mixed-metal styling trends](url) as consumers seek unique, personalized pieces."
 """
 
             try:
                 response = claude_client.generate_content(
                     prompt=prompt,
-                    max_tokens=500,
-                    temperature=0.6
+                    max_tokens=600,
+                    temperature=0.8
                 )
 
                 content = response.get('content', '{}')
