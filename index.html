@@ -2870,7 +2870,7 @@
             }
             // Populate preview when going to step 11
             if (step === 11) {
-                populatePreview();
+                try { populatePreview(); } catch(err) { console.error('Preview error:', err); }
             }
             // Populate subject line display when going to step 12 (Ontraport)
             if (step === 12) {
