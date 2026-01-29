@@ -999,7 +999,8 @@ def rewrite_content():
             'professional': 'Use a professional, authoritative tone that conveys expertise.',
             'friendly': 'Use a warm, approachable tone that feels personable and engaging.',
             'exciting': 'Use an enthusiastic, energetic tone that creates excitement.',
-            'informative': 'Use a clear, educational tone that emphasizes key facts.'
+            'informative': 'Use a clear, educational tone that emphasizes key facts.',
+            'witty': 'Use a clever, witty tone with subtle humor — smart wordplay welcome but keep it tasteful and professional. Think confident newsletter voice, not comedy routine.'
         }
 
         # Section-specific context and STRICT word limits
@@ -1320,28 +1321,32 @@ Return JSON:
                 articles = [articles]
 
             articles_text = ""
-            for art in articles[:5]:
-                articles_text += f"- Title: {art.get('title', '')}\n  URL: {art.get('url', '')}\n  Snippet: {art.get('snippet', '')[:200]}\n\n"
+            for i, art in enumerate(articles[:5], 1):
+                # Use research summary if available (from GPT-5.2), otherwise snippet
+                detail = art.get('research', '') or art.get('snippet', art.get('content', ''))
+                articles_text += f"ARTICLE {i}:\n  Title: {art.get('title', '')}\n  URL: {art.get('url', '')}\n  Content: {str(detail)[:300]}\n\n"
 
-            prompt = f"""Write 5 "Industry News" bullet points from these articles:
+            prompt = f"""Write exactly ONE unique "Industry News" bullet point for EACH of the following {min(len(articles), 5)} articles.
+Each bullet MUST be about the SPECIFIC topic of its corresponding article — do NOT write generic bullets.
 
 {articles_text}
 
 Requirements:
-- Each bullet is ONE complete sentence that naturally incorporates a hyperlink
-- The link text should be ORGANIC and VARIED - it could be:
+- Write bullet 1 about ARTICLE 1, bullet 2 about ARTICLE 2, etc.
+- Each bullet is ONE complete sentence that naturally incorporates a hyperlink to that article's URL
+- The link text should be ORGANIC and VARIED — it could be:
   - A source name ("according to National Jeweler")
   - A key phrase ("new diamond grading standards")
   - A trend name ("lab-grown market expansion")
   - An action ("reports show" or "reveals that")
 - The link text should NOT be the entire sentence, just a natural phrase within it
 - Keep each bullet to 15-25 words total
-- Mix of topics: trends, market news, technology, retail insights
+- Each bullet MUST cover a DIFFERENT topic since each article is different
 
 Return JSON:
 {{
     "bullets": [
-        {{"text": "Full sentence with [link text](url) embedded naturally within it.", "url": "source_url"}},
+        {{"text": "Full sentence with [link text](url) embedded naturally within it.", "url": "article_url"}},
         ...
     ]
 }}
@@ -2817,7 +2822,7 @@ def list_published():
                     }
                 })
         newsletters.sort(key=lambda d: d.get('lastSavedAt', ''), reverse=True)
-        return jsonify({'success': True, 'newsletters': newsletters[:12]})
+        return jsonify({'success': True, 'newsletters': newsletters})
     except Exception as e:
         safe_print(f"[PUBLISHED LIST ERROR] {str(e)}")
         return jsonify({'success': True, 'newsletters': []})
