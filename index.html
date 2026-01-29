@@ -3623,6 +3623,7 @@
             item.style.borderLeft = '4px solid #059669';  // Green border to indicate custom
             item.setAttribute('data-article-idx', customArticleIdx);
             item.setAttribute('data-section', effectiveSection);
+            item.setAttribute('data-preserved', 'true');
             item.setAttribute('onclick', 'handleItemClick(this)');
             item.innerHTML = `
                 <div class="research-result-header">
@@ -3766,6 +3767,7 @@
             item.style.borderLeft = '4px solid #7c3aed';
             item.setAttribute('data-article-idx', savedArticleIdx);
             item.setAttribute('data-section', actualSection);
+            item.setAttribute('data-preserved', 'true');
             item.setAttribute('onclick', 'handleItemClick(this)');
             item.innerHTML = `
                 <div class="research-result-header">
@@ -4008,7 +4010,12 @@
 
         function displayResults(section, source, results) {
             const resultsDiv = document.getElementById(section + '-' + source + '-results');
+
+            // Preserve saved/custom article cards before clearing
+            const preservedCards = Array.from(resultsDiv.querySelectorAll('.research-result-item[data-preserved="true"]'));
             resultsDiv.innerHTML = '';
+            // Re-add preserved cards at top
+            preservedCards.forEach(card => resultsDiv.appendChild(card));
 
             if (results.length === 0) {
                 resultsDiv.innerHTML = '<p style="color: #666; font-size: 13px; padding: 20px; text-align: center;">No results found</p>';
@@ -4092,11 +4099,14 @@
 
         // Helper to handle checkbox clicks - triggers parent item's selection
         function handleCheckboxClick(checkbox, e) {
-            e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
             const item = checkbox.closest('.research-result-item');
-            if (item) handleItemClick(item);
+            if (item) {
+                handleItemClick(item);
+                // Sync checkbox to match actual selection state
+                checkbox.checked = item.classList.contains('selected');
+            }
         }
 
         function selectArticle(section, article, element) {
