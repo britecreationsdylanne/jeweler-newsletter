@@ -667,9 +667,10 @@
         }
 
         .research-result-checkbox {
-            width: 12px;
-            height: 12px;
+            width: 16px;
+            height: 16px;
             accent-color: #018181;
+            cursor: pointer;
         }
 
         .research-result-title {
@@ -3612,15 +3613,23 @@
             if (!resultsDiv) return;
 
             // Create result card for the custom link
+            const customArticleIdx = window._displayedArticles ? window._displayedArticles.length : 0;
+            if (!window._displayedArticles) window._displayedArticles = [];
+            window._displayedArticles.push(article);
+            const effectiveSection = section === 'pulse' || section === 'partner' || section === 'news' ? 'step5' : section;
+
             const item = document.createElement('div');
             item.className = 'research-result-item';
             item.style.borderLeft = '4px solid #059669';  // Green border to indicate custom
+            item.setAttribute('data-article-idx', customArticleIdx);
+            item.setAttribute('data-section', effectiveSection);
+            item.setAttribute('onclick', 'handleItemClick(this)');
             item.innerHTML = `
                 <div class="research-result-header">
                     <span class="research-result-badge" style="background: #059669; color: white;">CUSTOM</span>
                     <div class="research-result-meta">
                         <span>${article.publisher}</span>
-                        <a href="${article.url}" target="_blank">Source →</a>
+                        <a href="${article.url}" target="_blank" onclick="event.stopPropagation()">Source →</a>
                         <input type="checkbox" class="research-result-checkbox" onclick="handleCheckboxClick(this, event)">
                     </div>
                 </div>
@@ -3632,7 +3641,6 @@
                     </div>
                 ` : ''}
             `;
-            item.onclick = () => selectArticle(section === 'pulse' || section === 'partner' || section === 'news' ? 'step5' : section, article, item);
 
             // Insert at top of results
             if (resultsDiv.firstChild) {
@@ -3748,15 +3756,23 @@
                 }
             }
 
+            const savedArticleIdx = window._displayedArticles ? window._displayedArticles.length : 0;
+            if (!window._displayedArticles) window._displayedArticles = [];
+            window._displayedArticles.push(article);
+            const actualSection = section === 'pulse' || section === 'partner' || section === 'news' ? 'step5' : section;
+
             const item = document.createElement('div');
             item.className = 'research-result-item';
             item.style.borderLeft = '4px solid #7c3aed';
+            item.setAttribute('data-article-idx', savedArticleIdx);
+            item.setAttribute('data-section', actualSection);
+            item.setAttribute('onclick', 'handleItemClick(this)');
             item.innerHTML = `
                 <div class="research-result-header">
                     <span class="research-result-badge saved">SAVED</span>
                     <div class="research-result-meta">
                         <span>${article.publisher}</span>
-                        <a href="${article.url}" target="_blank">Source →</a>
+                        <a href="${article.url}" target="_blank" onclick="event.stopPropagation()">Source →</a>
                         <input type="checkbox" class="research-result-checkbox" onclick="handleCheckboxClick(this, event)">
                     </div>
                 </div>
@@ -3768,8 +3784,6 @@
                     </div>
                 ` : ''}
             `;
-            const actualSection = section === 'pulse' || section === 'partner' || section === 'news' ? 'step5' : section;
-            item.onclick = () => selectArticle(actualSection, article, item);
 
             if (resultsDiv.firstChild) {
                 resultsDiv.insertBefore(item, resultsDiv.firstChild);
@@ -4018,18 +4032,22 @@
                 const action = r.so_what || r.why_it_matters || '';
                 const headline = r.headline || r.title || 'Untitled';
 
-                const item = document.createElement('div');
-                item.className = 'research-result-item';
-                const isSaved = savedArticlesCache.some(sa => sa.url === r.url);
                 const articleIdx = window._displayedArticles ? window._displayedArticles.length : 0;
                 if (!window._displayedArticles) window._displayedArticles = [];
                 window._displayedArticles.push(r);
+                const isSaved = savedArticlesCache.some(sa => sa.url === r.url);
+
+                const item = document.createElement('div');
+                item.className = 'research-result-item';
+                item.setAttribute('data-article-idx', articleIdx);
+                item.setAttribute('data-section', section);
+                item.setAttribute('onclick', 'handleItemClick(this)');
                 item.innerHTML = `
                     <div class="research-result-header">
                         <span class="research-result-badge ${badgeClass}">${impact}</span>
                         <div class="research-result-meta">
                             <span>${r.publisher || ''}</span>
-                            <a href="${r.url || '#'}" target="_blank">Source →</a>
+                            <a href="${r.url || '#'}" target="_blank" onclick="event.stopPropagation()">Source →</a>
                             <button class="save-article-btn ${isSaved ? 'is-saved' : ''}" onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); toggleSaveArticle(this, window._displayedArticles[${articleIdx}])" title="${isSaved ? 'Saved' : 'Save for later'}">📌</button>
                             <input type="checkbox" class="research-result-checkbox" onclick="handleCheckboxClick(this, event)">
                         </div>
@@ -4048,7 +4066,6 @@
                         </div>
                     ` : ''}
                 `;
-                item.onclick = () => selectArticle(section, r, item);
                 resultsDiv.appendChild(item);
             });
 
@@ -4064,15 +4081,22 @@
             }
         }
 
+        // Handle clicks on research result items (uses data attributes, survives innerHTML cache)
+        function handleItemClick(item) {
+            const idx = parseInt(item.getAttribute('data-article-idx'));
+            const section = item.getAttribute('data-section');
+            if (!isNaN(idx) && window._displayedArticles && window._displayedArticles[idx]) {
+                selectArticle(section, window._displayedArticles[idx], item);
+            }
+        }
+
         // Helper to handle checkbox clicks - triggers parent item's selection
         function handleCheckboxClick(checkbox, e) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
             const item = checkbox.closest('.research-result-item');
-            if (item && item.onclick) {
-                item.onclick();
-            }
+            if (item) handleItemClick(item);
         }
 
         function selectArticle(section, article, element) {
