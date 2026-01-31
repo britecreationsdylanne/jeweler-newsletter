@@ -4699,14 +4699,10 @@
                 if (generatedContent[key]) {
                     const s = generatedContent[key];
                     const sourceUrl = selectedArticles[key]?.url || selectedArticles[key]?.source_url || '';
-                    const publisher = selectedArticles[key]?.publisher || '';
                     const titleHtml = sourceUrl
                         ? `<a href="${sourceUrl}" target="_blank" style="color: #018181; text-decoration: underline;">${s.subtitle || ''}</a>`
                         : `${s.subtitle || ''}`;
-                    const sourceTag = sourceUrl
-                        ? `<br><span style="font-size: 12px; color: #6b7280;">Source: <a href="${sourceUrl}" target="_blank" style="color: #018181; text-decoration: underline;">${publisher || new URL(sourceUrl).hostname}</a></span>`
-                        : '';
-                    el.innerHTML = `<strong>${titleHtml}</strong><br>${s.copy || ''}${sourceTag}`;
+                    el.innerHTML = `<strong>${titleHtml}</strong><br>${s.copy || ''}`;
                 }
             });
 
@@ -5601,7 +5597,6 @@
 body { margin: 0; padding: 0; font-family: Montserrat, Helvetica, Arial, sans-serif; background-color: #DFE7F0; }
 a { color: #018181; }
 @media only screen and (max-width: 480px) {
-    .gbu-col { display: block !important; width: 100% !important; max-width: 100% !important; }
     .gbu-img { width: 100% !important; max-width: 100% !important; }
 }
 </style>
@@ -5622,7 +5617,7 @@ a { color: #018181; }
 
 <!-- SECTION 1: HERO BANNER -->
 <tr>
-    <td align="center" style="padding:0;background-color:#037E7F;background-image:url('https://accidentpros.linkgama.com/wp-content/uploads/2025/10/banner-bg.png');background-repeat:no-repeat;background-position:center top;background-size:100% auto;">
+    <td align="center" style="padding:0;background-color:#037E7F;background-image:url('https://accidentpros.linkgama.com/wp-content/uploads/2025/10/banner-bg.png');background-repeat:repeat;background-position:center top;background-size:cover;">
         <!--[if mso]>
         <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;">
         <v:fill type="frame" src="https://accidentpros.linkgama.com/wp-content/uploads/2025/10/banner-bg.png" color="#037E7F"/>
@@ -5666,59 +5661,50 @@ a { color: #018181; }
     <td class="email-bg" height="40" style="font-size: 1px; line-height: 1px; background-color: #DFE7F0;">&nbsp;</td>
 </tr>
 
-<!-- Good/Bad/Ugly Section - Design C v2: Hybrid columns (stack on mobile) -->
+<!-- Good/Bad/Ugly Section - Design A: Centered image below headline -->
 <tr><td style="padding:0;border:1px solid #282D3E;background-color:#ffffff;">
 <img src="https://accidentpros.linkgama.com/wp-content/uploads/2025/10/good-bad-ugly.png" alt="Good Bad Ugly" width="600" style="width:100%;display:block;">
 <!-- Good -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="height:4px;background-color:#008181;font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:16px 20px 6px;">
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:20px 20px 6px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:700;color:#008181;text-transform:uppercase;letter-spacing:1px;">Good:</p>
 </td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:6px 20px 20px;font-size:0;">
-<!--[if mso]><table border="0" cellpadding="0" cellspacing="0" width="560"><tr><td width="270" valign="top"><![endif]-->
-<div class="gbu-col" style="display:inline-block;width:100%;max-width:270px;vertical-align:top;">
-<img class="gbu-img" src="${goodImage}" alt="" width="250" style="display:block;width:250px;max-width:100%;height:auto;border-radius:4px;margin-bottom:10px;">
-</div>
-<!--[if mso]></td><td width="290" valign="top"><![endif]-->
-<div class="gbu-col" style="display:inline-block;width:100%;max-width:280px;vertical-align:top;">
-<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:18px;line-height:26px;font-weight:600;color:#3B3B3B;">${linkTitle(goodTitle, goodUrl)}</h3>
-<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:22px;font-weight:400;color:#3B3B3B;">${goodBody}</p>
-</div>
-<!--[if mso]></td></tr></table><![endif]-->
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:4px 20px 10px;">
+<h3 style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:20px;line-height:30px;font-weight:600;color:#3B3B3B;">${linkTitle(goodTitle, goodUrl)}</h3>
+</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="padding:0 20px;">
+<img src="${goodImage}" alt="" width="280" style="display:block;width:280px;max-width:100%;height:auto;border-radius:4px;">
+</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:12px 20px 25px;">
+<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${goodBody}</p>
 </td></tr></table>
 <!-- Bad -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="height:4px;background-color:#FE8916;font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:16px 20px 6px;">
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:20px 20px 6px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:700;color:#FE8916;text-transform:uppercase;letter-spacing:1px;">Bad:</p>
 </td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:6px 20px 20px;font-size:0;">
-<!--[if mso]><table border="0" cellpadding="0" cellspacing="0" width="560"><tr><td width="270" valign="top"><![endif]-->
-<div class="gbu-col" style="display:inline-block;width:100%;max-width:270px;vertical-align:top;">
-<img class="gbu-img" src="${badImage}" alt="" width="250" style="display:block;width:250px;max-width:100%;height:auto;border-radius:4px;margin-bottom:10px;">
-</div>
-<!--[if mso]></td><td width="290" valign="top"><![endif]-->
-<div class="gbu-col" style="display:inline-block;width:100%;max-width:280px;vertical-align:top;">
-<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:18px;line-height:26px;font-weight:600;color:#3B3B3B;">${linkTitle(badTitle, badUrl)}</h3>
-<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:22px;font-weight:400;color:#3B3B3B;">${badBody}</p>
-</div>
-<!--[if mso]></td></tr></table><![endif]-->
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:4px 20px 10px;">
+<h3 style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:20px;line-height:30px;font-weight:600;color:#3B3B3B;">${linkTitle(badTitle, badUrl)}</h3>
+</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="padding:0 20px;">
+<img src="${badImage}" alt="" width="280" style="display:block;width:280px;max-width:100%;height:auto;border-radius:4px;">
+</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:12px 20px 25px;">
+<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${badBody}</p>
 </td></tr></table>
 <!-- Ugly -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="height:4px;background-color:#282D3E;font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:16px 20px 6px;">
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:20px 20px 6px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:700;color:#282D3E;text-transform:uppercase;letter-spacing:1px;">Ugly:</p>
 </td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:6px 20px 20px;font-size:0;">
-<!--[if mso]><table border="0" cellpadding="0" cellspacing="0" width="560"><tr><td width="270" valign="top"><![endif]-->
-<div class="gbu-col" style="display:inline-block;width:100%;max-width:270px;vertical-align:top;">
-<img class="gbu-img" src="${uglyImage}" alt="" width="250" style="display:block;width:250px;max-width:100%;height:auto;border-radius:4px;margin-bottom:10px;">
-</div>
-<!--[if mso]></td><td width="290" valign="top"><![endif]-->
-<div class="gbu-col" style="display:inline-block;width:100%;max-width:280px;vertical-align:top;">
-<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:18px;line-height:26px;font-weight:600;color:#3B3B3B;">${linkTitle(uglyTitle, uglyUrl)}</h3>
-<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:22px;font-weight:400;color:#3B3B3B;">${uglyBody}</p>
-</div>
-<!--[if mso]></td></tr></table><![endif]-->
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:4px 20px 10px;">
+<h3 style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:20px;line-height:30px;font-weight:600;color:#3B3B3B;">${linkTitle(uglyTitle, uglyUrl)}</h3>
+</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="padding:0 20px;">
+<img src="${uglyImage}" alt="" width="280" style="display:block;width:280px;max-width:100%;height:auto;border-radius:4px;">
+</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:12px 20px 25px;">
+<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${uglyBody}</p>
 </td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="10" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 </td></tr>
@@ -5735,7 +5721,7 @@ a { color: #018181; }
 <h2 style="margin:0 0 12px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:22px;line-height:28px;font-weight:700;color:#282D3E;">${briteSpotTitle}</h2>
 </td></tr></table>
 <!-- Image -->
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="padding:0 15px;">
 <img src="${briteSpotImage}" alt="" width="570" style="display:block;width:100%;max-width:570px;height:auto;">
 </td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
@@ -6284,17 +6270,10 @@ ${newsHtml}
                 const el = document.getElementById('fc-' + key);
                 if (el) {
                     const sourceUrl = selectedArticles['the_' + key]?.url || selectedArticles['the_' + key]?.source_url || '';
-                    const publisher = selectedArticles['the_' + key]?.publisher || '';
                     const titleHtml = sourceUrl
                         ? `<a href="${sourceUrl}" target="_blank" style="color: #018181; text-decoration: underline;">${d.subtitle || ''}</a>`
                         : `${d.subtitle || ''}`;
-                    let sourceTag = '';
-                    try {
-                        sourceTag = sourceUrl
-                            ? `<br><span style="font-size: 12px; color: #6b7280;">Source: <a href="${sourceUrl}" target="_blank" style="color: #018181; text-decoration: underline;">${publisher || new URL(sourceUrl).hostname}</a></span>`
-                            : '';
-                    } catch(e) {}
-                    el.innerHTML = `<strong>${titleHtml}</strong><br><br>${d.copy || ''}${sourceTag}`;
+                    el.innerHTML = `<strong>${titleHtml}</strong><br><br>${d.copy || ''}`;
                 }
             });
 

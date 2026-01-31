@@ -1602,23 +1602,24 @@ def generate_images():
         images = {}
 
         # Image sizes for different sections
-        # Square (180x180) for side images: GBU, Brite Spot
+        # Square (280x280) for centered GBU images
+        # Landscape (570x320) for Brite Spot (50% shorter than square at full width)
         # Full width (490x263) for: Industry Pulse, Partner Advantage
         IMAGE_SIZES = {
-            'the_good': (180, 180),
-            'the_bad': (180, 180),
-            'the_ugly': (180, 180),
-            'brite_spot': (180, 180),
+            'the_good': (280, 280),
+            'the_bad': (280, 280),
+            'the_ugly': (280, 280),
+            'brite_spot': (570, 320),
             'industry_pulse': (490, 263),
             'partner_advantage': (490, 263)
         }
 
-        # Aspect ratios: square for side images, landscape for full-width
+        # Aspect ratios: square for GBU, landscape for full-width sections
         ASPECT_RATIOS = {
             'the_good': '1:1',
             'the_bad': '1:1',
             'the_ugly': '1:1',
-            'brite_spot': '1:1',
+            'brite_spot': '16:9',
             'industry_pulse': '16:9',
             'partner_advantage': '16:9'
         }
@@ -1713,10 +1714,10 @@ def generate_single_image():
 
         # Image sizes for different sections
         IMAGE_SIZES = {
-            'the_good': (180, 180),
-            'the_bad': (180, 180),
-            'the_ugly': (180, 180),
-            'brite_spot': (180, 180),
+            'the_good': (280, 280),
+            'the_bad': (280, 280),
+            'the_ugly': (280, 280),
+            'brite_spot': (570, 320),
             'industry_pulse': (490, 263),
             'partner_advantage': (490, 263)
         }
@@ -1726,7 +1727,7 @@ def generate_single_image():
             'the_good': '1:1',
             'the_bad': '1:1',
             'the_ugly': '1:1',
-            'brite_spot': '1:1',
+            'brite_spot': '16:9',
             'industry_pulse': '16:9',
             'partner_advantage': '16:9'
         }
