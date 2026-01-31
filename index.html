@@ -41,12 +41,31 @@
             color: white;
             padding: 40px;
             text-align: center;
+            position: relative;
         }
 
         .header h1 {
             font-size: 32px;
             margin-bottom: 0;
             font-weight: 700;
+        }
+
+        .start-over-btn {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            background: #FE8916;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .start-over-btn:hover {
+            background: #e57a0e;
         }
 
         .progress-container {
@@ -1444,6 +1463,7 @@
     <div class="container">
         <div class="header">
             <h1>Stay In The Loupe</h1>
+            <button class="start-over-btn" onclick="startOver()">↺ Start Over</button>
         </div>
 
         <div class="progress-container">
@@ -2432,7 +2452,13 @@
                     <textarea id="goodPrompt" rows="2" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 4px; font-size: 14px;" placeholder="Describe the image you want..."></textarea>
                 </div>
                 <button class="btn-secondary btn" onclick="regenerateImage('good')" style="margin-right: 10px;">🔄 Regenerate</button>
-                <button class="btn-secondary btn" onclick="exportImage('good')">📥 Export</button>
+                <button class="btn-secondary btn" onclick="exportImage('good')" style="margin-right: 10px;">📥 Export</button>
+                <input type="file" id="goodUpload" accept="image/*" style="display:none;" onchange="handleImageUpload('good', this)">
+                <button class="btn-secondary btn" onclick="document.getElementById('goodUpload').click()" style="background:#f59e0b;color:white;border-color:#f59e0b;">📤 Upload</button>
+                <div id="goodResizeControls" style="display:none;align-items:center;gap:10px;margin-top:12px;">
+                    <label style="font-size:13px;font-weight:600;white-space:nowrap;">Resize: <span id="goodResizeVal">100</span>%</label>
+                    <input type="range" id="goodResizeSlider" min="25" max="100" value="100" oninput="resizeUploadedImage('good', this.value)" style="flex:1;">
+                </div>
             </div>
 
             <!-- The Bad Image -->
@@ -2452,7 +2478,13 @@
                     <textarea id="badPrompt" rows="2" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 4px; font-size: 14px;" placeholder="Describe the image you want..."></textarea>
                 </div>
                 <button class="btn-secondary btn" onclick="regenerateImage('bad')" style="margin-right: 10px;">🔄 Regenerate</button>
-                <button class="btn-secondary btn" onclick="exportImage('bad')">📥 Export</button>
+                <button class="btn-secondary btn" onclick="exportImage('bad')" style="margin-right: 10px;">📥 Export</button>
+                <input type="file" id="badUpload" accept="image/*" style="display:none;" onchange="handleImageUpload('bad', this)">
+                <button class="btn-secondary btn" onclick="document.getElementById('badUpload').click()" style="background:#f59e0b;color:white;border-color:#f59e0b;">📤 Upload</button>
+                <div id="badResizeControls" style="display:none;align-items:center;gap:10px;margin-top:12px;">
+                    <label style="font-size:13px;font-weight:600;white-space:nowrap;">Resize: <span id="badResizeVal">100</span>%</label>
+                    <input type="range" id="badResizeSlider" min="25" max="100" value="100" oninput="resizeUploadedImage('bad', this.value)" style="flex:1;">
+                </div>
             </div>
 
             <!-- The Ugly Image -->
@@ -2472,7 +2504,13 @@
                     <textarea id="uglyPrompt" rows="2" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 4px; font-size: 14px;" placeholder="Describe the image you want..."></textarea>
                 </div>
                 <button class="btn-secondary btn" onclick="regenerateImage('ugly')" style="margin-right: 10px;">🔄 Regenerate</button>
-                <button class="btn-secondary btn" onclick="exportImage('ugly')">📥 Export</button>
+                <button class="btn-secondary btn" onclick="exportImage('ugly')" style="margin-right: 10px;">📥 Export</button>
+                <input type="file" id="uglyUpload" accept="image/*" style="display:none;" onchange="handleImageUpload('ugly', this)">
+                <button class="btn-secondary btn" onclick="document.getElementById('uglyUpload').click()" style="background:#f59e0b;color:white;border-color:#f59e0b;">📤 Upload</button>
+                <div id="uglyResizeControls" style="display:none;align-items:center;gap:10px;margin-top:12px;">
+                    <label style="font-size:13px;font-weight:600;white-space:nowrap;">Resize: <span id="uglyResizeVal">100</span>%</label>
+                    <input type="range" id="uglyResizeSlider" min="25" max="100" value="100" oninput="resizeUploadedImage('ugly', this.value)" style="flex:1;">
+                </div>
             </div>
 
             <!-- Brite Spot Image -->
@@ -2492,7 +2530,13 @@
                     <textarea id="briteSpotPrompt" rows="2" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 4px; font-size: 14px;" placeholder="Describe the image you want..."></textarea>
                 </div>
                 <button class="btn-secondary btn" onclick="regenerateImage('briteSpot')" style="margin-right: 10px;">🔄 Regenerate</button>
-                <button class="btn-secondary btn" onclick="exportImage('briteSpot')">📥 Export</button>
+                <button class="btn-secondary btn" onclick="exportImage('briteSpot')" style="margin-right: 10px;">📥 Export</button>
+                <input type="file" id="briteSpotUpload" accept="image/*" style="display:none;" onchange="handleImageUpload('briteSpot', this)">
+                <button class="btn-secondary btn" onclick="document.getElementById('briteSpotUpload').click()" style="background:#f59e0b;color:white;border-color:#f59e0b;">📤 Upload</button>
+                <div id="briteSpotResizeControls" style="display:none;align-items:center;gap:10px;margin-top:12px;">
+                    <label style="font-size:13px;font-weight:600;white-space:nowrap;">Resize: <span id="briteSpotResizeVal">100</span>%</label>
+                    <input type="range" id="briteSpotResizeSlider" min="25" max="100" value="100" oninput="resizeUploadedImage('briteSpot', this.value)" style="flex:1;">
+                </div>
             </div>
 
             <!-- Industry Pulse Image -->
@@ -2512,7 +2556,13 @@
                     <textarea id="pulsePrompt" rows="2" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 4px; font-size: 14px;" placeholder="Describe the image you want..."></textarea>
                 </div>
                 <button class="btn-secondary btn" onclick="regenerateImage('pulse')" style="margin-right: 10px;">🔄 Regenerate</button>
-                <button class="btn-secondary btn" onclick="exportImage('pulse')">📥 Export</button>
+                <button class="btn-secondary btn" onclick="exportImage('pulse')" style="margin-right: 10px;">📥 Export</button>
+                <input type="file" id="pulseUpload" accept="image/*" style="display:none;" onchange="handleImageUpload('pulse', this)">
+                <button class="btn-secondary btn" onclick="document.getElementById('pulseUpload').click()" style="background:#f59e0b;color:white;border-color:#f59e0b;">📤 Upload</button>
+                <div id="pulseResizeControls" style="display:none;align-items:center;gap:10px;margin-top:12px;">
+                    <label style="font-size:13px;font-weight:600;white-space:nowrap;">Resize: <span id="pulseResizeVal">100</span>%</label>
+                    <input type="range" id="pulseResizeSlider" min="25" max="100" value="100" oninput="resizeUploadedImage('pulse', this.value)" style="flex:1;">
+                </div>
             </div>
 
             <!-- Partner Advantage Image -->
@@ -2532,7 +2582,13 @@
                     <textarea id="partnerPrompt" rows="2" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 4px; font-size: 14px;" placeholder="Describe the image you want..."></textarea>
                 </div>
                 <button class="btn-secondary btn" onclick="regenerateImage('partner')" style="margin-right: 10px;">🔄 Regenerate</button>
-                <button class="btn-secondary btn" onclick="exportImage('partner')">📥 Export</button>
+                <button class="btn-secondary btn" onclick="exportImage('partner')" style="margin-right: 10px;">📥 Export</button>
+                <input type="file" id="partnerUpload" accept="image/*" style="display:none;" onchange="handleImageUpload('partner', this)">
+                <button class="btn-secondary btn" onclick="document.getElementById('partnerUpload').click()" style="background:#f59e0b;color:white;border-color:#f59e0b;">📤 Upload</button>
+                <div id="partnerResizeControls" style="display:none;align-items:center;gap:10px;margin-top:12px;">
+                    <label style="font-size:13px;font-weight:600;white-space:nowrap;">Resize: <span id="partnerResizeVal">100</span>%</label>
+                    <input type="range" id="partnerResizeSlider" min="25" max="100" value="100" oninput="resizeUploadedImage('partner', this.value)" style="flex:1;">
+                </div>
             </div>
 
             <div class="buttons">
@@ -2884,6 +2940,12 @@
             document.querySelectorAll('.month-card').forEach(c => c.classList.remove('selected'));
             element.classList.add('selected');
             document.getElementById('monthNextBtn').disabled = false;
+        }
+
+        function startOver() {
+            if (confirm('Start over? This will return to the first step.')) {
+                goToStep(1);
+            }
         }
 
         // Navigation
@@ -3276,6 +3338,69 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        // Upload custom image for a section
+        function handleImageUpload(section, input) {
+            const sectionMap = {
+                'good': 'the_good', 'bad': 'the_bad', 'ugly': 'the_ugly',
+                'briteSpot': 'brite_spot', 'pulse': 'industry_pulse', 'partner': 'partner_advantage'
+            };
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dataUrl = e.target.result;
+                const imageKey = sectionMap[section];
+                generatedImages[imageKey] = dataUrl;
+
+                // Show in preview
+                const previewDiv = document.getElementById(section + 'ImagePreview');
+                if (previewDiv) {
+                    previewDiv.innerHTML = `<img id="${section}UploadedImg" src="${dataUrl}" style="max-width:100%;border-radius:8px;" alt="${section} image">`;
+                }
+
+                // Show resize controls
+                const resizeDiv = document.getElementById(section + 'ResizeControls');
+                if (resizeDiv) {
+                    resizeDiv.style.display = 'flex';
+                    const slider = document.getElementById(section + 'ResizeSlider');
+                    if (slider) slider.value = 100;
+                    const valSpan = document.getElementById(section + 'ResizeVal');
+                    if (valSpan) valSpan.textContent = '100';
+                }
+            };
+            reader.readAsDataURL(file);
+            input.value = '';
+        }
+
+        // Client-side resize via canvas
+        function resizeUploadedImage(section, pct) {
+            const sectionMap = {
+                'good': 'the_good', 'bad': 'the_bad', 'ugly': 'the_ugly',
+                'briteSpot': 'brite_spot', 'pulse': 'industry_pulse', 'partner': 'partner_advantage'
+            };
+            const valSpan = document.getElementById(section + 'ResizeVal');
+            if (valSpan) valSpan.textContent = pct;
+
+            const imageKey = sectionMap[section];
+            const imgEl = document.querySelector(`#${section}ImagePreview img`);
+            if (!imgEl) return;
+
+            const img = new Image();
+            img.onload = function() {
+                const scale = pct / 100;
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(img.naturalWidth * scale);
+                canvas.height = Math.round(img.naturalHeight * scale);
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const resized = canvas.toDataURL('image/png');
+                generatedImages[imageKey] = resized;
+                imgEl.src = resized;
+            };
+            img.src = imgEl.src;
         }
 
         // Resize image
@@ -3891,6 +4016,10 @@
                 <div class="dots-menu-item notfit" onclick="event.stopPropagation(); doNotGoodFit(${articleIdx}); this.closest('.dots-menu').remove();">
                     <span class="icon">👎</span> Not a Good Fit
                 </div>
+                <div class="dots-menu-divider"></div>
+                <div class="dots-menu-item remove" onclick="event.stopPropagation(); doRemoveFromResults(${articleIdx}); this.closest('.dots-menu').remove();" style="color:#dc2626;">
+                    <span class="icon">✕</span> Remove from Results
+                </div>
             `;
             card.appendChild(menu);
 
@@ -3959,6 +4088,40 @@
                 console.error('[NotGoodFit] Error:', e);
             }
             showCardToast('Marked as not a good fit');
+        }
+
+        function doRemoveFromResults(articleIdx) {
+            const article = window._displayedArticles[articleIdx];
+            if (!article) return;
+
+            const cards = document.querySelectorAll(`.research-result-item[data-article-idx="${articleIdx}"]`);
+            cards.forEach(card => {
+                const section = card.dataset.section;
+
+                if (section === 'gbu') {
+                    ['the_good', 'the_bad', 'the_ugly'].forEach(key => {
+                        if (selectedArticles[key] && selectedArticles[key].url === article.url) {
+                            selectedArticles[key] = null;
+                            const tab = key.replace('the_', '');
+                            const checkEl = document.getElementById(tab + '-check');
+                            if (checkEl) checkEl.textContent = '';
+                            const progEl = document.getElementById('progress-' + tab);
+                            if (progEl) progEl.classList.remove('completed');
+                        }
+                    });
+                } else if (section === 'step5') {
+                    ['industry_pulse', 'partner_advantage', 'industry_news'].forEach(key => {
+                        const idx = selectedArticles[key].findIndex(a => a.url === article.url);
+                        if (idx >= 0) {
+                            selectedArticles[key].splice(idx, 1);
+                        }
+                    });
+                }
+
+                card.remove();
+            });
+
+            showCardToast('Removed from results');
         }
 
         function showCardToast(text) {
@@ -5354,6 +5517,11 @@
             const uglyTitle = uglyData.subtitle || uglyParsed.subtitle || '';
             const uglyBody = uglyData.copy || uglyParsed.copy || '';
 
+            // BriteSpot title + body split for h2 + copy layout
+            const briteSpotParsed = parseGbuHtml(briteSpot);
+            const briteSpotTitle = briteSpotObj.title || briteSpotParsed.subtitle || '';
+            const briteSpotBody = briteSpotObj.body || briteSpotParsed.copy || '';
+
             // GBU article URLs for hyperlinks
             const goodUrl = selectedArticles.the_good?.url || '';
             const badUrl = selectedArticles.the_bad?.url || '';
@@ -5387,7 +5555,7 @@
                 partnerTipsHtml += `
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
 <tr>
-<td style="padding-right:15px;" valign="top" width="46"><img alt="" src="${tickImg}" style="display:block;width:31px;height:auto;" width="31" /></td>
+<td style="padding-right:12px;" valign="top" width="35"><img alt="" src="${tickImg}" style="display:block;width:23px;height:auto;" width="23" /></td>
 <td valign="top">
 <p style="margin:0 0 4px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:24px;font-weight:600;color:#008181;">${tip.title || ''}</p>
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${tip.content || ''}</p>
@@ -5411,7 +5579,7 @@
                 newsHtml += `
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
 <tr>
-<td style="padding-right:15px;" valign="top" width="46"><img alt="" src="${tickImg}" style="display:block;width:31px;height:auto;" width="31" /></td>
+<td style="padding-right:12px;" valign="top" width="35"><img alt="" src="${tickImg}" style="display:block;width:23px;height:auto;" width="23" /></td>
 <td valign="top">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${bulletText}</p>
 </td>
@@ -5429,6 +5597,10 @@
 <style>
 body { margin: 0; padding: 0; font-family: Montserrat, Helvetica, Arial, sans-serif; background-color: #DFE7F0; }
 a { color: #018181; }
+@media only screen and (max-width: 480px) {
+    .gbu-col { display: block !important; width: 100% !important; max-width: 100% !important; }
+    .gbu-img { width: 100% !important; max-width: 100% !important; }
+}
 </style>
 </head>
 <body>
@@ -5491,44 +5663,59 @@ a { color: #018181; }
     <td class="email-bg" height="40" style="font-size: 1px; line-height: 1px; background-color: #DFE7F0;">&nbsp;</td>
 </tr>
 
-<!-- Good/Bad/Ugly Section - Color-Bar Cards (full-width stacked for mobile) -->
+<!-- Good/Bad/Ugly Section - Design C v2: Hybrid columns (stack on mobile) -->
 <tr><td style="padding:0;border:1px solid #282D3E;background-color:#ffffff;">
 <img src="https://accidentpros.linkgama.com/wp-content/uploads/2025/10/good-bad-ugly.png" alt="Good Bad Ugly" width="600" style="width:100%;display:block;">
 <!-- Good -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="height:4px;background-color:#008181;font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:20px 20px 10px;">
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:16px 20px 6px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:700;color:#008181;text-transform:uppercase;letter-spacing:1px;">Good:</p>
 </td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 20px;">
-<img src="${goodImage}" alt="" width="560" style="display:block;width:100%;max-width:560px;height:auto;border-radius:4px;">
-</td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:15px 20px 25px;">
-<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:20px;line-height:30px;font-weight:600;color:#3B3B3B;">${linkTitle(goodTitle, goodUrl)}</h3>
-<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${goodBody}</p>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:6px 20px 20px;font-size:0;">
+<!--[if mso]><table border="0" cellpadding="0" cellspacing="0" width="560"><tr><td width="270" valign="top"><![endif]-->
+<div class="gbu-col" style="display:inline-block;width:100%;max-width:270px;vertical-align:top;">
+<img class="gbu-img" src="${goodImage}" alt="" width="250" style="display:block;width:250px;max-width:100%;height:auto;border-radius:4px;margin-bottom:10px;">
+</div>
+<!--[if mso]></td><td width="290" valign="top"><![endif]-->
+<div class="gbu-col" style="display:inline-block;width:100%;max-width:280px;vertical-align:top;">
+<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:18px;line-height:26px;font-weight:600;color:#3B3B3B;">${linkTitle(goodTitle, goodUrl)}</h3>
+<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:22px;font-weight:400;color:#3B3B3B;">${goodBody}</p>
+</div>
+<!--[if mso]></td></tr></table><![endif]-->
 </td></tr></table>
 <!-- Bad -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="height:4px;background-color:#FE8916;font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:20px 20px 10px;">
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:16px 20px 6px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:700;color:#FE8916;text-transform:uppercase;letter-spacing:1px;">Bad:</p>
 </td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 20px;">
-<img src="${badImage}" alt="" width="560" style="display:block;width:100%;max-width:560px;height:auto;border-radius:4px;">
-</td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:15px 20px 25px;">
-<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:20px;line-height:30px;font-weight:600;color:#3B3B3B;">${linkTitle(badTitle, badUrl)}</h3>
-<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${badBody}</p>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:6px 20px 20px;font-size:0;">
+<!--[if mso]><table border="0" cellpadding="0" cellspacing="0" width="560"><tr><td width="270" valign="top"><![endif]-->
+<div class="gbu-col" style="display:inline-block;width:100%;max-width:270px;vertical-align:top;">
+<img class="gbu-img" src="${badImage}" alt="" width="250" style="display:block;width:250px;max-width:100%;height:auto;border-radius:4px;margin-bottom:10px;">
+</div>
+<!--[if mso]></td><td width="290" valign="top"><![endif]-->
+<div class="gbu-col" style="display:inline-block;width:100%;max-width:280px;vertical-align:top;">
+<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:18px;line-height:26px;font-weight:600;color:#3B3B3B;">${linkTitle(badTitle, badUrl)}</h3>
+<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:22px;font-weight:400;color:#3B3B3B;">${badBody}</p>
+</div>
+<!--[if mso]></td></tr></table><![endif]-->
 </td></tr></table>
 <!-- Ugly -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="height:4px;background-color:#282D3E;font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:20px 20px 10px;">
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:16px 20px 6px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:700;color:#282D3E;text-transform:uppercase;letter-spacing:1px;">Ugly:</p>
 </td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 20px;">
-<img src="${uglyImage}" alt="" width="560" style="display:block;width:100%;max-width:560px;height:auto;border-radius:4px;">
-</td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:15px 20px 25px;">
-<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:20px;line-height:30px;font-weight:600;color:#3B3B3B;">${linkTitle(uglyTitle, uglyUrl)}</h3>
-<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${uglyBody}</p>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:6px 20px 20px;font-size:0;">
+<!--[if mso]><table border="0" cellpadding="0" cellspacing="0" width="560"><tr><td width="270" valign="top"><![endif]-->
+<div class="gbu-col" style="display:inline-block;width:100%;max-width:270px;vertical-align:top;">
+<img class="gbu-img" src="${uglyImage}" alt="" width="250" style="display:block;width:250px;max-width:100%;height:auto;border-radius:4px;margin-bottom:10px;">
+</div>
+<!--[if mso]></td><td width="290" valign="top"><![endif]-->
+<div class="gbu-col" style="display:inline-block;width:100%;max-width:280px;vertical-align:top;">
+<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:18px;line-height:26px;font-weight:600;color:#3B3B3B;">${linkTitle(uglyTitle, uglyUrl)}</h3>
+<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:22px;font-weight:400;color:#3B3B3B;">${uglyBody}</p>
+</div>
+<!--[if mso]></td></tr></table><![endif]-->
 </td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="10" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 </td></tr>
@@ -5536,36 +5723,42 @@ a { color: #018181; }
 <!-- Spacer -->
 <tr><td style="background-color:#DFE7F0;font-size:1px;line-height:1px;" height="40">&nbsp;</td></tr>
 
-<!-- Brite Spot Section - Full-width image layout -->
+<!-- Brite Spot Section — h2 Title + Image + Copy -->
 <tr><td style="padding:0;border:1px solid #282D3E;background-color:#ffffff;">
 <img src="https://accidentpros.linkgama.com/wp-content/uploads/2025/10/briteco-spot.png" alt="The Brite Spot" width="600" style="width:100%;display:block;">
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:0 20px;">
-<img src="${briteSpotImage}" alt="" width="560" style="display:block;width:100%;max-width:560px;height:auto;border-radius:4px;">
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="25" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
+<!-- Title -->
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
+<h2 style="margin:0 0 12px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:22px;line-height:28px;font-weight:700;color:#282D3E;">${briteSpotTitle}</h2>
 </td></tr></table>
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td height="15" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:0 20px;">
-<p style="font-size:16px;line-height:28px;color:#3B3B3B;margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;">${briteSpot}</p>
+<!-- Image -->
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
+<img src="${briteSpotImage}" alt="" width="570" style="display:block;width:100%;max-width:570px;height:auto;">
 </td></tr></table>
-<table width="100%" cellpadding="0" cellspacing="0"><tr><td height="25" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
+<!-- Copy -->
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
+<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${briteSpotBody}</p>
+</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="25" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 </td></tr>
 
 <!-- Spacer -->
 <tr><td style="background-color:#DFE7F0;font-size:1px;line-height:1px;" height="40">&nbsp;</td></tr>
 
-<!-- Industry Pulse Section -->
+<!-- Industry Pulse Section — Reordered: Headline → Image → Copy -->
 <tr><td style="padding:0;border:1px solid #282D3E;background-color:#ffffff;">
 <img src="https://accidentpros.linkgama.com/wp-content/uploads/2025/10/industry-pulse.png" alt="Industry Pulse" width="600" style="width:100%;display:block;">
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="30" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
-<!-- Full-width image -->
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="25" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
+<!-- Title -->
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
+<h2 style="margin:0 0 12px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:22px;line-height:28px;font-weight:700;color:#282D3E;">${pulseTitle}</h2>
+</td></tr></table>
+<!-- Image -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
 <img src="${pulseImage}" alt="" width="570" style="display:block;width:100%;max-width:570px;height:auto;">
 </td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
-<!-- Title -->
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
-<h2 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:22px;line-height:28px;font-weight:700;color:#282D3E;">${pulseTitle}</h2>
-</td></tr></table>
 <!-- Intro -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${pulseIntro}</p>
@@ -5594,7 +5787,7 @@ a { color: #018181; }
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 <!-- Subheader -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
-<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:20px;line-height:28px;font-weight:600;color:#3B3B3B;">${partnerSubheader}</h3>
+<h2 style="margin:0 0 12px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:22px;line-height:28px;font-weight:700;color:#282D3E;">${partnerSubheader}</h2>
 </td></tr></table>
 <!-- Intro -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
@@ -5632,7 +5825,7 @@ ${newsHtml}
 <!-- CTA Section -->
 <tr><td align="center" style="padding:120px 20px;background-color:#0d5c5c;background-image:url('https://brite.co/wp-content/uploads/2025/09/section-bg.png');background-repeat:no-repeat;background-position:center;background-size:cover;">
 <h2 style="color:#ffffff;font-size:32px;margin:0 0 15px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-weight:600;">Wait Before You Go...</h2>
-<p style="color:#ffffff;font-size:18px;margin:0 0 30px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;">Earn 12% recurring commissions on every policy</p>
+<p style="color:#ffffff;font-size:18px;margin:0 0 30px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;">Have you tried out the new GIA import feature on the diamond screen?</p>
 <a href="https://brite.co/partners" style="display:inline-block;padding:11px 29px;background-color:#FE8916;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;text-transform:uppercase;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;">BECOME A PARTNER</a>
 </td></tr>
 
