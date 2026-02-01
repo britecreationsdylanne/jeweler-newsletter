@@ -1602,13 +1602,13 @@ def generate_images():
         images = {}
 
         # Image sizes for different sections
-        # Square (280x280) for centered GBU images
+        # Square (350x350) for centered GBU images
         # Landscape (570x320) for Brite Spot (50% shorter than square at full width)
         # Full width (490x263) for: Industry Pulse, Partner Advantage
         IMAGE_SIZES = {
-            'the_good': (280, 280),
-            'the_bad': (280, 280),
-            'the_ugly': (280, 280),
+            'the_good': (350, 350),
+            'the_bad': (350, 350),
+            'the_ugly': (350, 350),
             'brite_spot': (570, 320),
             'industry_pulse': (490, 263),
             'partner_advantage': (490, 263)
@@ -1714,9 +1714,9 @@ def generate_single_image():
 
         # Image sizes for different sections
         IMAGE_SIZES = {
-            'the_good': (280, 280),
-            'the_bad': (280, 280),
-            'the_ugly': (280, 280),
+            'the_good': (350, 350),
+            'the_bad': (350, 350),
+            'the_ugly': (350, 350),
             'brite_spot': (570, 320),
             'industry_pulse': (490, 263),
             'partner_advantage': (490, 263)
