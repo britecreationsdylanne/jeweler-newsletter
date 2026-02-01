@@ -51,9 +51,6 @@
         }
 
         .start-over-btn {
-            position: absolute;
-            top: 16px;
-            right: 20px;
             background: #FE8916;
             color: white;
             border: none;
@@ -66,6 +63,118 @@
         }
         .start-over-btn:hover {
             background: #e57a0e;
+        }
+
+        /* User Profile Dropdown */
+        .header-actions {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-profile {
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: border-color 0.2s;
+            object-fit: cover;
+        }
+
+        .user-avatar:hover {
+            border-color: rgba(255,255,255,0.6);
+        }
+
+        .user-avatar-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #018181;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: border-color 0.2s;
+        }
+
+        .user-avatar-placeholder:hover {
+            border-color: rgba(255,255,255,0.6);
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            z-index: 1000;
+        }
+
+        .user-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .user-dropdown-header {
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: center;
+        }
+
+        .user-dropdown-name {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .user-dropdown-email {
+            color: #018181;
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .user-dropdown-email:hover {
+            text-decoration: underline;
+        }
+
+        .user-dropdown-menu {
+            padding: 8px 0;
+        }
+
+        .user-dropdown-item {
+            display: block;
+            padding: 10px 16px;
+            color: #4b5563;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.15s;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .user-dropdown-item:hover {
+            background: #f3f4f6;
+            color: #1f2937;
         }
 
         .progress-container {
@@ -1463,7 +1572,21 @@
     <div class="container">
         <div class="header">
             <h1>Stay In The Loupe</h1>
-            <button class="start-over-btn" onclick="startOver()">↺ Start Over</button>
+            <div class="header-actions">
+                <button class="start-over-btn" onclick="startOver()">↺ Start Over</button>
+                <div class="user-profile" id="userProfile">
+                    <div class="user-avatar-placeholder" id="userAvatar" onclick="toggleUserDropdown(event)"></div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="user-dropdown-header">
+                            <div class="user-dropdown-name" id="userDropdownName"></div>
+                            <a class="user-dropdown-email" id="userDropdownEmail" href="#"></a>
+                        </div>
+                        <div class="user-dropdown-menu">
+                            <a class="user-dropdown-item" onclick="signOut()">Sign out</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="progress-container">
@@ -2792,6 +2915,29 @@
         // API Base URL
         const API_BASE = window.location.origin;
 
+        // BritePulse User Identification
+        function setBritePulseUser(user) {
+            function trySetUser() {
+                const instance = window.BritePulse?.getInstance();
+                if (instance) {
+                    instance.setUser({
+                        id: user.id || user.email,
+                        email: user.email,
+                        name: user.name || user.email
+                    });
+                    console.log('BritePulse user set:', user.email);
+                } else {
+                    // SDK not ready yet, retry
+                    setTimeout(trySetUser, 100);
+                }
+            }
+            trySetUser();
+        }
+
+        function clearBritePulseUser() {
+            window.BritePulse?.getInstance()?.setUser(undefined);
+        }
+
         // State
         let selectedMonth = '';
         let currentStep = 1;
@@ -2900,11 +3046,75 @@
 
         // Initialize
         function initApp() {
+            // Set BritePulse user FIRST (before any UI code that might fail)
+            if (window.AUTH_USER) {
+                setBritePulseUser(window.AUTH_USER);
+            }
+
+            initUserProfile();
             initMonthGrid();
             populateRecipientList();
             setupWordCounters();
             loadDrafts();
             loadPublishedNewsletters();
+        }
+
+        // User Profile Dropdown
+        function initUserProfile() {
+            const user = window.AUTH_USER;
+            if (!user) return;
+
+            const avatarEl = document.getElementById('userAvatar');
+            const nameEl = document.getElementById('userDropdownName');
+            const emailEl = document.getElementById('userDropdownEmail');
+
+            // Set name and email
+            nameEl.textContent = user.name || user.email.split('@')[0];
+            emailEl.textContent = user.email;
+            emailEl.href = 'mailto:' + user.email;
+
+            // Set avatar - use picture if available, otherwise show initials
+            if (user.picture) {
+                const img = document.createElement('img');
+                img.src = user.picture;
+                img.className = 'user-avatar';
+                img.alt = user.name || 'User';
+                img.onclick = function(e) { toggleUserDropdown(e); };
+                avatarEl.parentNode.replaceChild(img, avatarEl);
+            } else {
+                // Show initials
+                const initials = (user.name || user.email)
+                    .split(' ')
+                    .map(n => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2);
+                avatarEl.textContent = initials;
+            }
+
+            // Close dropdown on outside click
+            document.addEventListener('click', function(e) {
+                const dropdown = document.getElementById('userDropdown');
+                const profile = document.getElementById('userProfile');
+                if (dropdown && profile && !profile.contains(e.target)) {
+                    dropdown.classList.remove('active');
+                }
+            });
+        }
+
+        function toggleUserDropdown(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        function signOut() {
+            // Clear BritePulse user tracking
+            if (typeof clearBritePulseUser === 'function') {
+                clearBritePulseUser();
+            }
+            // Redirect to logout endpoint
+            window.location.href = '/auth/logout';
         }
 
         // Months
