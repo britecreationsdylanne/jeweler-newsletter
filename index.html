@@ -4206,8 +4206,10 @@
                 resultsDiv = document.getElementById('gbu-perplexity-results');
                 stateCache = gbuSearchState[currentGBUTab];
             } else if (section === 'pulse' || section === 'partner' || section === 'news') {
+                // Ensure currentStep5Tab matches the section for proper auto-select
+                currentStep5Tab = section;
                 resultsDiv = document.getElementById('step5-perplexity-results');
-                stateCache = step5SearchState[currentStep5Tab];
+                stateCache = step5SearchState[section];
             } else {
                 resultsDiv = document.getElementById(section + '-perplexity-results');
             }
@@ -5793,7 +5795,16 @@
             // BriteSpot title + body split for h2 + copy layout
             const briteSpotParsed = parseGbuHtml(briteSpot);
             const briteSpotTitle = briteSpotObj.title || briteSpotParsed.subtitle || '';
-            const briteSpotBody = briteSpotObj.body || briteSpotParsed.copy || '';
+            let briteSpotBody = briteSpotObj.body || briteSpotParsed.copy || '';
+            // Strip duplicate title from body if it begins with the Brite Spot title
+            if (briteSpotTitle && briteSpotBody) {
+                const stripHtml = s => s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+                const normalTitle = stripHtml(briteSpotTitle);
+                const normalBody = stripHtml(briteSpotBody);
+                if (normalBody.startsWith(normalTitle)) {
+                    briteSpotBody = briteSpotBody.replace(new RegExp('^\\s*(<[^>]+>)*\\s*' + briteSpotTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[:\\s]*(<\\/[^>]+>)*\\s*', 'i'), '').trim();
+                }
+            }
 
             // GBU article URLs for hyperlinks
             const goodUrl = selectedArticles.the_good?.url || '';
@@ -5828,7 +5839,7 @@
                 partnerTipsHtml += `
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
 <tr>
-<td style="padding-right:12px;" valign="top" width="40"><img alt="✓" src="https://storage.googleapis.com/stay-in-the-loupe-images/assets/checkmark-new.png" style="display:block;width:36px;height:auto;" width="36" /></td>
+<td style="padding-right:12px;" valign="top" width="76"><img alt="✓" src="https://storage.googleapis.com/stay-in-the-loupe-images/assets/checkmark-new.png" style="display:block;width:72px;height:auto;" width="72" /></td>
 <td valign="top">
 <p style="margin:0 0 4px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:24px;font-weight:600;color:#008182;">${tip.title || ''}</p>
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${tip.content || ''}</p>
@@ -5852,7 +5863,7 @@
                 newsHtml += `
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
 <tr>
-<td style="padding-right:12px;" valign="top" width="40"><img alt="✓" src="https://storage.googleapis.com/stay-in-the-loupe-images/assets/checkmark-new.png" style="display:block;width:36px;height:auto;" width="36" /></td>
+<td style="padding-right:12px;" valign="top" width="76"><img alt="✓" src="https://storage.googleapis.com/stay-in-the-loupe-images/assets/checkmark-new.png" style="display:block;width:72px;height:auto;" width="72" /></td>
 <td valign="top">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${bulletText}</p>
 </td>
@@ -5962,7 +5973,7 @@ a { color: #008182; }
 
 <!-- Good/Bad/Ugly Section - Design A: Centered image below headline -->
 <tr><td style="padding:0;border:1px solid #272D3F;background-color:#ffffff;">
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:22px;font-weight:700;color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;">The Good, The Bad &amp; The Ugly</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;">The Good, The Bad &amp; The Ugly</td></tr></table>
 <!-- Good -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="border-top:5px solid #008182;padding:20px 20px 6px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:700;color:#008182;text-transform:uppercase;letter-spacing:1px;">Good:</p>
@@ -6010,7 +6021,7 @@ ${uglyUrl ? `<a href="${uglyUrl}" target="_blank" style="text-decoration:none;">
 
 <!-- Brite Spot Section — h2 Title + Image + Copy -->
 <tr><td style="padding:0;border:1px solid #272D3F;background-color:#ffffff;">
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:22px;font-weight:700;color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;">The Brite Spot</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;">The Brite Spot</td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="25" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 <!-- Title -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
@@ -6033,7 +6044,7 @@ ${uglyUrl ? `<a href="${uglyUrl}" target="_blank" style="text-decoration:none;">
 
 <!-- Industry Pulse Section — Reordered: Headline → Image → Copy -->
 <tr><td style="padding:0;border:1px solid #272D3F;background-color:#ffffff;">
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:22px;font-weight:700;color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;">Industry Pulse</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;">Industry Pulse</td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="25" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 <!-- Title -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
@@ -6068,7 +6079,7 @@ ${uglyUrl ? `<a href="${uglyUrl}" target="_blank" style="text-decoration:none;">
 
 <!-- Partner Advantage Section -->
 <tr><td style="padding:0;border:1px solid #272D3F;background-color:#ffffff;">
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:22px;font-weight:700;color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;">The Partner Advantage</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;">The Partner Advantage</td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 <!-- Subheader -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
@@ -6096,7 +6107,7 @@ ${partnerTipsHtml}
 
 <!-- Industry News Section -->
 <tr><td style="padding:0;border:1px solid #272D3F;background-color:#ffffff;">
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:22px;font-weight:700;color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;">Industry News</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;">Industry News</td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="30" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
 ${newsHtml}
@@ -6244,21 +6255,35 @@ ${newsHtml}
                 });
 
                 const data = await response.json();
+                const resultDiv = document.getElementById('ontraportResult');
                 if (data.success) {
                     // Save draft first to ensure it exists in GCS, then publish
-                    await saveDraft();
-                    await publishDraft();
+                    try { await saveDraft(); } catch(e) { console.warn('saveDraft after Ontraport:', e); }
+                    try { await publishDraft(); } catch(e) { console.warn('publishDraft after Ontraport:', e); }
                     const uploadedCount = Object.keys(gcsUrls).length;
-                    if (uploadedCount > 0) {
-                        alert(`Newsletter pushed to Ontraport successfully!\n\n${uploadedCount} images auto-hosted on GCS.`);
-                    } else {
-                        alert('Newsletter pushed to Ontraport successfully!');
-                    }
+                    const msg = uploadedCount > 0
+                        ? `Newsletter pushed to Ontraport successfully! ${uploadedCount} images auto-hosted on GCS.`
+                        : 'Newsletter pushed to Ontraport successfully!';
+                    resultDiv.style.display = 'block';
+                    resultDiv.style.background = '#f0fdf4';
+                    resultDiv.style.border = '2px solid #22c55e';
+                    resultDiv.style.color = '#166534';
+                    resultDiv.innerHTML = '<strong>✓ Success!</strong> ' + msg;
+                    btnText.textContent = '✓ Pushed!';
                 } else {
-                    alert('Failed to push to Ontraport: ' + (data.error || 'Unknown error'));
+                    resultDiv.style.display = 'block';
+                    resultDiv.style.background = '#fef2f2';
+                    resultDiv.style.border = '2px solid #ef4444';
+                    resultDiv.style.color = '#991b1b';
+                    resultDiv.innerHTML = '<strong>✗ Failed:</strong> ' + (data.error || 'Unknown error');
                 }
             } catch (error) {
-                alert('Error: ' + error.message);
+                const resultDiv = document.getElementById('ontraportResult');
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = '#fef2f2';
+                resultDiv.style.border = '2px solid #ef4444';
+                resultDiv.style.color = '#991b1b';
+                resultDiv.innerHTML = '<strong>✗ Error:</strong> ' + error.message;
             } finally {
                 btnText.textContent = originalText;
                 btn.disabled = false;
