@@ -5898,6 +5898,12 @@ img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration
 .ReadMsgBody { width: 100%; }
 a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; font-size: inherit !important; font-family: inherit !important; font-weight: inherit !important; line-height: inherit !important; }
 a { color: #008182; }
+.section-header, .section-header font { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
+@media (prefers-color-scheme: dark) {
+    .section-header, .section-header font { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
+}
+[data-ogsc] .section-header, [data-ogsc] .section-header font { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
+u + .body .section-header, u + .body .section-header font { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
 @media only screen and (max-width: 600px) {
     .email-container { width: 100% !important; max-width: 100% !important; }
     .mobile-padding { padding-left: 16px !important; padding-right: 16px !important; }
@@ -5973,7 +5979,7 @@ a { color: #008182; }
 
 <!-- Good/Bad/Ugly Section - Design A: Centered image below headline -->
 <tr><td style="padding:0;border:1px solid #272D3F;background-color:#ffffff;">
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;">The Good, The Bad &amp; The Ugly</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" class="section-header" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;"><font color="#ffffff">The Good, The Bad &amp; The Ugly</font></td></tr></table>
 <!-- Good -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="border-top:5px solid #008182;padding:20px 20px 6px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:700;color:#008182;text-transform:uppercase;letter-spacing:1px;">Good:</p>
@@ -6021,7 +6027,7 @@ ${uglyUrl ? `<a href="${uglyUrl}" target="_blank" style="text-decoration:none;">
 
 <!-- Brite Spot Section — h2 Title + Image + Copy -->
 <tr><td style="padding:0;border:1px solid #272D3F;background-color:#ffffff;">
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;">The Brite Spot</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" class="section-header" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;"><font color="#ffffff">The Brite Spot</font></td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="25" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 <!-- Title -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
@@ -6044,7 +6050,7 @@ ${uglyUrl ? `<a href="${uglyUrl}" target="_blank" style="text-decoration:none;">
 
 <!-- Industry Pulse Section — Reordered: Headline → Image → Copy -->
 <tr><td style="padding:0;border:1px solid #272D3F;background-color:#ffffff;">
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;">Industry Pulse</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" class="section-header" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;"><font color="#ffffff">Industry Pulse</font></td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="25" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 <!-- Title -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
@@ -6079,7 +6085,7 @@ ${uglyUrl ? `<a href="${uglyUrl}" target="_blank" style="text-decoration:none;">
 
 <!-- Partner Advantage Section -->
 <tr><td style="padding:0;border:1px solid #272D3F;background-color:#ffffff;">
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;">The Partner Advantage</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" class="section-header" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;"><font color="#ffffff">The Partner Advantage</font></td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 <!-- Subheader -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
@@ -6107,7 +6113,7 @@ ${partnerTipsHtml}
 
 <!-- Industry News Section -->
 <tr><td style="padding:0;border:1px solid #272D3F;background-color:#ffffff;">
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;">Industry News</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" class="section-header" style="background-color:#272D3F;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;background-image:url('https://storage.googleapis.com/stay-in-the-loupe-images/assets/diamond-pattern-navy.png');background-repeat:repeat;background-size:400px auto;"><font color="#ffffff">Industry News</font></td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="30" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
 ${newsHtml}
