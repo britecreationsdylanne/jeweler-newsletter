@@ -2878,7 +2878,6 @@
                     <span id="ontraportBtnText">🚀 Push to Ontraport</span>
                 </button>
 
-                <div id="ontraportResult" style="display: none; margin-top: 20px; padding: 15px; border-radius: 6px;"></div>
             </div>
 
             <div class="buttons">
@@ -6261,35 +6260,15 @@ ${newsHtml}
                 });
 
                 const data = await response.json();
-                const resultDiv = document.getElementById('ontraportResult');
                 if (data.success) {
-                    // Save draft first to ensure it exists in GCS, then publish
                     try { await saveDraft(); } catch(e) { console.warn('saveDraft after Ontraport:', e); }
                     try { await publishDraft(); } catch(e) { console.warn('publishDraft after Ontraport:', e); }
-                    const uploadedCount = Object.keys(gcsUrls).length;
-                    const msg = uploadedCount > 0
-                        ? `Newsletter pushed to Ontraport successfully! ${uploadedCount} images auto-hosted on GCS.`
-                        : 'Newsletter pushed to Ontraport successfully!';
-                    resultDiv.style.display = 'block';
-                    resultDiv.style.background = '#f0fdf4';
-                    resultDiv.style.border = '2px solid #22c55e';
-                    resultDiv.style.color = '#166534';
-                    resultDiv.innerHTML = '<strong>✓ Success!</strong> ' + msg;
-                    btnText.textContent = '✓ Pushed!';
+                    alert('✅ Successfully pushed to Ontraport!');
                 } else {
-                    resultDiv.style.display = 'block';
-                    resultDiv.style.background = '#fef2f2';
-                    resultDiv.style.border = '2px solid #ef4444';
-                    resultDiv.style.color = '#991b1b';
-                    resultDiv.innerHTML = '<strong>✗ Failed:</strong> ' + (data.error || 'Unknown error');
+                    alert('❌ Error pushing to Ontraport:\n\n' + (data.error || 'Unknown error'));
                 }
             } catch (error) {
-                const resultDiv = document.getElementById('ontraportResult');
-                resultDiv.style.display = 'block';
-                resultDiv.style.background = '#fef2f2';
-                resultDiv.style.border = '2px solid #ef4444';
-                resultDiv.style.color = '#991b1b';
-                resultDiv.innerHTML = '<strong>✗ Error:</strong> ' + error.message;
+                alert('❌ Error pushing to Ontraport:\n\n' + error.message);
             } finally {
                 btnText.textContent = originalText;
                 btn.disabled = false;
