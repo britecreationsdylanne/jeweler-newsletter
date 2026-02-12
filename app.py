@@ -1030,6 +1030,20 @@ def rewrite_content():
 
 TONE: {tone_prompts.get(tone, tone_prompts['professional'])}
 
+=== REAL EXAMPLES OF NEWSLETTER VOICE (match this conversational style) ===
+
+INTRO EXAMPLES:
+- "You asked, and BriteCo delivers: Now you can choose from four different appraisal designs to create the look that suits you best. Plus, keep reading to discover findings from our lab-grown vs. natural diamond report, get the latest on tariffs affecting the industry, and find tips on promoting self-purchases."
+- "The holidays are coming, and we're unwrapping the biggest trends to watch out for this season -- including how to gift yourself with prominent sales opportunities. Plus, we take a closer look at the benefits of Google Ads vs. social media ads and when to utilize each one."
+- "Did you know BriteCo has a thriving blog and YouTube channel? As we continue to ramp up content, we are looking for expert voices that can share advice on a range of jewelry topics."
+
+BRITE SPOT EXAMPLES:
+- "We are wishing you a very happy holiday season and thank you for another great year of partnership. We value your contributions towards our mission of helping clients protect their jewelry."
+- "We want to prioritize the next wave of POS integrations and need your help to do so. Please fill out our quick and easy form and tell us your preferred point-of-sale system. When you do, you'll be entered to win a $50 gift card!"
+- "BriteCo is building up a database of expert voices to include in our blog and YouTube channel. Every time you're interviewed, we'll give you $20 and your name and website will be featured."
+
+=== END EXAMPLES ===
+
 CRITICAL WORD LIMIT: Maximum {spec['max_words']} words ({spec['description']})
 
 Original content:
@@ -1039,9 +1053,11 @@ Instructions:
 1. Keep the core message and information
 2. STRICTLY stay within {spec['max_words']} words - this is non-negotiable
 3. Match the requested tone
-4. Use active voice
-5. Make it relevant to jewelry professionals
-6. Do NOT add any notes, explanations, or suggestions - output ONLY the rewritten content
+4. Use active voice and contractions naturally (we're, you'll, don't)
+5. Be conversational and warm -- like writing to a colleague
+6. Include specific details (names, numbers, percentages) when available
+7. AVOID: "leverage", "robust", "comprehensive", "in today's evolving", generic corporate-speak
+8. Do NOT add any notes, explanations, or suggestions - output ONLY the rewritten content
 
 Rewritten version (max {spec['max_words']} words):"""
 
@@ -1080,6 +1096,72 @@ Rewritten version (max {spec['max_words']} words):"""
         safe_print(f"[API ERROR] Rewrite: {e}")
         import traceback
         traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/rewrite-section', methods=['POST'])
+def rewrite_section():
+    """Rewrite or generate newsletter section content using Claude"""
+    try:
+        data = request.json
+        content = data.get('content', '')
+        section = data.get('section', '')
+        tone = data.get('tone', 'professional')
+
+        if not content:
+            return jsonify({'success': False, 'error': 'Content required'}), 400
+
+        tone_instructions = {
+            'witty': 'Use a clever, witty tone with subtle humor.',
+            'friendly': 'Use a warm, conversational, and approachable tone.',
+            'exciting': 'Make it energetic and exciting with action words.',
+            'informative': 'Keep it clear, factual, and professional.',
+            'professional': 'Use formal business language and tone.'
+        }
+        tone_line = f"\n- TONE: {tone_instructions.get(tone, '')}" if tone else ""
+
+        if not claude_client:
+            return jsonify({'success': False, 'error': 'Claude client not available'}), 500
+
+        prompt = f"""You are a professional newsletter copywriter for BriteCo, a jewelry and valuables insurance company writing "Stay In The Loupe" newsletter for jewelers.
+
+{content}
+
+=== REAL EXAMPLES OF NEWSLETTER VOICE ===
+- "Over the past five years, lab-grown diamonds have fundamentally reshaped the diamond jewelry industry, evolving from a niche product into a mainstream choice. Today, they account for more than 45% of all US engagement ring purchases. We recently released a report with proprietary data that reveals significant pricing, style, and consumer purchase behavior changes."
+- "As 2025 winds down, we wanted to wish you and yours a very happy holiday season and thank you for another great year of partnership. We value your contributions towards our mission of helping clients protect their jewelry."
+- "BriteCo is building up a database of expert voices to include in our blog and YouTube channel on topics ranging from how to care for jewelry to the latest diamond trends and more. Every time you're interviewed, we'll give you $20 and your name and website will be featured."
+=== END EXAMPLES ===
+
+GUIDELINES:
+- Keep it concise: 2-3 short paragraphs, under 100 words total
+- Tone: professional, warm, and engaging{tone_line}
+- Focus on value to jewelers and jewelry retailers
+- Use contractions naturally (it's, we're, you'll)
+- Include specific details (names, numbers, percentages) when available
+- Sound conversational -- like writing to a colleague
+- Avoid AI-sounding phrases like "In today's ever-evolving landscape", "leverage", "robust", "comprehensive"
+- No markdown formatting — output plain text only
+
+Output ONLY the content, no labels or explanations."""
+
+        result = claude_client.generate_content(
+            prompt=prompt,
+            max_tokens=400,
+            temperature=0.6
+        )
+
+        rewritten = result.get('content', '').strip()
+
+        return jsonify({
+            'success': True,
+            'rewritten': rewritten,
+            'original': content,
+            'section': section
+        })
+
+    except Exception as e:
+        safe_print(f"[API ERROR] Section rewrite: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -1165,9 +1247,29 @@ Article: {article.get('title', '')}
 Research: {article.get('research', article.get('snippet', ''))}
 URL: {article.get('url', '')}
 
+=== REAL EXAMPLES FROM PAST ISSUES (match this punchy, specific voice) ===
+
+GOOD examples:
+- Subtitle: "A Ring That Says 'You Belong With Me'" / Copy: "Taylor Swift's engagement news may not be shocking anymore, but her ring still is; estimates say the 18k gold diamond stunner is worth more than $1 million."
+- Subtitle: "A Gold Rush" / Copy: "As the value of gold continues to reach new milestones in 2025, JPMorgan Chase CEO Jamie Dimon believes sales could 'easily' climb to $10,000 per ounce in the near future."
+- Subtitle: "It's Alive!" / Copy: "A monster-sized collection from Tiffany & Co. gets the spotlight in Guillermo Del Toro's new film adaptation of Frankenstein, out in November. The movie features 27 pieces, including some from its archives."
+
+BAD examples:
+- Subtitle: "Caught in a Lab-Grown Lie" / Copy: "A New Jersey jeweler was arrested in August and charged with defrauding a customer of $23,000 after selling lab-grown diamonds as natural gems."
+- Subtitle: "A Takeover Shakeup" / Copy: "Employees at Heller Jewelers in San Ramon, California had a huge scare in September as 20 masked and armed thieves broke in and fired several rounds. Thankfully, no one was injured."
+- Subtitle: "The Louvre's Losses" / Copy: "Seven arrests have been made in the brazen heist that occurred at the Louvre in October. Thieves got away with eight precious jewels, worth up to $100 million, which have yet to be recovered."
+
+UGLY examples:
+- Subtitle: "A Big Call for Help" / Copy: "Well, that's one way to get attention. This 2013 statement piece from Lanvin is a reminder that a little help does, in fact, go a long way."
+- Subtitle: "Made to Scale" / Copy: "Gucci really 'weighed' some interesting decisions when making this vintage timepiece that gives whole new meaning to the idea of scaling up."
+- Subtitle: "Gone Rotten" / Copy: "Gemstones may not expire, but artist Kathleen Ryan still found a way to make lapis lazuli, malachite, and turquoise look like mold in her rotting raspberry sculpture."
+
+=== END EXAMPLES ===
+
 Requirements:
-- Subtitle: Maximum 8 words, catchy and engaging
+- Subtitle: Maximum 8 words, catchy and clever (use wordplay, puns, or pop culture references like the examples)
 - Copy: 1-2 sentences, maximum 30 words total
+- Include SPECIFIC names, dollar amounts, locations, and details
 - Tone: {section_type.get(section_key, 'engaging')}
 
 Return JSON:
@@ -1215,12 +1317,31 @@ URL: {art.get('url', '')}
 Articles:
 {articles_text}
 
+=== REAL EXAMPLES FROM PAST ISSUES (match this voice, depth, and specificity) ===
+
+EXAMPLE 1 - Title: "Tariff Talk: The Latest Effects on the Jewelry Industry"
+Intro: "As tariffs loom and restrictions are implemented on imported goods, the jewelry industry is taking action. In August, representatives with Jewelers of America headed to Washington, DC to speak with the Trump administration on the drastic effect this poses to the market."
+H3 "Swiss Watches": "As of August 7, there is now a 39% tariff on Swiss imports, significantly affecting the luxury watch industry. In anticipation of the restriction, timepiece exports to the US surged 45% in July compared to the same time last year, according to JCK."
+H3 "Diamond Disruption": "The new 50% tariffs on Indian goods, a jump from 25% previously, are projected to have a huge impact on the US diamond market. 'India is a dominant force in the global market for cut and polished diamonds, and America is one of its largest buyers,' says the New York Times."
+
+EXAMPLE 2 - Title: "Not Your Grandmother's Brooch: The Fashion Statement Continues Making a Big Comeback"
+Intro: "In November, news broke that a brooch once belonging to Napoleon Bonaparte netted a whopping $4.4 million at auction, far surpassing the $150,000-$200,000 price tag the 13-carat piece was expected to sell for. But, anyone paying attention to the latest trends may not have found the development that surprising — brooches are back in a big way this year."
+H3 "Young Wearers Are Leading the Way": "According to Harper's Bazaar, 'the return of adornment is blending nostalgia, self-expression, and a touch of playful luxury in a market driven by individuality and emotion.' Millennials and Gen Z are at the forefront of this trend, with brooches seen on aspirational figures like Dua Lipa, Zendaya, and Gigi Hadid."
+
+=== END EXAMPLES ===
+
 Requirements:
-- Title: Compelling headline for the combined story (max 15 words)
-- Intro: 1-2 paragraphs, 1-4 sentences each, max 50 words per paragraph
-- H3 Section 1: Heading (max 10 words) + 1-2 paragraphs (max 60 words each)
-- H3 Section 2: Heading (max 10 words) + 1-2 paragraphs (max 60 words each)
-- IMPORTANT: Include hyperlinks to source articles using markdown format [link text](URL) whenever referencing data or claims
+- Title: Compelling, specific headline (max 15 words) -- use descriptive titles like the examples, not generic ones
+- Intro: 1-2 paragraphs setting up the story with specific facts, quotes, and data
+- H3 Section 1: Descriptive heading (max 10 words) + 1-2 paragraphs with SPECIFIC data, DIRECT QUOTES (with attribution), and source references
+- H3 Section 2: Descriptive heading (max 10 words) + 1-2 paragraphs with SPECIFIC data, DIRECT QUOTES, and source references
+- Include hyperlinks using markdown format [link text](URL) whenever referencing data or claims
+
+WRITING STYLE:
+- Include DIRECT QUOTES from named sources with titles (e.g., "JA President and CEO David J. Bonaparte shared...")
+- Use specific dollar amounts, percentages, and statistics
+- Be conversational -- use contractions, vary sentence length
+- AVOID: "landscape", "navigate", "leverage", "robust", "in today's evolving"
 
 Return JSON:
 {{
@@ -1273,13 +1394,44 @@ Return JSON:
 
 {articles_text}
 
+=== REAL EXAMPLES FROM PAST ISSUES (match this practical, quote-rich voice) ===
+
+EXAMPLE 1 - Subheader: "Promote Self-Gifting to Drive Pre-Holiday Sales"
+Intro: "Who doesn't love buying themselves a gift? Especially when the timing is right. This fall, as summer vacation and back-to-school spending dies down and before people really start making holiday gift lists, it's the perfect time to start marketing self-purchases. 'While many jewelers write off this time of year as slow, there's a golden opportunity hiding in plain sight,' says National Jeweler."
+Tips:
+- "Look for signs." / "Train your staff to look for clues, which may be subtle. For example, comments like: 'This would look great on me,' or 'I've been eyeing this piece,' or 'I love this style.'"
+- "Adjust your message." / "Promote the idea in marketing materials, your website, and social media. Use verbiage about 'rewarding yourself' and 'personal expression.'"
+- "Segment your client base." / "Send emails to those who have purchased before to encourage the activity again."
+
+EXAMPLE 2 - Subheader: "Stay Social: 4 Ways to Connect with Your Online Audience This Holiday Season"
+Intro: "Holiday shoppers will be spending a lot of time online this season when curating their own gift guides. According to Google, consumers 'search online before 92% of store visits,' meaning meeting them in the digital space is imperative for sales."
+Tips:
+- "Be active and interactive." / "As the magazine suggests, 'Dedicate just a few minutes a day to follow new accounts, like posts, and leave thoughtful comments.' The payoff is not only building your community but also building trust."
+- "Write back!" / "Social media is not the place to stay quiet. 'Users value direct, personal interactions,' says InStore, recommending to always have a friendly tone."
+- "Show off real customers." / "Ask customers if they would be willing to take a photo in-store wearing their jewelry that you can then share online. 'These authentic images help humanize your brand and build emotional connections,' says InStore."
+
+EXAMPLE 3 - Subheader: "Beat the Post-Holiday Blues: 5 Other Major Events You Should Market Around"
+Intro: "Once the holidays are over this year, and sales trends start to take a dip with fewer gift purchases, there's no need to worry. There are other special events that you can effectively market to customers to fill in what National Jeweler calls the 'gifting gap.'"
+Tips:
+- "Anniversaries." / "If you sell engagement rings, you already have a base to follow up with. Offer a 'curated selection of gifts by year: gold for 1st, diamonds for 10th,' says the magazine."
+- "New Babies." / "Parents love the chance to mark a new arrival to the family, so this is a great opportunity to market birthstone jewelry and charms."
+- "Self Purchases." / "BriteCo data has found that 80% of people buy themselves jewelry rather than waiting for it as a gift. For marketing self-purchases, National Jeweler advises, 'Build marketing messaging that empowers your audience to celebrate their own achievements.'"
+
+=== END EXAMPLES ===
+
 Requirements:
-- Subheader: Max 15 words, describes the tips theme
-- Intro: 1 short paragraph introducing the tips
-- 5 bullet points, each with:
-  - Mini-title: Max 10 words
-  - Supporting text: 1-3 sentences with markdown links [text](URL) to sources
-- IMPORTANT: Include hyperlinks using markdown format [link text](URL) in the content
+- Subheader: Max 15 words, catchy and specific (like the examples above)
+- Intro: 1 paragraph that hooks with a specific stat or quote, names the source, and sets up the tips
+- 3-5 tips, each with:
+  - Mini-title: Short, punchy, action-oriented (max 10 words)
+  - Supporting text: 1-3 sentences with DIRECT QUOTES from sources and specific data
+- Include hyperlinks using markdown format [link text](URL) in the content
+
+WRITING STYLE:
+- Include DIRECT QUOTES from the articles (with attribution)
+- Be conversational -- use contractions, address the reader as "you"
+- Sound like a knowledgeable colleague sharing practical advice
+- AVOID: "leverage", "navigate", "landscape", "robust", "in today's evolving"
 
 Return JSON:
 {{
@@ -1341,22 +1493,40 @@ Return JSON:
 
 {articles_text}
 
+=== REAL EXAMPLES FROM PAST ISSUES (match this headline-capitalized style exactly) ===
+
+"A 21.25-Carat Pink Diamond Worth $25 Million Was Stolen in Dubai, Part of an Elaborate Year-Long Scheme; It Has Since Been Recovered"
+
+"US Jewelry Sales Are on the Rise, with CNBC Reporting an Increase of 5% in the First Half of 2025, Even As Economic Worries Loom"
+
+"In a Total Rockstar Move, Elton John Turned His Old Kneecaps Into Jewelry; After They Were Surgically Removed, Pieces Were Used for a Necklace and Brooch"
+
+"Could Gold Hit $4,000 an Ounce? All Signs Say Yes as It Hit Another Milestone in September, Selling for $3,800. Deutsche Bank Predicts $4,000 Will Happen by the End of the Year."
+
+"Holiday Shopping Is Going to Set a New Record in 2025 with Analysts Predicting Sales Will Surpass the $1 Trillion Mark for the First Time Ever"
+
+"The '90s Are Calling: Toe Rings Are Back in a Big Way This Year, But This Time It's All About Precious Metals, Pearls, and Big Carat Bling"
+
+"Antique Diamonds Are Having a Moment Thanks to the Taylor Swift Effect, with Many Engagement Ring Shoppers Now Looking for Mine-Cut Stones"
+
+=== END EXAMPLES ===
+
 CRITICAL RULES:
 1. Bullet 1 MUST be about ARTICLE 1's specific topic: "{unique_articles[0].get('title', '')}" — and ONLY that topic
 2. Bullet 2 MUST be about ARTICLE 2's specific topic: "{unique_articles[1].get('title', '') if len(unique_articles) > 1 else ''}" — and ONLY that topic
 3. Bullet 3 MUST be about ARTICLE 3's specific topic: "{unique_articles[2].get('title', '') if len(unique_articles) > 2 else ''}" — and ONLY that topic
 4. Bullet 4 MUST be about ARTICLE 4's specific topic: "{unique_articles[3].get('title', '') if len(unique_articles) > 3 else ''}" — and ONLY that topic
 5. Bullet 5 MUST be about ARTICLE 5's specific topic: "{unique_articles[4].get('title', '') if len(unique_articles) > 4 else ''}" — and ONLY that topic
-6. NO TWO BULLETS can have similar phrasing, structure, or topic — they must all be completely different
-7. Each bullet naturally incorporates a markdown hyperlink [link text](url) to its article URL
-8. Link text should be organic (source name, key phrase, or trend name) — NOT the full sentence
-9. Each bullet: ONE sentence, 15-25 words
+6. Write in HEADLINE CAPITALIZED style like the examples above (Title Case Throughout)
+7. Include SPECIFIC dollar amounts, percentages, names, and details -- never be vague
+8. Make each bullet attention-grabbing and vivid -- use pop culture references, punchy semicolons, and dramatic phrasing
+9. Each bullet: ONE sentence, 15-30 words
 
 Return JSON only:
 {{
     "bullets": [
-        {{"text": "Sentence with [link text](article1_url) embedded.", "url": "article1_url"}},
-        {{"text": "Different sentence with [link text](article2_url) embedded.", "url": "article2_url"}},
+        {{"text": "Headline-Style Sentence About Article 1 Topic with Specific Details", "url": "article1_url"}},
+        {{"text": "Different Headline-Style Sentence About Article 2 Topic", "url": "article2_url"}},
         ...
     ]
 }}
@@ -1585,19 +1755,86 @@ Output ONLY the image generation prompt, nothing else."""
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@app.route('/api/enhance-image-prompt', methods=['POST'])
+def enhance_image_prompt():
+    """Enhance a rough image description into a detailed, optimized image generation prompt"""
+    try:
+        data = request.json
+        prompt = data.get('prompt', '')
+        if not prompt:
+            return jsonify({'success': False, 'error': 'Prompt required'}), 400
+
+        if not claude_client:
+            return jsonify({'success': False, 'error': 'Claude client not available'}), 500
+
+        system_prompt = """You are an expert image prompt engineer. Take the user's rough description and transform it into a highly detailed, optimized prompt for AI image generation.
+
+RULES:
+- Be specific about composition, lighting, color palette, and style
+- Specify "professional photograph" or "digital illustration" style
+- Include mood and atmosphere details
+- Add details about perspective and framing
+- NEVER include text, words, letters, or watermarks in the image description
+- Keep the enhanced prompt under 200 words
+- Output ONLY the enhanced prompt, nothing else"""
+
+        result = claude_client.generate_content(
+            prompt=f"Enhance this image prompt for newsletter use:\n\n{prompt}",
+            system_prompt=system_prompt,
+            max_tokens=300,
+            temperature=0.7
+        )
+
+        enhanced = result.get('content', '').strip()
+
+        return jsonify({
+            'success': True,
+            'enhanced_prompt': enhanced,
+            'original_prompt': prompt
+        })
+
+    except Exception as e:
+        safe_print(f"[API ERROR] Enhance prompt: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/api/generate-images', methods=['POST'])
 def generate_images():
     """Generate images using Gemini"""
     try:
         data = request.json
-        prompts = data.get('prompts', {})
-
-        safe_print(f"\n[API] Generating {len(prompts)} images...")
 
         # Check if Gemini client is available
         if not gemini_client or not gemini_client.is_available():
             safe_print("[API ERROR] Gemini client not available")
             return jsonify({'success': False, 'error': 'Gemini image generation not available'}), 500
+
+        # Handle single-image request (from special section)
+        single_prompt = data.get('prompt')
+        single_section = data.get('section')
+        if single_prompt and single_section:
+            safe_print(f"\n[API] Single image request for {single_section}")
+            try:
+                result = gemini_client.generate_image(
+                    prompt=single_prompt,
+                    aspect_ratio="16:9"
+                )
+                image_data = result.get('image_base64', result.get('image_data', ''))
+                if image_data:
+                    return jsonify({
+                        'success': True,
+                        'image_data': image_data,
+                        'images': {single_section: f"data:image/png;base64,{image_data}"}
+                    })
+                else:
+                    return jsonify({'success': False, 'error': 'No image data returned'})
+            except Exception as e:
+                safe_print(f"  [ERROR] Single image generation failed: {e}")
+                return jsonify({'success': False, 'error': str(e)})
+
+        prompts = data.get('prompts', {})
+
+        safe_print(f"\n[API] Generating {len(prompts)} images...")
 
         images = {}
 
@@ -2113,6 +2350,14 @@ def export_to_docs():
             elif isinstance(news, list):
                 for item in news:
                     add_text(f"• {item}")
+
+        # Special Section (if included)
+        if content.get('special_section'):
+            ss = content['special_section']
+            ss_title = ss.get('title', 'Special Section') if isinstance(ss, dict) else 'Special Section'
+            ss_body = ss.get('body', str(ss)) if isinstance(ss, dict) else str(ss)
+            add_text(ss_title, bold=True)
+            add_text(ss_body)
 
         # Execute batch update
         if requests_list:
