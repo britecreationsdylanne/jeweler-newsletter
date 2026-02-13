@@ -2898,6 +2898,42 @@
                 </div>
             </div>
 
+            <!-- Footer CTA Options -->
+            <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #FE8916;">
+                <h3 style="margin: 0 0 10px 0;">📢 Footer CTA</h3>
+                <p style="font-size: 14px; color: #666; margin-bottom: 15px;">Customize the "Wait Before You Go..." section at the bottom of the newsletter</p>
+
+                <!-- Body Text Dropdown -->
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 5px;">CTA Body Text</label>
+                    <select id="ctaBodyTextSelect" onchange="updateCtaCustomField('body')" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; background: white;">
+                        <option value="Have you tried out the new GIA import feature on the diamond screen?">Have you tried out the new GIA import feature on the diamond screen?</option>
+                        <option value="Offer your customers affordable, stand-alone jewelry insurance">Offer your customers affordable, stand-alone jewelry insurance</option>
+                        <option value="Join thousands of jewelers already partnering with BriteCo">Join thousands of jewelers already partnering with BriteCo</option>
+                        <option value="custom">Custom...</option>
+                    </select>
+                    <div id="ctaBodyCustom" style="display: none; margin-top: 8px;">
+                        <input type="text" id="ctaBodyTextCustom" placeholder="Enter custom CTA body text" maxlength="80" oninput="updateCtaCharCount('body')" style="width: 100%; padding: 10px; border: 2px solid #3b82f6; border-radius: 4px; font-size: 14px;">
+                        <span id="ctaBodyCharCount" style="font-size: 12px; color: #999; float: right; margin-top: 4px;">0 / 80</span>
+                    </div>
+                </div>
+
+                <!-- Button Text Dropdown -->
+                <div>
+                    <label style="display: block; font-weight: 600; margin-bottom: 5px;">CTA Button Text</label>
+                    <select id="ctaButtonTextSelect" onchange="updateCtaCustomField('button')" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; background: white;">
+                        <option value="Become A Partner">Become A Partner</option>
+                        <option value="Get Started Today">Get Started Today</option>
+                        <option value="Learn More">Learn More</option>
+                        <option value="custom">Custom...</option>
+                    </select>
+                    <div id="ctaButtonCustom" style="display: none; margin-top: 8px;">
+                        <input type="text" id="ctaButtonTextCustom" placeholder="Enter custom button text" maxlength="25" oninput="updateCtaCharCount('button')" style="width: 100%; padding: 10px; border: 2px solid #3b82f6; border-radius: 4px; font-size: 14px;">
+                        <span id="ctaButtonCharCount" style="font-size: 12px; color: #999; float: right; margin-top: 4px;">0 / 25</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="buttons">
                 <button class="btn btn-secondary" onclick="goToStep(9)">← Back to Images</button>
                 <button class="btn" onclick="goToStep(11)">Continue to Preview →</button>
@@ -6002,6 +6038,37 @@
             }
         }
 
+        // CTA dropdown helpers
+        function updateCtaCustomField(type) {
+            const select = document.getElementById(type === 'body' ? 'ctaBodyTextSelect' : 'ctaButtonTextSelect');
+            const customDiv = document.getElementById(type === 'body' ? 'ctaBodyCustom' : 'ctaButtonCustom');
+            customDiv.style.display = select.value === 'custom' ? 'block' : 'none';
+        }
+
+        function updateCtaCharCount(type) {
+            const input = document.getElementById(type === 'body' ? 'ctaBodyTextCustom' : 'ctaButtonTextCustom');
+            const counter = document.getElementById(type === 'body' ? 'ctaBodyCharCount' : 'ctaButtonCharCount');
+            const max = type === 'body' ? 80 : 25;
+            counter.textContent = `${input.value.length} / ${max}`;
+            counter.style.color = input.value.length > max ? '#ef4444' : '#999';
+        }
+
+        function getCtaBodyText() {
+            const select = document.getElementById('ctaBodyTextSelect');
+            if (select.value === 'custom') {
+                return document.getElementById('ctaBodyTextCustom').value || 'Have you tried out the new GIA import feature on the diamond screen?';
+            }
+            return select.value;
+        }
+
+        function getCtaButtonText() {
+            const select = document.getElementById('ctaButtonTextSelect');
+            if (select.value === 'custom') {
+                return document.getElementById('ctaButtonTextCustom').value || 'Become A Partner';
+            }
+            return select.value;
+        }
+
         async function regenerateSubjectLines() {
             const tone = document.getElementById('regenerateTone').value;
 
@@ -6145,6 +6212,11 @@
             // Get subject and preheader
             const subjectLine = document.getElementById('finalSubjectLine')?.value || 'Stay In The Loupe - ' + selectedMonth;
             const preheader = document.getElementById('finalPreheader')?.value || 'Your monthly jewelry industry insights from BriteCo';
+
+            // Get footer CTA values
+            const ctaBodyText = getCtaBodyText();
+            const ctaButtonText = getCtaButtonText();
+            const ctaUrl = 'https://brite.co/for-jewelers/';
 
             // Get images - for preview show base64, for final HTML use placeholder URLs
             const PLACEHOLDER = 'https://brite.co/wp-content/uploads/2025/09/blank-image.png';
@@ -6575,13 +6647,13 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
 <![endif]-->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td align="center" class="cta-padding" style="padding:120px 20px;">
 <h2 style="color:#ffffff;font-size:32px;margin:0 0 15px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-weight:600;">Wait Before You Go...</h2>
-<p style="color:#ffffff;font-size:18px;margin:0 0 30px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;">Have you tried out the new GIA import feature on the diamond screen?</p>
+<p style="color:#ffffff;font-size:18px;margin:0 0 30px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;">${ctaBodyText}</p>
 <!--[if mso]>
-<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://brite.co/partners" style="height:48px;v-text-anchor:middle;width:250px;" arcsize="20%" strokecolor="#FE8916" fillcolor="#FE8916">
-<w:anchorlock/><center style="color:#ffffff;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;text-transform:uppercase;">BECOME A PARTNER</center>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${ctaUrl}" style="height:48px;v-text-anchor:middle;width:250px;" arcsize="20%" strokecolor="#FE8916" fillcolor="#FE8916">
+<w:anchorlock/><center style="color:#ffffff;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;text-transform:uppercase;">${ctaButtonText.toUpperCase()}</center>
 </v:roundrect><![endif]-->
 <!--[if !mso]><!-->
-<a href="https://brite.co/partners" style="display:inline-block;padding:11px 29px;background-color:#FE8916;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;text-transform:uppercase;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;">BECOME A PARTNER</a>
+<a href="${ctaUrl}" style="display:inline-block;padding:11px 29px;background-color:#FE8916;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;text-transform:uppercase;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;">${ctaButtonText.toUpperCase()}</a>
 <!--<![endif]-->
 </td></tr></table>
 <!--[if mso]>

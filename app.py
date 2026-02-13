@@ -1024,11 +1024,7 @@ def rewrite_content():
 
         spec = section_specs.get(section, section_specs['intro'])
 
-        prompt = f"""Rewrite the following content for a jewelry industry newsletter called "Stay In The Loupe".
-
-{spec['context']}
-
-TONE: {tone_prompts.get(tone, tone_prompts['professional'])}
+        rewrite_system = """You are a professional newsletter copywriter for "Stay In The Loupe," a monthly jewelry industry newsletter by BriteCo.
 
 === REAL EXAMPLES OF NEWSLETTER VOICE (match this conversational style) ===
 
@@ -1044,26 +1040,29 @@ BRITE SPOT EXAMPLES:
 
 === END EXAMPLES ===
 
+VOICE:
+- Conversational and warm -- like writing to a colleague
+- Use active voice and contractions naturally (we're, you'll, don't)
+- Include specific details (names, numbers, percentages) when available
+- AVOID: "leverage", "robust", "comprehensive", "in today's evolving", generic corporate-speak"""
+
+        rewrite_prompt = f"""Rewrite this content for the newsletter.
+
+{spec['context']}
+
+TONE: {tone_prompts.get(tone, tone_prompts['professional'])}
+
 CRITICAL WORD LIMIT: Maximum {spec['max_words']} words ({spec['description']})
 
 Original content:
 {content}
 
-Instructions:
-1. Keep the core message and information
-2. STRICTLY stay within {spec['max_words']} words - this is non-negotiable
-3. Match the requested tone
-4. Use active voice and contractions naturally (we're, you'll, don't)
-5. Be conversational and warm -- like writing to a colleague
-6. Include specific details (names, numbers, percentages) when available
-7. AVOID: "leverage", "robust", "comprehensive", "in today's evolving", generic corporate-speak
-8. Do NOT add any notes, explanations, or suggestions - output ONLY the rewritten content
-
-Rewritten version (max {spec['max_words']} words):"""
+Keep the core message. STRICTLY stay within {spec['max_words']} words. Output ONLY the rewritten content."""
 
         try:
             response = claude_client.generate_content(
-                prompt=prompt,
+                prompt=rewrite_prompt,
+                system_prompt=rewrite_system,
                 max_tokens=500,
                 temperature=0.7
             )
@@ -1123,9 +1122,7 @@ def rewrite_section():
         if not claude_client:
             return jsonify({'success': False, 'error': 'Claude client not available'}), 500
 
-        prompt = f"""You are a professional newsletter copywriter for BriteCo, a jewelry and valuables insurance company writing "Stay In The Loupe" newsletter for jewelers.
-
-{content}
+        section_rewrite_system = """You are a professional newsletter copywriter for "Stay In The Loupe," a jewelry industry newsletter by BriteCo.
 
 === REAL EXAMPLES OF NEWSLETTER VOICE ===
 - "Over the past five years, lab-grown diamonds have fundamentally reshaped the diamond jewelry industry, evolving from a niche product into a mainstream choice. Today, they account for more than 45% of all US engagement ring purchases. We recently released a report with proprietary data that reveals significant pricing, style, and consumer purchase behavior changes."
@@ -1133,20 +1130,27 @@ def rewrite_section():
 - "BriteCo is building up a database of expert voices to include in our blog and YouTube channel on topics ranging from how to care for jewelry to the latest diamond trends and more. Every time you're interviewed, we'll give you $20 and your name and website will be featured."
 === END EXAMPLES ===
 
+VOICE:
+- Sound conversational -- like writing to a colleague
+- Use contractions naturally (it's, we're, you'll)
+- Include specific details (names, numbers, percentages) when available
+- AVOID: "In today's ever-evolving landscape", "leverage", "robust", "comprehensive"
+- No markdown formatting — output plain text only"""
+
+        section_rewrite_prompt = f"""Rewrite this section content.
+
+{content}
+
 GUIDELINES:
 - Keep it concise: 2-3 short paragraphs, under 100 words total
 - Tone: professional, warm, and engaging{tone_line}
 - Focus on value to jewelers and jewelry retailers
-- Use contractions naturally (it's, we're, you'll)
-- Include specific details (names, numbers, percentages) when available
-- Sound conversational -- like writing to a colleague
-- Avoid AI-sounding phrases like "In today's ever-evolving landscape", "leverage", "robust", "comprehensive"
-- No markdown formatting — output plain text only
 
 Output ONLY the content, no labels or explanations."""
 
         result = claude_client.generate_content(
-            prompt=prompt,
+            prompt=section_rewrite_prompt,
+            system_prompt=section_rewrite_system,
             max_tokens=400,
             temperature=0.6
         )
@@ -1241,11 +1245,7 @@ def generate_newsletter():
                     'the_ugly': 'bizarre or unusual jewelry story'
                 }
 
-                prompt = f"""Write content for "The {section_key.split('_')[1].title()}" section of a jewelry newsletter.
-
-Article: {article.get('title', '')}
-Research: {article.get('research', article.get('snippet', ''))}
-URL: {article.get('url', '')}
+                gbu_system = """You write "The Good, The Bad, The Ugly" section for "Stay In The Loupe," a jewelry industry newsletter.
 
 === REAL EXAMPLES FROM PAST ISSUES (match this punchy, specific voice) ===
 
@@ -1266,8 +1266,19 @@ UGLY examples:
 
 === END EXAMPLES ===
 
+STYLE:
+- Subtitles: Catchy, clever, use wordplay/puns/pop culture references
+- Copy: Punchy, specific, include names and dollar amounts
+- AVOID: generic descriptions, corporate-speak"""
+
+                gbu_prompt = f"""Write content for "The {section_key.split('_')[1].title()}" section.
+
+Article: {article.get('title', '')}
+Research: {article.get('research', article.get('snippet', ''))}
+URL: {article.get('url', '')}
+
 Requirements:
-- Subtitle: Maximum 8 words, catchy and clever (use wordplay, puns, or pop culture references like the examples)
+- Subtitle: Maximum 8 words, catchy and clever
 - Copy: 1-2 sentences, maximum 30 words total
 - Include SPECIFIC names, dollar amounts, locations, and details
 - Tone: {section_type.get(section_key, 'engaging')}
@@ -1277,7 +1288,8 @@ Return JSON:
 
                 try:
                     response = claude_client.generate_content(
-                        prompt=prompt,
+                        prompt=gbu_prompt,
+                        system_prompt=gbu_system,
                         max_tokens=200,
                         temperature=0.7
                     )
@@ -1312,10 +1324,7 @@ Research: {art.get('research', art.get('snippet', ''))}
 URL: {art.get('url', '')}
 """
 
-            prompt = f"""Write an "Industry Pulse" section combining these jewelry industry articles into one cohesive story.
-
-Articles:
-{articles_text}
+            pulse_system = """You write the "Industry Pulse" section for "Stay In The Loupe," a jewelry industry newsletter.
 
 === REAL EXAMPLES FROM PAST ISSUES (match this voice, depth, and specificity) ===
 
@@ -1330,18 +1339,24 @@ H3 "Young Wearers Are Leading the Way": "According to Harper's Bazaar, 'the retu
 
 === END EXAMPLES ===
 
-Requirements:
-- Title: Compelling, specific headline (max 15 words) -- use descriptive titles like the examples, not generic ones
-- Intro: 1-2 paragraphs setting up the story with specific facts, quotes, and data
-- H3 Section 1: Descriptive heading (max 10 words) + 1-2 paragraphs with SPECIFIC data, DIRECT QUOTES (with attribution), and source references
-- H3 Section 2: Descriptive heading (max 10 words) + 1-2 paragraphs with SPECIFIC data, DIRECT QUOTES, and source references
-- Include hyperlinks using markdown format [link text](URL) whenever referencing data or claims
-
 WRITING STYLE:
 - Include DIRECT QUOTES from named sources with titles (e.g., "JA President and CEO David J. Bonaparte shared...")
 - Use specific dollar amounts, percentages, and statistics
 - Be conversational -- use contractions, vary sentence length
 - AVOID: "landscape", "navigate", "leverage", "robust", "in today's evolving"
+"""
+
+            pulse_prompt = f"""Combine these jewelry industry articles into one cohesive "Industry Pulse" story.
+
+Articles:
+{articles_text}
+
+Requirements:
+- Title: Compelling, specific headline (max 15 words) -- descriptive, not generic
+- Intro: 1-2 paragraphs setting up the story with specific facts, quotes, and data
+- H3 Section 1: Descriptive heading (max 10 words) + 1-2 paragraphs with SPECIFIC data, DIRECT QUOTES, source references
+- H3 Section 2: Descriptive heading (max 10 words) + 1-2 paragraphs with SPECIFIC data, DIRECT QUOTES, source references
+- Include hyperlinks using markdown format [link text](URL)
 
 Return JSON:
 {{
@@ -1356,7 +1371,8 @@ Return JSON:
 
             try:
                 response = claude_client.generate_content(
-                    prompt=prompt,
+                    prompt=pulse_prompt,
+                    system_prompt=pulse_system,
                     max_tokens=800,
                     temperature=0.6
                 )
@@ -1390,9 +1406,7 @@ Return JSON:
             for art in articles:
                 articles_text += f"- {art.get('title', '')}: {art.get('research', art.get('snippet', ''))}\n"
 
-            prompt = f"""Write a "Partner Advantage" section for jewelers based on these articles:
-
-{articles_text}
+            partner_system = """You write the "Partner Advantage" section for "Stay In The Loupe," a jewelry industry newsletter. This section provides practical, actionable tips for jewelers based on industry articles.
 
 === REAL EXAMPLES FROM PAST ISSUES (match this practical, quote-rich voice) ===
 
@@ -1419,19 +1433,24 @@ Tips:
 
 === END EXAMPLES ===
 
-Requirements:
-- Subheader: Max 15 words, catchy and specific (like the examples above)
-- Intro: 1 paragraph that hooks with a specific stat or quote, names the source, and sets up the tips
-- 3-5 tips, each with:
-  - Mini-title: Short, punchy, action-oriented (max 10 words)
-  - Supporting text: 1-3 sentences with DIRECT QUOTES from sources and specific data
-- Include hyperlinks using markdown format [link text](URL) in the content
-
 WRITING STYLE:
-- Include DIRECT QUOTES from the articles (with attribution)
+- Include DIRECT QUOTES from articles (with attribution)
 - Be conversational -- use contractions, address the reader as "you"
 - Sound like a knowledgeable colleague sharing practical advice
 - AVOID: "leverage", "navigate", "landscape", "robust", "in today's evolving"
+"""
+
+            partner_prompt = f"""Write a "Partner Advantage" section based on these articles:
+
+{articles_text}
+
+Requirements:
+- Subheader: Max 15 words, catchy and specific
+- Intro: 1 paragraph that hooks with a specific stat or quote, names the source, sets up the tips
+- 3-5 tips, each with:
+  - Mini-title: Short, punchy, action-oriented (max 10 words)
+  - Supporting text: 1-3 sentences with DIRECT QUOTES from sources and specific data
+- Include hyperlinks using markdown format [link text](URL)
 
 Return JSON:
 {{
@@ -1445,7 +1464,8 @@ Return JSON:
 
             try:
                 response = claude_client.generate_content(
-                    prompt=prompt,
+                    prompt=partner_prompt,
+                    system_prompt=partner_system,
                     max_tokens=800,
                     temperature=0.6
                 )
@@ -1489,11 +1509,9 @@ Return JSON:
                 detail = art.get('research', '') or art.get('snippet', art.get('content', ''))
                 articles_text += f"ARTICLE {i}: \"{art.get('title', '')}\"\n  Source URL: {art.get('url', '')}\n  Key Details: {str(detail)[:400]}\n\n"
 
-            prompt = f"""You must write exactly {len(unique_articles)} DIFFERENT "Industry News" bullet points — one per article below.
+            news_system = """You write "Industry News" headline-style bullet points for "Stay In The Loupe," a jewelry industry newsletter.
 
-{articles_text}
-
-=== REAL EXAMPLES FROM PAST ISSUES (match this headline-capitalized style exactly) ===
+=== REAL EXAMPLES (match this headline-capitalized style exactly) ===
 
 "A 21.25-Carat Pink Diamond Worth $25 Million Was Stolen in Dubai, Part of an Elaborate Year-Long Scheme; It Has Since Been Recovered"
 
@@ -1511,16 +1529,22 @@ Return JSON:
 
 === END EXAMPLES ===
 
+STYLE:
+- HEADLINE CAPITALIZED (Title Case Throughout)
+- Include SPECIFIC dollar amounts, percentages, names, and details -- never be vague
+- Attention-grabbing and vivid -- use pop culture references, punchy semicolons, and dramatic phrasing
+- Each bullet: ONE sentence, 15-30 words"""
+
+            news_prompt = f"""Write exactly {len(unique_articles)} DIFFERENT "Industry News" bullet points — one per article below.
+
+{articles_text}
+
 CRITICAL RULES:
 1. Bullet 1 MUST be about ARTICLE 1's specific topic: "{unique_articles[0].get('title', '')}" — and ONLY that topic
 2. Bullet 2 MUST be about ARTICLE 2's specific topic: "{unique_articles[1].get('title', '') if len(unique_articles) > 1 else ''}" — and ONLY that topic
 3. Bullet 3 MUST be about ARTICLE 3's specific topic: "{unique_articles[2].get('title', '') if len(unique_articles) > 2 else ''}" — and ONLY that topic
 4. Bullet 4 MUST be about ARTICLE 4's specific topic: "{unique_articles[3].get('title', '') if len(unique_articles) > 3 else ''}" — and ONLY that topic
 5. Bullet 5 MUST be about ARTICLE 5's specific topic: "{unique_articles[4].get('title', '') if len(unique_articles) > 4 else ''}" — and ONLY that topic
-6. Write in HEADLINE CAPITALIZED style like the examples above (Title Case Throughout)
-7. Include SPECIFIC dollar amounts, percentages, names, and details -- never be vague
-8. Make each bullet attention-grabbing and vivid -- use pop culture references, punchy semicolons, and dramatic phrasing
-9. Each bullet: ONE sentence, 15-30 words
 
 Return JSON only:
 {{
@@ -1534,7 +1558,8 @@ Return JSON only:
 
             try:
                 response = claude_client.generate_content(
-                    prompt=prompt,
+                    prompt=news_prompt,
+                    system_prompt=news_system,
                     max_tokens=600,
                     temperature=0.8
                 )
