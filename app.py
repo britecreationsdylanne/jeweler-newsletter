@@ -1243,6 +1243,13 @@ def generate_newsletter():
         safe_print(f"\n[API] Generating newsletter content for {month}...")
         safe_print(f"  Auto-generate intro: {not intro_content}")
         safe_print(f"  Auto-generate brite spot: {not brite_spot_content}")
+        safe_print(f"  sections_data keys: {list(sections_data.keys())}")
+        safe_print(f"  Industry Pulse in sections_data: {'industry_pulse' in sections_data}")
+        safe_print(f"  Industry Pulse value type: {type(sections_data.get('industry_pulse'))}")
+        safe_print(f"  Industry Pulse value: {sections_data.get('industry_pulse')}")
+        safe_print(f"  Industry Pulse articles received: {len(sections_data.get('industry_pulse', []))}")
+        if sections_data.get('industry_pulse'):
+            safe_print(f"  Industry Pulse article titles: {[a.get('title', 'No title')[:50] for a in sections_data['industry_pulse']]}")
 
         # Merge research results into sections data
         for section_key, research in research_data.items():
@@ -1344,27 +1351,40 @@ Return JSON:
                     }
 
         # Generate Industry Pulse (combined story from multiple articles)
+        safe_print(f"[DEBUG] About to check Industry Pulse generation...")
+        safe_print(f"[DEBUG] 'industry_pulse' in sections_data: {'industry_pulse' in sections_data}")
+
+        # Always initialize industry_pulse to ensure it's in the response
+        generated['industry_pulse'] = None
+
         if 'industry_pulse' in sections_data:
+            safe_print(f"[DEBUG] Industry Pulse key found in sections_data")
             articles = sections_data['industry_pulse']
+            safe_print(f"[DEBUG] articles value: {articles}")
+            safe_print(f"[DEBUG] articles type: {type(articles)}")
+
             if not isinstance(articles, list):
+                safe_print(f"[DEBUG] articles is not a list, converting...")
                 articles = [articles] if articles else []
+                safe_print(f"[DEBUG] after conversion: {articles}")
 
             # Only generate if we have articles selected
-            if not articles or len(articles) == 0:
-                safe_print("  - Industry Pulse: No articles selected, skipping generation")
-                generated['industry_pulse'] = None
-            else:
-                safe_print(f"  - Industry Pulse: Generating from {len(articles)} articles")
+            safe_print(f"[DEBUG] Checking if should generate: not articles={not articles}, len(articles)={len(articles) if isinstance(articles, list) else 'N/A'}")
 
-                articles_text = ""
-                for i, art in enumerate(articles):
-                    articles_text += f"""
+            if articles and len(articles) > 0:
+                safe_print(f"  - Industry Pulse: Generating from {len(articles)} articles")
+                safe_print(f"  - Article details: {[{k: v for k, v in a.items() if k in ['title', 'url']} for a in articles if isinstance(a, dict)]}")
+
+                try:
+                    articles_text = ""
+                    for i, art in enumerate(articles):
+                        articles_text += f"""
 Article {i+1}: {art.get('title', '')}
 Research: {art.get('research', art.get('snippet', ''))}
 URL: {art.get('url', '')}
 """
 
-                pulse_system = """You write the "Industry Pulse" section for "Stay In The Loupe," a jewelry industry newsletter.
+                    pulse_system = """You write the "Industry Pulse" section for "Stay In The Loupe," a jewelry industry newsletter.
 
 === REAL EXAMPLES FROM PAST ISSUES (match this voice, depth, and specificity) ===
 
@@ -1386,7 +1406,7 @@ WRITING STYLE:
 - AVOID: "landscape", "navigate", "leverage", "robust", "in today's evolving"
 """
 
-                pulse_prompt = f"""Combine these jewelry industry articles into one cohesive "Industry Pulse" story.
+                    pulse_prompt = f"""Combine these jewelry industry articles into one cohesive "Industry Pulse" story.
 
 Articles:
 {articles_text}
@@ -1409,7 +1429,6 @@ Return JSON:
     "sources": [list of URLs used]
 }}"""
 
-                try:
                     response = claude_client.generate_content(
                         prompt=pulse_prompt,
                         system_prompt=pulse_system,
@@ -1441,6 +1460,8 @@ Return JSON:
                         'h3_2_title': 'What This Means',
                         'h3_2_content': ''
                     }
+            else:
+                safe_print("  - Industry Pulse: No articles selected, skipping generation")
 
         # Generate Partner Advantage
         if 'partner_advantage' in sections_data and sections_data['partner_advantage']:

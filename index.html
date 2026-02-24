@@ -5396,6 +5396,7 @@
 
             if (generatedContent.industry_pulse) {
                 const p = generatedContent.industry_pulse;
+                console.log('[Display] Industry Pulse content:', p);
                 document.getElementById('review-pulse').innerHTML = `
                     <h4>${p.title || ''}</h4>
                     <p>${p.intro || ''}</p>
@@ -5404,6 +5405,9 @@
                     <h5>${p.h3_2_title || ''}</h5>
                     <p>${p.h3_2_content || ''}</p>
                 `;
+            } else {
+                console.log('[Display] Industry Pulse is missing or null:', generatedContent.industry_pulse);
+                document.getElementById('review-pulse').innerHTML = '<p style="color: #999; font-style: italic;">Industry Pulse not generated. Check backend logs for errors.</p>';
             }
 
             // Add source URLs for Industry Pulse
