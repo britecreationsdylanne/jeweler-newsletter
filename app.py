@@ -3143,6 +3143,7 @@ def save_draft():
             'generatedContent': data.get('generatedContent'),
             'generatedImages': data.get('generatedImages'),
             'generatedPrompts': data.get('generatedPrompts'),
+            'specialSection': data.get('specialSection'),
             'introText': data.get('introText'),
             'briteSpotTitle': data.get('briteSpotTitle'),
             'briteSpotBody': data.get('briteSpotBody'),
