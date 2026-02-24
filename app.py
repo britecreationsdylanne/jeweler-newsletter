@@ -1344,22 +1344,27 @@ Return JSON:
                     }
 
         # Generate Industry Pulse (combined story from multiple articles)
-        if 'industry_pulse' in sections_data and sections_data['industry_pulse']:
+        if 'industry_pulse' in sections_data:
             articles = sections_data['industry_pulse']
             if not isinstance(articles, list):
-                articles = [articles]
+                articles = [articles] if articles else []
 
-            safe_print(f"  - Industry Pulse: received {len(articles)} articles")
+            # Only generate if we have articles selected
+            if not articles or len(articles) == 0:
+                safe_print("  - Industry Pulse: No articles selected, skipping generation")
+                generated['industry_pulse'] = None
+            else:
+                safe_print(f"  - Industry Pulse: Generating from {len(articles)} articles")
 
-            articles_text = ""
-            for i, art in enumerate(articles):
-                articles_text += f"""
+                articles_text = ""
+                for i, art in enumerate(articles):
+                    articles_text += f"""
 Article {i+1}: {art.get('title', '')}
 Research: {art.get('research', art.get('snippet', ''))}
 URL: {art.get('url', '')}
 """
 
-            pulse_system = """You write the "Industry Pulse" section for "Stay In The Loupe," a jewelry industry newsletter.
+                pulse_system = """You write the "Industry Pulse" section for "Stay In The Loupe," a jewelry industry newsletter.
 
 === REAL EXAMPLES FROM PAST ISSUES (match this voice, depth, and specificity) ===
 
@@ -1381,7 +1386,7 @@ WRITING STYLE:
 - AVOID: "landscape", "navigate", "leverage", "robust", "in today's evolving"
 """
 
-            pulse_prompt = f"""Combine these jewelry industry articles into one cohesive "Industry Pulse" story.
+                pulse_prompt = f"""Combine these jewelry industry articles into one cohesive "Industry Pulse" story.
 
 Articles:
 {articles_text}
@@ -1404,38 +1409,38 @@ Return JSON:
     "sources": [list of URLs used]
 }}"""
 
-            try:
-                response = claude_client.generate_content(
-                    prompt=pulse_prompt,
-                    system_prompt=pulse_system,
-                    max_tokens=800,
-                    temperature=0.6
-                )
+                try:
+                    response = claude_client.generate_content(
+                        prompt=pulse_prompt,
+                        system_prompt=pulse_system,
+                        max_tokens=800,
+                        temperature=0.6
+                    )
 
-                content = response.get('content', '{}')
-                safe_print(f"  Industry Pulse raw response: {content[:200]}...")
+                    content = response.get('content', '{}')
+                    safe_print(f"  Industry Pulse raw response: {content[:200]}...")
 
-                if '```json' in content:
-                    content = content.split('```json')[1].split('```')[0].strip()
-                elif '```' in content:
-                    content = content.split('```')[1].split('```')[0].strip()
+                    if '```json' in content:
+                        content = content.split('```json')[1].split('```')[0].strip()
+                    elif '```' in content:
+                        content = content.split('```')[1].split('```')[0].strip()
 
-                parsed = json.loads(content)
-                generated['industry_pulse'] = parsed
-                safe_print(f"  Industry Pulse generated successfully: {parsed.get('title', 'No title')}")
+                    parsed = json.loads(content)
+                    generated['industry_pulse'] = parsed
+                    safe_print(f"  Industry Pulse generated successfully: {parsed.get('title', 'No title')}")
 
-            except Exception as e:
-                safe_print(f"  ERROR generating industry_pulse: {e}")
-                import traceback
-                traceback.print_exc()
-                generated['industry_pulse'] = {
-                    'title': 'Industry Pulse',
-                    'intro': articles[0].get('snippet', '') if articles else '',
-                    'h3_1_title': 'Key Developments',
-                    'h3_1_content': '',
-                    'h3_2_title': 'What This Means',
-                    'h3_2_content': ''
-                }
+                except Exception as e:
+                    safe_print(f"  ERROR generating industry_pulse: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    generated['industry_pulse'] = {
+                        'title': 'Industry Pulse',
+                        'intro': articles[0].get('snippet', '') if articles else '',
+                        'h3_1_title': 'Key Developments',
+                        'h3_1_content': '',
+                        'h3_2_title': 'What This Means',
+                        'h3_2_content': ''
+                    }
 
         # Generate Partner Advantage
         if 'partner_advantage' in sections_data and sections_data['partner_advantage']:
