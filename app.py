@@ -584,13 +584,20 @@ def search_perplexity_v2():
         section_queries = {
             'the_good': 'positive jewelry news new designs trends sales records success stories innovations awards',
             'the_bad': 'jewelry heists thefts scams fraud robbery security breaches crime negative news',
-            'the_ugly': 'bizarre unusual strange jewelry stories weird finds quirky celebrity jewelry drama odd discoveries'
+            'the_ugly': 'bizarre unusual strange jewelry design pieces weird jewelry ugly jewelry specific jewelry item quirky celebrity jewelry strange jewelry finds',
+            'partner_advantage': 'jewelry business advice tips best practices how to jeweler marketing sales strategies recommendations for jewelers retail tips',
+            'industry_pulse': 'jewelry industry news trends market analysis business developments',
+            'industry_news': 'jewelry industry latest news headlines announcements events'
         }
 
         # Build section-specific query
         section_focus = section_queries.get(section, '')
         if section_focus:
-            search_query = f"jewelry {section_focus} {query}"
+            # For Partner Advantage, use more specific advice-focused query
+            if section == 'partner_advantage':
+                search_query = f"practical tips and advice for jewelry retail {query} jeweler best practices how to guides"
+            else:
+                search_query = f"jewelry {section_focus} {query}"
         else:
             search_query = f"jewelry industry {query}"
 
@@ -735,9 +742,10 @@ def search_sources_v2():
         query = data.get('query', 'jewelry industry news')
         source_packs = data.get('source_packs', ['jewelry'])
         time_window = data.get('time_window', '30d')
+        section = data.get('section', 'general')
         exclude_urls = data.get('exclude_urls', [])
 
-        safe_print(f"\n[API v2] Source Explorer: query='{query}', packs={source_packs}, time_window={time_window}")
+        safe_print(f"\n[API v2] Source Explorer: query='{query}', section={section}, packs={source_packs}, time_window={time_window}")
 
         # Convert time window to human-readable for query
         time_desc = {
@@ -776,23 +784,46 @@ def search_sources_v2():
         # Build site: queries with 3-query cascade
         site_query = ' OR '.join([f'site:{s}' for s in sites[:6]])
 
-        queries = [
-            f"""Search for: ({site_query}) {query}
+        # Section-specific queries
+        if section == 'partner_advantage':
+            # For Partner Advantage, search for advice/tips articles
+            queries = [
+                f"""Search for: ({site_query}) {query} tips advice how to best practices
+
+Find practical advice articles from the {time_desc} from jewelry industry sources.
+Focus on actionable tips, strategies, and best practices for jewelers.
+Return results with title, url, publisher, published_date, and summary.""",
+
+                f"""Search for: ({site_query}) jeweler business advice marketing sales tips strategies
+
+Find how-to guides and advice articles from the {time_desc} about running a jewelry business.
+Return results with title, url, publisher, published_date, and summary.""",
+
+                f"""Search for jewelry retail tips best practices from industry experts.
+
+Find advice articles from the {time_desc} about: {query}
+Focus on practical recommendations and strategies for jewelers.
+Return results with title, url, publisher, published_date, and summary."""
+            ]
+        else:
+            # Default queries for news sections
+            queries = [
+                f"""Search for: ({site_query}) {query}
 
 Find articles from the {time_desc} from these jewelry industry sources.
 Return results with title, url, publisher, published_date, and summary.""",
 
-            f"""Search for: ({site_query}) jewelry industry news trends
+                f"""Search for: ({site_query}) jewelry industry news trends
 
 Find business news from the {time_desc} about jewelry retail and wholesale.
 Return results with title, url, publisher, published_date, and summary.""",
 
-            f"""Search for jewelry industry news from trade publications.
+                f"""Search for jewelry industry news from trade publications.
 
 Find articles from the {time_desc} about: {query}
 Focus on business insights, trends, and industry analysis.
 Return results with title, url, publisher, published_date, and summary."""
-        ]
+            ]
 
         safe_print(f"[API v2] Source Explorer using {len(sites)} sites from packs: {source_packs}")
 
@@ -1206,10 +1237,12 @@ def generate_newsletter():
         month = data.get('month', '')
         sections_data = data.get('sections', {})
         research_data = data.get('research', {})  # GPT-5.2 research results
-        brite_spot_content = data.get('brite_spot', '')
-        intro_content = data.get('intro', '')
+        brite_spot_content = data.get('brite_spot', '')  # Optional - will auto-generate if empty
+        intro_content = data.get('intro', '')  # Optional - will auto-generate if empty
 
         safe_print(f"\n[API] Generating newsletter content for {month}...")
+        safe_print(f"  Auto-generate intro: {not intro_content}")
+        safe_print(f"  Auto-generate brite spot: {not brite_spot_content}")
 
         # Merge research results into sections data
         for section_key, research in research_data.items():
@@ -1316,6 +1349,8 @@ Return JSON:
             if not isinstance(articles, list):
                 articles = [articles]
 
+            safe_print(f"  - Industry Pulse: received {len(articles)} articles")
+
             articles_text = ""
             for i, art in enumerate(articles):
                 articles_text += f"""
@@ -1378,15 +1413,21 @@ Return JSON:
                 )
 
                 content = response.get('content', '{}')
+                safe_print(f"  Industry Pulse raw response: {content[:200]}...")
+
                 if '```json' in content:
                     content = content.split('```json')[1].split('```')[0].strip()
                 elif '```' in content:
                     content = content.split('```')[1].split('```')[0].strip()
 
-                generated['industry_pulse'] = json.loads(content)
+                parsed = json.loads(content)
+                generated['industry_pulse'] = parsed
+                safe_print(f"  Industry Pulse generated successfully: {parsed.get('title', 'No title')}")
 
             except Exception as e:
-                safe_print(f"  Error generating industry_pulse: {e}")
+                safe_print(f"  ERROR generating industry_pulse: {e}")
+                import traceback
+                traceback.print_exc()
                 generated['industry_pulse'] = {
                     'title': 'Industry Pulse',
                     'intro': articles[0].get('snippet', '') if articles else '',
@@ -1578,6 +1619,105 @@ Return JSON only:
                 generated['industry_news'] = {
                     'bullets': [{'text': f"[{art.get('title', '')}]({art.get('url', '')}) offers insights for jewelry professionals.", 'url': art.get('url', '')} for art in articles[:5]]
                 }
+
+        # Auto-generate intro if not provided
+        if not intro_content:
+            safe_print("  - Auto-generating introduction...")
+            try:
+                # Build context from generated sections
+                sections_context = []
+                if generated.get('the_good'):
+                    sections_context.append(f"positive news: {generated['the_good'].get('subtitle', '')}")
+                if generated.get('industry_pulse'):
+                    sections_context.append(f"industry pulse: {generated['industry_pulse'].get('title', '')}")
+                if generated.get('partner_advantage'):
+                    sections_context.append(f"tips: {generated['partner_advantage'].get('subheader', '')}")
+
+                context_text = ", ".join(sections_context[:3]) if sections_context else "jewelry industry updates"
+
+                intro_system = """You write newsletter introductions for "Stay In The Loupe," a jewelry industry newsletter.
+
+=== REAL EXAMPLES (match this conversational voice) ===
+- "You asked, and BriteCo delivers: Now you can choose from four different appraisal designs to create the look that suits you best. Plus, keep reading to discover findings from our lab-grown vs. natural diamond report, get the latest on tariffs affecting the industry, and find tips on promoting self-purchases."
+- "The holidays are coming, and we're unwrapping the biggest trends to watch out for this season -- including how to gift yourself with prominent sales opportunities. Plus, we take a closer look at the benefits of Google Ads vs. social media ads and when to utilize each one."
+- "Did you know BriteCo has a thriving blog and YouTube channel? As we continue to ramp up content, we are looking for expert voices that can share advice on a range of jewelry topics."
+=== END EXAMPLES ===
+
+VOICE:
+- Warm and conversational
+- Use contractions (we're, you'll, don't)
+- Tease 2-3 specific topics from this issue
+- 2-3 sentences max, under 50 words
+- AVOID: "Welcome to", "In this issue", generic openings"""
+
+                intro_prompt = f"""Write a brief introduction for the {month.capitalize()} edition.
+
+This issue covers: {context_text}
+
+Output ONLY the intro text, 2-3 sentences."""
+
+                intro_result = claude_client.generate_content(
+                    prompt=intro_prompt,
+                    system_prompt=intro_system,
+                    temperature=0.7,
+                    max_tokens=150
+                )
+                generated['intro'] = intro_result['content'].strip()
+                safe_print(f"    Intro generated: {len(generated['intro'].split())} words")
+            except Exception as e:
+                safe_print(f"    Error auto-generating intro: {e}")
+                generated['intro'] = f"Welcome to the {month.capitalize()} edition of Stay In The Loupe!"
+        else:
+            generated['intro'] = intro_content
+
+        # Auto-generate brite spot if not provided
+        if not brite_spot_content:
+            safe_print("  - Auto-generating Brite Spot...")
+            try:
+                brite_spot_system = """You write "The Brite Spot" section for "Stay In The Loupe," a jewelry newsletter.
+
+=== REAL EXAMPLES (match this warm, direct voice) ===
+- "We are wishing you a very happy holiday season and thank you for another great year of partnership. We value your contributions towards our mission of helping clients protect their jewelry."
+- "We want to prioritize the next wave of POS integrations and need your help to do so. Please fill out our quick and easy form and tell us your preferred point-of-sale system. When you do, you'll be entered to win a $50 gift card!"
+- "BriteCo is building up a database of expert voices to include in our blog and YouTube channel. Every time you're interviewed, we'll give you $20 and your name and website will be featured."
+=== END EXAMPLES ===
+
+VOICE:
+- Warm, genuine, not corporate
+- Focus on partnership value
+- Use "we" and "you"
+- Under 100 words
+- Include a subtle call to action"""
+
+                brite_spot_prompt = f"""Write a "Brite Spot" section for the {month.capitalize()} edition.
+
+Topic: Thank partners for their continued partnership, mention any relevant updates or ways they can engage with BriteCo.
+
+Output JSON with "title" (max 10 words) and "body" (max 100 words):
+{{"title": "...", "body": "..."}}"""
+
+                brite_result = claude_client.generate_content(
+                    prompt=brite_spot_prompt,
+                    system_prompt=brite_spot_system,
+                    temperature=0.6,
+                    max_tokens=200
+                )
+                content_str = brite_result['content'].strip()
+                if '```json' in content_str:
+                    content_str = content_str.split('```json')[1].split('```')[0].strip()
+                elif '```' in content_str:
+                    content_str = content_str.split('```')[1].split('```')[0].strip()
+                brite_json = json.loads(content_str)
+                generated['brite_spot'] = brite_json
+                safe_print(f"    Brite Spot generated: {brite_json.get('title', 'No title')}")
+            except Exception as e:
+                safe_print(f"    Error auto-generating brite spot: {e}")
+                generated['brite_spot'] = {
+                    "title": "Thank You for Your Partnership",
+                    "body": "We appreciate your continued partnership and look forward to supporting your jewelry business."
+                }
+        else:
+            generated['brite_spot'] = brite_spot_content
 
         # Convert markdown links to HTML in all generated content
         generated = process_generated_content(generated)

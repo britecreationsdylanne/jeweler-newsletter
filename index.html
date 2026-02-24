@@ -5322,6 +5322,12 @@
                 updateSectionStatus('Partner', 'Waiting...');
                 updateSectionStatus('News', 'Waiting...');
 
+                console.log('[API] Sending to generate-newsletter:', {
+                    industry_pulse: selectedArticles.industry_pulse?.length || 0,
+                    partner_advantage: selectedArticles.partner_advantage?.length || 0,
+                    industry_news: selectedArticles.industry_news?.length || 0
+                });
+
                 const response = await fetch(`${API_BASE}/api/generate-newsletter`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -5336,6 +5342,11 @@
 
                 const data = await response.json();
 
+                console.log('[API] Generated content received:', {
+                    has_industry_pulse: !!data.generated?.industry_pulse,
+                    pulse_data: data.generated?.industry_pulse
+                });
+
                 if (data.success) {
                     // Show completion
                     updateSectionStatus('GBU', 'Done');
@@ -5348,6 +5359,7 @@
                     populateReviewContent();
                     showStep('6b');
                 } else {
+                    console.error('[API] Generation failed:', data.error);
                     alert('Error generating content: ' + (data.error || 'Unknown error'));
                     goToStep(5);
                 }
@@ -5374,6 +5386,12 @@
                         ? `<a href="${sourceUrl}" target="_blank" style="color: #018181; text-decoration: underline;">${s.subtitle || ''}</a>`
                         : `${s.subtitle || ''}`;
                     el.innerHTML = `<strong>${titleHtml}</strong><br>${s.copy || ''}`;
+
+                    // Add source URL below content
+                    if (sourceUrl && selectedArticles[key]) {
+                        const articleTitle = selectedArticles[key].title || selectedArticles[key].headline || 'Source Article';
+                        el.innerHTML += `<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Source:</strong><br><a href="${sourceUrl}" target="_blank" style="color: #018181; text-decoration: underline; display: block; margin-top: 5px;">${articleTitle}</a></div>`;
+                    }
                 }
             });
 
@@ -5389,6 +5407,18 @@
                 `;
             }
 
+            // Add source URLs for Industry Pulse
+            if (selectedArticles.industry_pulse && selectedArticles.industry_pulse.length > 0) {
+                const pulseEl = document.getElementById('review-pulse');
+                let urlsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Sources:</strong><br>';
+                selectedArticles.industry_pulse.forEach((art, idx) => {
+                    const title = art.title || art.headline || `Article ${idx + 1}`;
+                    urlsHtml += `<a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block; margin: 5px 0;">${title}</a>`;
+                });
+                urlsHtml += '</div>';
+                pulseEl.innerHTML += urlsHtml;
+            }
+
             if (generatedContent.partner_advantage) {
                 const pa = generatedContent.partner_advantage;
                 let html = `<strong>${pa.subheader || ''}</strong><p>${pa.intro || ''}</p><ul style="margin: 10px 0; padding-left: 20px; list-style-position: inside;">`;
@@ -5397,6 +5427,18 @@
                 });
                 html += '</ul>';
                 document.getElementById('review-partner').innerHTML = html;
+            }
+
+            // Add source URLs for Partner Advantage
+            if (selectedArticles.partner_advantage && selectedArticles.partner_advantage.length > 0) {
+                const partnerEl = document.getElementById('review-partner');
+                let urlsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Sources:</strong><br>';
+                selectedArticles.partner_advantage.forEach((art, idx) => {
+                    const title = art.title || art.headline || `Article ${idx + 1}`;
+                    urlsHtml += `<a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block; margin: 5px 0;">${title}</a>`;
+                });
+                urlsHtml += '</div>';
+                partnerEl.innerHTML += urlsHtml;
             }
 
             if (generatedContent.industry_news) {
@@ -5416,6 +5458,18 @@
                 });
                 html += '</ul>';
                 document.getElementById('review-news').innerHTML = html;
+            }
+
+            // Add source URLs for Industry News
+            if (selectedArticles.industry_news && selectedArticles.industry_news.length > 0) {
+                const newsEl = document.getElementById('review-news');
+                let urlsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Sources:</strong><br>';
+                selectedArticles.industry_news.forEach((art, idx) => {
+                    const title = art.title || art.headline || `Article ${idx + 1}`;
+                    urlsHtml += `<a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block; margin: 5px 0;">${title}</a>`;
+                });
+                urlsHtml += '</div>';
+                newsEl.innerHTML += urlsHtml;
             }
         }
 
