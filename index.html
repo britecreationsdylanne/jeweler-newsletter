@@ -7063,12 +7063,15 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                     if (c.textContent.toLowerCase().includes(selectedMonth)) c.classList.add('selected');
                 });
 
+                // Populate UI with stored content so it doesn't need to be regenerated
+                populateReviewContent();  // Populate review step divs
+                populateFinalCopy();      // Populate final copy divs
+
                 // Navigate to saved step (redirect removed brand check steps to edit)
                 let step = d.currentStep || 1;
                 if (step === '6c' || step === 7 || step === '7') step = '6b';
                 if (step === '6b' || step === '7b') {
                     showStep(step);
-                    if (step === '7b') populateFinalCopy();
                 } else {
                     goToStep(typeof step === 'string' ? step : parseInt(step));
                 }
