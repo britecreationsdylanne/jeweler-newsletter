@@ -5389,7 +5389,11 @@
                     // Add source URL below content
                     if (sourceUrl && selectedArticles[key]) {
                         const articleTitle = selectedArticles[key].title || selectedArticles[key].headline || 'Source Article';
-                        el.innerHTML += `<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Source:</strong><br><a href="${sourceUrl}" target="_blank" style="color: #018181; text-decoration: underline; display: block; margin-top: 5px;">${articleTitle}</a></div>`;
+                        el.innerHTML += `<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;">
+                            <strong>Source:</strong><br>
+                            <a href="${sourceUrl}" target="_blank" style="color: #018181; text-decoration: underline; display: block; margin-top: 5px;">${articleTitle}</a>
+                            <code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${sourceUrl}</code>
+                        </div>`;
                     }
                 }
             });
@@ -5416,7 +5420,12 @@
                 let urlsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Sources:</strong><br>';
                 selectedArticles.industry_pulse.forEach((art, idx) => {
                     const title = art.title || art.headline || `Article ${idx + 1}`;
-                    urlsHtml += `<a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block; margin: 5px 0;">${title}</a>`;
+                    urlsHtml += `
+                        <div style="margin: 8px 0;">
+                            <a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block;">${title}</a>
+                            <code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${art.url}</code>
+                        </div>
+                    `;
                 });
                 urlsHtml += '</div>';
                 pulseEl.innerHTML += urlsHtml;
@@ -5438,7 +5447,12 @@
                 let urlsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Sources:</strong><br>';
                 selectedArticles.partner_advantage.forEach((art, idx) => {
                     const title = art.title || art.headline || `Article ${idx + 1}`;
-                    urlsHtml += `<a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block; margin: 5px 0;">${title}</a>`;
+                    urlsHtml += `
+                        <div style="margin: 8px 0;">
+                            <a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block;">${title}</a>
+                            <code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${art.url}</code>
+                        </div>
+                    `;
                 });
                 urlsHtml += '</div>';
                 partnerEl.innerHTML += urlsHtml;
@@ -5469,7 +5483,12 @@
                 let urlsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Sources:</strong><br>';
                 selectedArticles.industry_news.forEach((art, idx) => {
                     const title = art.title || art.headline || `Article ${idx + 1}`;
-                    urlsHtml += `<a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block; margin: 5px 0;">${title}</a>`;
+                    urlsHtml += `
+                        <div style="margin: 8px 0;">
+                            <a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block;">${title}</a>
+                            <code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${art.url}</code>
+                        </div>
+                    `;
                 });
                 urlsHtml += '</div>';
                 newsEl.innerHTML += urlsHtml;
