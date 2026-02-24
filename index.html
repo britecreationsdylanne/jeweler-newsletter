@@ -6977,6 +6977,44 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 generatedPrompts = d.generatedPrompts || {};
                 customLinks = d.customLinks || { gbu: [], pulse: [], partner: [], news: [] };
 
+                // Set flag to prevent regenerating prompts if they were saved
+                if (generatedPrompts && Object.keys(generatedPrompts).length > 0) {
+                    promptsAlreadyGenerated = true;
+                    // Populate the prompt textareas with saved values (Step 8 - Edit Prompts)
+                    if (generatedPrompts.the_good?.prompt) document.getElementById('goodImagePromptText').value = generatedPrompts.the_good.prompt;
+                    if (generatedPrompts.the_bad?.prompt) document.getElementById('badImagePromptText').value = generatedPrompts.the_bad.prompt;
+                    if (generatedPrompts.the_ugly?.prompt) document.getElementById('uglyImagePromptText').value = generatedPrompts.the_ugly.prompt;
+                    if (generatedPrompts.brite_spot?.prompt) document.getElementById('briteSpotImagePromptText').value = generatedPrompts.brite_spot.prompt;
+                    if (generatedPrompts.industry_pulse?.prompt) document.getElementById('pulseImagePromptText').value = generatedPrompts.industry_pulse.prompt;
+                    if (generatedPrompts.partner_advantage?.prompt) document.getElementById('partnerImagePromptText').value = generatedPrompts.partner_advantage.prompt;
+
+                    // Also populate Step 9 (Review Images) prompt textareas
+                    if (generatedPrompts.the_good?.prompt) {
+                        const goodPrompt = document.getElementById('goodPrompt');
+                        if (goodPrompt) goodPrompt.value = generatedPrompts.the_good.prompt;
+                    }
+                    if (generatedPrompts.the_bad?.prompt) {
+                        const badPrompt = document.getElementById('badPrompt');
+                        if (badPrompt) badPrompt.value = generatedPrompts.the_bad.prompt;
+                    }
+                    if (generatedPrompts.the_ugly?.prompt) {
+                        const uglyPrompt = document.getElementById('uglyPrompt');
+                        if (uglyPrompt) uglyPrompt.value = generatedPrompts.the_ugly.prompt;
+                    }
+                    if (generatedPrompts.brite_spot?.prompt) {
+                        const bsPrompt = document.getElementById('briteSpotPrompt');
+                        if (bsPrompt) bsPrompt.value = generatedPrompts.brite_spot.prompt;
+                    }
+                    if (generatedPrompts.industry_pulse?.prompt) {
+                        const pulsePrompt = document.getElementById('pulsePrompt');
+                        if (pulsePrompt) pulsePrompt.value = generatedPrompts.industry_pulse.prompt;
+                    }
+                    if (generatedPrompts.partner_advantage?.prompt) {
+                        const partnerPrompt = document.getElementById('partnerPrompt');
+                        if (partnerPrompt) partnerPrompt.value = generatedPrompts.partner_advantage.prompt;
+                    }
+                }
+
                 // Restore special section state
                 if (d.specialSection) {
                     specialSection = d.specialSection;
