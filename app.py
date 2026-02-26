@@ -2513,6 +2513,12 @@ def export_to_docs():
                     subtitle = clean(sec.get('subtitle', ''))
                     copy = clean(sec.get('copy', ''))
                     source_url = sec.get('url', '')
+                    # Strip subtitle from start of copy if duplicated
+                    if subtitle and copy:
+                        copy_lower = copy.lower().strip()
+                        sub_lower = subtitle.lower().strip()
+                        if copy_lower.startswith(sub_lower):
+                            copy = copy[len(subtitle):].strip().lstrip('\n')
                     if subtitle and source_url:
                         add_text(subtitle, link_url=source_url)
                     elif subtitle:
