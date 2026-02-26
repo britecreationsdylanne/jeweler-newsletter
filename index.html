@@ -7174,6 +7174,21 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
             if (document.getElementById('review-intro')?.innerHTML) {
                 syncContentFromDOM();
             }
+
+            // Capture raw innerHTML of review/fc divs so we can restore edits exactly
+            function stripSourceDivs(html) {
+                return html.replace(/<div style="margin-top: 1[05]px;[^"]*">[^]*$/i, '').trim();
+            }
+            const reviewHTML = {};
+            const onFinalCopy = (currentStep === '7b');
+            const prefix = onFinalCopy ? 'fc-' : 'review-';
+            ['intro', 'britespot', 'good', 'bad', 'ugly', 'pulse', 'partner', 'news'].forEach(key => {
+                const el = document.getElementById(prefix + key);
+                if (el && el.innerHTML.trim()) {
+                    reviewHTML[key] = stripSourceDivs(el.innerHTML);
+                }
+            });
+
             try {
                 const userEmail = (window.AUTH_USER && window.AUTH_USER.email) || 'unknown';
                 const resp = await fetch(`${API_BASE}/api/save-draft`, {
@@ -7195,10 +7210,11 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                         preheader: document.getElementById('finalPreheader')?.value || '',
                         customLinks: customLinks,
                         skippedSections: skippedSections,
+                        reviewHTML: reviewHTML,
                         savedBy: userEmail
                     })
                 });
-                console.log('[Draft] Saved');
+                console.log('[Draft] Saved (reviewHTML keys:', Object.keys(reviewHTML).join(', ') + ')');
                 // Refresh drafts list so the card appears/updates immediately
                 loadDrafts();
             } catch (e) {
@@ -7333,8 +7349,71 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 });
 
                 // Populate UI with stored content so it doesn't need to be regenerated
-                populateReviewContent();  // Populate review step divs
-                populateFinalCopy();      // Populate final copy divs
+                // If we have saved raw HTML from user edits, use that directly (preserves edits exactly)
+                const savedHTML = d.reviewHTML || {};
+                if (Object.keys(savedHTML).length > 0) {
+                    console.log('[Draft] Restoring from reviewHTML:', Object.keys(savedHTML).join(', '));
+                    ['intro', 'britespot', 'good', 'bad', 'ugly', 'pulse', 'partner', 'news'].forEach(key => {
+                        const reviewEl = document.getElementById('review-' + key);
+                        if (reviewEl && savedHTML[key]) {
+                            reviewEl.innerHTML = savedHTML[key];
+                        }
+                    });
+                    // Re-append source URLs to GBU sections (they were stripped on save)
+                    ['the_good', 'the_bad', 'the_ugly'].forEach(fullKey => {
+                        const shortKey = fullKey.replace('the_', '');
+                        const el = document.getElementById('review-' + shortKey);
+                        const sourceUrl = selectedArticles[fullKey]?.url || selectedArticles[fullKey]?.source_url || '';
+                        if (el && sourceUrl && selectedArticles[fullKey]) {
+                            const articleTitle = selectedArticles[fullKey].title || selectedArticles[fullKey].headline || 'Source Article';
+                            el.innerHTML += `<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;">
+                                <strong>Source:</strong><br>
+                                <a href="${sourceUrl}" target="_blank" style="color: #018181; text-decoration: underline; display: block; margin-top: 5px;">${articleTitle}</a>
+                                <code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${sourceUrl}</code>
+                            </div>`;
+                        }
+                    });
+                    // Re-append source URLs to pulse, partner, news
+                    if (selectedArticles.industry_pulse && selectedArticles.industry_pulse.length > 0) {
+                        const pulseEl = document.getElementById('review-pulse');
+                        if (pulseEl) {
+                            let urlsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Sources:</strong><br>';
+                            selectedArticles.industry_pulse.forEach((art, idx) => {
+                                const title = art.title || art.headline || `Article ${idx + 1}`;
+                                urlsHtml += `<div style="margin: 8px 0;"><a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block;">${title}</a><code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${art.url}</code></div>`;
+                            });
+                            urlsHtml += '</div>';
+                            pulseEl.innerHTML += urlsHtml;
+                        }
+                    }
+                    if (selectedArticles.partner_advantage && selectedArticles.partner_advantage.length > 0) {
+                        const partnerEl = document.getElementById('review-partner');
+                        if (partnerEl) {
+                            let urlsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Sources:</strong><br>';
+                            selectedArticles.partner_advantage.forEach((art, idx) => {
+                                const title = art.title || art.headline || `Article ${idx + 1}`;
+                                urlsHtml += `<div style="margin: 8px 0;"><a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block;">${title}</a><code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${art.url}</code></div>`;
+                            });
+                            urlsHtml += '</div>';
+                            partnerEl.innerHTML += urlsHtml;
+                        }
+                    }
+                    if (selectedArticles.industry_news && selectedArticles.industry_news.length > 0) {
+                        const newsEl = document.getElementById('review-news');
+                        if (newsEl) {
+                            let urlsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Sources:</strong><br>';
+                            selectedArticles.industry_news.forEach((art, idx) => {
+                                const title = art.title || art.headline || `Article ${idx + 1}`;
+                                urlsHtml += `<div style="margin: 8px 0;"><a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block;">${title}</a><code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${art.url}</code></div>`;
+                            });
+                            urlsHtml += '</div>';
+                            newsEl.innerHTML += urlsHtml;
+                        }
+                    }
+                } else {
+                    populateReviewContent();  // Fallback: render from generatedContent
+                }
+                populateFinalCopy();      // Populate final copy divs (copies from review divs)
 
                 // Navigate to saved step (redirect removed brand check steps to edit)
                 let step = d.currentStep || 1;
