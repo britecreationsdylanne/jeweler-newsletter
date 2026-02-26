@@ -1013,6 +1013,8 @@
             border-radius: 8px;
             padding: 15px;
             min-height: 100px;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
 
         .editable:focus {
@@ -5478,6 +5480,7 @@
 
         // Sync edited content from DOM back into generatedContent object
         // Reads from whichever page is active: review step (review-*) or final copy (fc-*)
+        // Stores innerHTML as-is (the backend strips HTML before exporting to Google Docs)
         function syncContentFromDOM() {
             // Determine which set of divs to read from based on current step
             const onFinalCopy = (currentStep === '7b');
@@ -5488,28 +5491,37 @@
                 return html.replace(/<div style="margin-top: 1[05]px;[^"]*">[^]*$/i, '').trim();
             }
 
-            // Intro
+            // Helper: strip all HTML tags to get plain text
+            function toPlainText(html) {
+                if (!html) return '';
+                const tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                return tmp.textContent.trim();
+            }
+
+            // Intro - store as-is (may contain light HTML from user edits)
             const introEl = document.getElementById(prefix + 'intro');
             if (introEl && introEl.innerHTML.trim()) {
                 generatedContent.intro = introEl.innerHTML.trim();
             }
 
-            // Brite Spot
+            // Brite Spot - parse title/body from <strong>title</strong><br>body
             const bsEl = document.getElementById(prefix + 'britespot');
             if (bsEl && bsEl.innerHTML.trim()) {
                 const bsHtml = bsEl.innerHTML;
                 const m = bsHtml.match(/<strong>([\s\S]*?)<\/strong>(?:\s*<br\s*\/?>)*([\s\S]*)/i);
                 if (m) {
                     generatedContent.brite_spot = {
-                        title: m[1].replace(/<[^>]+>/g, '').trim(),
+                        title: toPlainText(m[1]),
                         body: m[2].replace(/^(\s*<br\s*\/?>)+/, '').trim()
                     };
                 } else {
-                    generatedContent.brite_spot = bsHtml.trim();
+                    // User removed the <strong> formatting - store whole thing as body
+                    generatedContent.brite_spot = { title: '', body: bsHtml.trim() };
                 }
             }
 
-            // GBU sections
+            // GBU sections - parse subtitle/copy from <strong>subtitle</strong><br>copy
             ['the_good', 'the_bad', 'the_ugly'].forEach(key => {
                 const shortKey = key.replace('the_', '');
                 const el = document.getElementById(prefix + shortKey);
@@ -5519,123 +5531,75 @@
                     if (m) {
                         const subtitleHtml = m[1];
                         const linkMatch = subtitleHtml.match(/<a[^>]*>([\s\S]*?)<\/a>/i);
-                        const subtitle = linkMatch ? linkMatch[1].trim() : subtitleHtml.replace(/<[^>]+>/g, '').trim();
+                        const subtitle = linkMatch ? linkMatch[1].trim() : toPlainText(subtitleHtml);
                         generatedContent[key] = {
                             subtitle: subtitle,
                             copy: m[2].replace(/^(\s*<br\s*\/?>)+/, '').trim(),
+                            url: selectedArticles[key]?.url || ''
+                        };
+                    } else {
+                        // No <strong> found - store whole thing as copy
+                        generatedContent[key] = {
+                            subtitle: generatedContent[key]?.subtitle || '',
+                            copy: html,
                             url: selectedArticles[key]?.url || ''
                         };
                     }
                 }
             });
 
-            // Industry Pulse
+            // Industry Pulse - parse from review format: <h4>title</h4><p>intro</p><h5>h3</h5><p>content</p>
             const pulseEl = document.getElementById(prefix + 'pulse');
             if (pulseEl && !skippedSections.pulse && pulseEl.innerHTML.trim()) {
                 const html = stripSources(pulseEl.innerHTML);
                 const tmp = document.createElement('div');
                 tmp.innerHTML = html;
 
-                if (onFinalCopy) {
-                    // fc-pulse format: "<strong>Title:</strong> value<br><br><strong>Intro:</strong><br>value<br><br><strong>H3 title:</strong><br>value..."
-                    // Split by <strong> labels and extract values
-                    const parts = html.split(/<strong>/).filter(Boolean);
-                    const getValue = (label) => {
-                        const part = parts.find(p => p.startsWith(label));
-                        if (!part) return generatedContent.industry_pulse?.[label] || '';
-                        return part.replace(/^[^:]*:<\/strong>\s*(?:<br\s*\/?>)*\s*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim();
-                    };
-                    // First part has "Title:</strong> value"
-                    const titlePart = parts.find(p => p.startsWith('Title:'));
-                    const titleVal = titlePart ? titlePart.replace(/^Title:<\/strong>\s*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim() : '';
-                    const introPart = parts.find(p => p.startsWith('Intro:'));
-                    const introVal = introPart ? introPart.replace(/^Intro:<\/strong>\s*(?:<br\s*\/?>)*\s*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim() : '';
-                    // H3 sections - find the ones that aren't Title/Intro/Section labels
-                    const h3Parts = parts.filter(p => !p.startsWith('Title:') && !p.startsWith('Intro:'));
+                const h4 = tmp.querySelector('h4');
+                const h5s = tmp.querySelectorAll('h5');
+                const ps = tmp.querySelectorAll('p');
+                if (h4 || h5s.length || ps.length) {
                     generatedContent.industry_pulse = {
-                        title: titleVal || (generatedContent.industry_pulse?.title || ''),
-                        intro: introVal || (generatedContent.industry_pulse?.intro || ''),
-                        h3_1_title: h3Parts[0] ? h3Parts[0].replace(/<\/strong>[\s\S]*/i, '').replace(/:$/, '').trim() : (generatedContent.industry_pulse?.h3_1_title || ''),
-                        h3_1_content: h3Parts[0] ? h3Parts[0].replace(/^[^:]*:<\/strong>\s*(?:<br\s*\/?>)*\s*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim() : (generatedContent.industry_pulse?.h3_1_content || ''),
-                        h3_2_title: h3Parts[1] ? h3Parts[1].replace(/<\/strong>[\s\S]*/i, '').replace(/:$/, '').trim() : (generatedContent.industry_pulse?.h3_2_title || ''),
-                        h3_2_content: h3Parts[1] ? h3Parts[1].replace(/^[^:]*:<\/strong>\s*(?:<br\s*\/?>)*\s*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim() : (generatedContent.industry_pulse?.h3_2_content || '')
+                        title: h4 ? h4.textContent.trim() : (generatedContent.industry_pulse?.title || ''),
+                        intro: ps[0] ? ps[0].innerHTML.trim() : (generatedContent.industry_pulse?.intro || ''),
+                        h3_1_title: h5s[0] ? h5s[0].textContent.trim() : (generatedContent.industry_pulse?.h3_1_title || ''),
+                        h3_1_content: ps[1] ? ps[1].innerHTML.trim() : (generatedContent.industry_pulse?.h3_1_content || ''),
+                        h3_2_title: h5s[1] ? h5s[1].textContent.trim() : (generatedContent.industry_pulse?.h3_2_title || ''),
+                        h3_2_content: ps[2] ? ps[2].innerHTML.trim() : (generatedContent.industry_pulse?.h3_2_content || '')
                     };
-                } else {
-                    // review-pulse format: <h4>title</h4><p>intro</p><h5>h3 title</h5><p>content</p>...
-                    const h4 = tmp.querySelector('h4');
-                    const h5s = tmp.querySelectorAll('h5');
-                    const ps = tmp.querySelectorAll('p');
-                    if (h4 || h5s.length || ps.length) {
-                        generatedContent.industry_pulse = {
-                            title: h4 ? h4.textContent.trim() : (generatedContent.industry_pulse?.title || ''),
-                            intro: ps[0] ? ps[0].innerHTML.trim() : (generatedContent.industry_pulse?.intro || ''),
-                            h3_1_title: h5s[0] ? h5s[0].textContent.trim() : (generatedContent.industry_pulse?.h3_1_title || ''),
-                            h3_1_content: ps[1] ? ps[1].innerHTML.trim() : (generatedContent.industry_pulse?.h3_1_content || ''),
-                            h3_2_title: h5s[1] ? h5s[1].textContent.trim() : (generatedContent.industry_pulse?.h3_2_title || ''),
-                            h3_2_content: ps[2] ? ps[2].innerHTML.trim() : (generatedContent.industry_pulse?.h3_2_content || '')
-                        };
-                    }
                 }
             }
 
-            // Partner Advantage
+            // Partner Advantage - parse from review format: <strong>subheader</strong><p>intro</p><ul><li>...</li></ul>
             const partnerEl = document.getElementById(prefix + 'partner');
             if (partnerEl && !skippedSections.partner && partnerEl.innerHTML.trim()) {
                 const html = stripSources(partnerEl.innerHTML);
                 const tmp = document.createElement('div');
                 tmp.innerHTML = html;
 
-                if (onFinalCopy) {
-                    // fc-partner format: "<strong>Subheader:</strong> value<br><br>intro<br><br><strong>Tip 1: title</strong><br>content..."
-                    const parts = html.split(/<strong>/).filter(Boolean);
-                    const subPart = parts.find(p => p.startsWith('Subheader:'));
-                    const subheader = subPart ? subPart.replace(/^Subheader:<\/strong>\s*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim() : '';
-                    // Intro is the text between subheader and first Tip
-                    const tipParts = parts.filter(p => /^Tip \d+:/.test(p));
-                    const nonTipNonSub = parts.filter(p => !p.startsWith('Subheader:') && !/^Tip \d+:/.test(p));
-                    const intro = nonTipNonSub.length > 0 ? nonTipNonSub[0].replace(/<\/strong>[\s\S]*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim() : '';
-                    // Actually intro is just the plain text between subheader and first tip
-                    // Let's get it from the full HTML
-                    const introMatch = html.match(/Subheader:<\/strong>[^<]*(?:<br\s*\/?>)*\s*([\s\S]*?)(?:<strong>Tip|$)/i);
-                    const introVal = introMatch ? introMatch[1].replace(/(<br\s*\/?>)+$/i, '').trim() : (generatedContent.partner_advantage?.intro || '');
-                    const tips = [];
-                    tipParts.forEach(tp => {
-                        const titleMatch = tp.match(/^Tip \d+:\s*(.*?)<\/strong>/i);
-                        const title = titleMatch ? titleMatch[1].trim() : '';
-                        const content = tp.replace(/^Tip \d+:\s*.*?<\/strong>\s*(?:<br\s*\/?>)*\s*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim();
+                const strong = tmp.querySelector(':scope > strong');
+                const p = tmp.querySelector(':scope > p');
+                const lis = tmp.querySelectorAll('li');
+                const tips = [];
+                lis.forEach(li => {
+                    const tipStrong = li.querySelector('strong');
+                    if (tipStrong) {
+                        const title = tipStrong.textContent.trim();
+                        const fullHtml = li.innerHTML;
+                        const content = fullHtml.replace(/<strong>[\s\S]*?<\/strong>\s*:\s*/, '').trim();
                         tips.push({ title, content });
-                    });
-                    generatedContent.partner_advantage = {
-                        subheader: subheader || (generatedContent.partner_advantage?.subheader || ''),
-                        intro: introVal,
-                        tips: tips.length > 0 ? tips : (generatedContent.partner_advantage?.tips || [])
-                    };
-                } else {
-                    // review-partner format: <strong>subheader</strong><p>intro</p><ul><li>...</li></ul>
-                    const strong = tmp.querySelector(':scope > strong');
-                    const p = tmp.querySelector(':scope > p');
-                    const lis = tmp.querySelectorAll('li');
-                    const tips = [];
-                    lis.forEach(li => {
-                        const tipStrong = li.querySelector('strong');
-                        if (tipStrong) {
-                            const title = tipStrong.textContent.trim();
-                            const fullHtml = li.innerHTML;
-                            const content = fullHtml.replace(/<strong>[\s\S]*?<\/strong>\s*:\s*/, '').trim();
-                            tips.push({ title, content });
-                        } else {
-                            tips.push({ title: '', content: li.innerHTML.trim() });
-                        }
-                    });
-                    generatedContent.partner_advantage = {
-                        subheader: strong ? strong.textContent.trim() : (generatedContent.partner_advantage?.subheader || ''),
-                        intro: p ? p.innerHTML.trim() : (generatedContent.partner_advantage?.intro || ''),
-                        tips: tips.length > 0 ? tips : (generatedContent.partner_advantage?.tips || [])
-                    };
-                }
+                    } else {
+                        tips.push({ title: '', content: li.innerHTML.trim() });
+                    }
+                });
+                generatedContent.partner_advantage = {
+                    subheader: strong ? strong.textContent.trim() : (generatedContent.partner_advantage?.subheader || ''),
+                    intro: p ? p.innerHTML.trim() : (generatedContent.partner_advantage?.intro || ''),
+                    tips: tips.length > 0 ? tips : (generatedContent.partner_advantage?.tips || [])
+                };
             }
 
-            // Industry News
+            // Industry News - parse from review format: <ul><li>...</li></ul>
             const newsEl = document.getElementById(prefix + 'news');
             if (newsEl && !skippedSections.news && newsEl.innerHTML.trim()) {
                 const html = stripSources(newsEl.innerHTML);
@@ -5644,23 +5608,11 @@
                 const lis = tmp.querySelectorAll('li');
 
                 if (lis.length > 0) {
-                    // review-news uses <ul><li> format
                     const bullets = [];
                     lis.forEach(li => {
                         bullets.push({ text: li.innerHTML.trim() });
                     });
                     generatedContent.industry_news = { bullets };
-                } else if (onFinalCopy) {
-                    // fc-news format: "• text<br><br>• text<br><br>..."
-                    const bulletTexts = html.split(/•\s*/).filter(Boolean);
-                    if (bulletTexts.length > 0) {
-                        const bullets = [];
-                        bulletTexts.forEach(bt => {
-                            const cleaned = bt.replace(/(<br\s*\/?>)+$/i, '').trim();
-                            if (cleaned) bullets.push({ text: cleaned });
-                        });
-                        if (bullets.length > 0) generatedContent.industry_news = { bullets };
-                    }
                 }
             }
 
@@ -7578,88 +7530,29 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
         }
 
         function populateFinalCopy() {
-            const c = generatedContent;
+            // Helper: strip the source URL divs that populateReviewContent appends
+            function stripSourceDivs(html) {
+                return html.replace(/<div style="margin-top: 1[05]px;[^"]*">[^]*$/i, '').trim();
+            }
 
-            // Intro
-            const fcIntro = document.getElementById('fc-intro');
-            if (fcIntro) fcIntro.innerHTML = c.intro || '';
+            // Copy directly from review-* to fc-* divs (preserving user edits)
+            const sections = ['intro', 'britespot', 'good', 'bad', 'ugly', 'pulse', 'partner', 'news'];
+            sections.forEach(key => {
+                const reviewEl = document.getElementById('review-' + key);
+                const fcEl = document.getElementById('fc-' + key);
+                if (!reviewEl || !fcEl) return;
 
-            // Brite Spot
-            const bs = c.brite_spot || {};
-            const fcBs = document.getElementById('fc-britespot');
-            if (fcBs) fcBs.innerHTML = `<strong>${bs.title || ''}</strong><br><br>${bs.body || ''}`;
-
-            // GBU - include hyperlinked title + source tag (matching review step)
-            ['good', 'bad', 'ugly'].forEach(key => {
-                const d = c['the_' + key] || {};
-                const el = document.getElementById('fc-' + key);
-                if (el) {
-                    const sourceUrl = selectedArticles['the_' + key]?.url || selectedArticles['the_' + key]?.source_url || '';
-                    const titleHtml = sourceUrl
-                        ? `<a href="${sourceUrl}" target="_blank" style="color: #018181; text-decoration: underline;">${d.subtitle || ''}</a>`
-                        : `${d.subtitle || ''}`;
-                    el.innerHTML = `<strong>${titleHtml}</strong><br><br>${d.copy || ''}`;
+                // Handle skipped sections
+                if ((key === 'pulse' && skippedSections.pulse) ||
+                    (key === 'partner' && skippedSections.partner) ||
+                    (key === 'news' && skippedSections.news)) {
+                    fcEl.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
+                    return;
                 }
+
+                // Copy innerHTML directly, but strip source URL divs
+                fcEl.innerHTML = stripSourceDivs(reviewEl.innerHTML);
             });
-
-            // Pulse
-            const fcPulse = document.getElementById('fc-pulse');
-            if (fcPulse) {
-                if (skippedSections.pulse) {
-                    fcPulse.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
-                } else {
-                    const p = c.industry_pulse || {};
-                    let pulseHtml = `<strong>Title:</strong> ${p.title || ''}<br><br>`;
-                    pulseHtml += `<strong>Intro:</strong><br>${p.intro || ''}<br><br>`;
-                    pulseHtml += `<strong>${p.h3_1_title || 'Section 1'}:</strong><br>${p.h3_1_content || ''}<br><br>`;
-                    pulseHtml += `<strong>${p.h3_2_title || 'Section 2'}:</strong><br>${p.h3_2_content || ''}`;
-                    fcPulse.innerHTML = pulseHtml;
-                }
-            }
-
-            // Partner Advantage
-            const fcPartner = document.getElementById('fc-partner');
-            if (fcPartner) {
-                if (skippedSections.partner) {
-                    fcPartner.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
-                } else {
-                    const pa = c.partner_advantage || {};
-                    let partnerHtml = `<strong>Subheader:</strong> ${pa.subheader || ''}<br><br>`;
-                    partnerHtml += `${pa.intro || ''}<br><br>`;
-                    (pa.tips || []).forEach((tip, i) => {
-                        partnerHtml += `<strong>Tip ${i+1}: ${tip.title || ''}</strong><br>${tip.content || ''}<br><br>`;
-                    });
-                    fcPartner.innerHTML = partnerHtml;
-                }
-            }
-
-            // Industry News - hyperlink words instead of showing raw URLs
-            const fcNews = document.getElementById('fc-news');
-            if (fcNews) {
-                if (skippedSections.news) {
-                    fcNews.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
-                } else {
-                    const news = c.industry_news || {};
-                    let newsHtml = '';
-                    (news.bullets || []).forEach((b, i) => {
-                        let text = b.text || b.headline || (typeof b === 'string' ? b : '');
-                        const url = b.url || '';
-                        // Convert markdown links [text](url) to HTML
-                        text = text.replace(
-                            /\[([^\]]+)\]\(([^)]+)\)/g,
-                            '<a href="$2" target="_blank" style="color: #018181; text-decoration: underline;">$1</a>'
-                        );
-                        // If URL exists but text doesn't already contain a link, wrap text as hyperlink
-                        if (url && !text.includes('<a ')) {
-                            newsHtml += `• <a href="${url}" target="_blank" style="color: #018181; text-decoration: underline;">${text}</a>`;
-                        } else {
-                            newsHtml += `• ${text}`;
-                        }
-                        newsHtml += '<br><br>';
-                    });
-                    fcNews.innerHTML = newsHtml;
-                }
-            }
 
             // Populate special section if enabled and has body copy
             if (specialSection.enabled && specialSection.body) {

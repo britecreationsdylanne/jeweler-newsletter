@@ -2480,15 +2480,29 @@ def export_to_docs():
 
             index_offset[0] = end_index
 
+        # Helper: strip HTML tags from content values (frontend stores innerHTML)
+        def clean(val):
+            if not val:
+                return ''
+            if isinstance(val, dict):
+                return str(val)
+            return html_to_plain_text(str(val))
+
         # Add content sections
         add_text(title, heading=True)
 
         if content.get('intro'):
-            add_text(content['intro'])
+            add_text(clean(content['intro']))
 
         if content.get('brite_spot'):
             add_text('The Brite Spot', bold=True)
-            add_text(content['brite_spot'])
+            bs = content['brite_spot']
+            if isinstance(bs, dict):
+                if bs.get('title'):
+                    add_text(clean(bs['title']), bold=True)
+                add_text(clean(bs.get('body', '')))
+            else:
+                add_text(clean(bs))
 
         for section in ['the_good', 'the_bad', 'the_ugly']:
             if content.get(section):
@@ -2496,36 +2510,47 @@ def export_to_docs():
                 add_text(section_title, bold=True)
                 sec = content[section]
                 if isinstance(sec, dict):
-                    add_text(f"{sec.get('subtitle', '')}\n{sec.get('copy', '')}")
+                    subtitle = clean(sec.get('subtitle', ''))
+                    copy = clean(sec.get('copy', ''))
+                    source_url = sec.get('url', '')
+                    if subtitle and source_url:
+                        add_text(subtitle, link_url=source_url)
+                    elif subtitle:
+                        add_text(subtitle, bold=True)
+                    add_text(copy)
                 else:
-                    add_text(str(sec))
+                    add_text(clean(sec))
 
         if content.get('industry_pulse'):
             add_text('Industry Pulse', bold=True)
             pulse = content['industry_pulse']
             if isinstance(pulse, dict):
-                add_text(pulse.get('title', ''))
-                add_text(pulse.get('intro', ''))
-                add_text(pulse.get('h3_1_title', ''), bold=True)
-                add_text(pulse.get('h3_1_content', ''))
-                add_text(pulse.get('h3_2_title', ''), bold=True)
-                add_text(pulse.get('h3_2_content', ''))
+                add_text(clean(pulse.get('title', '')))
+                add_text(clean(pulse.get('intro', '')))
+                h3_1_title = clean(pulse.get('h3_1_title', ''))
+                if h3_1_title:
+                    add_text(h3_1_title, bold=True)
+                add_text(clean(pulse.get('h3_1_content', '')))
+                h3_2_title = clean(pulse.get('h3_2_title', ''))
+                if h3_2_title:
+                    add_text(h3_2_title, bold=True)
+                add_text(clean(pulse.get('h3_2_content', '')))
             else:
-                add_text(str(pulse))
+                add_text(clean(pulse))
 
         if content.get('partner_advantage'):
             add_text('Partner Advantage', bold=True)
             pa = content['partner_advantage']
             if isinstance(pa, dict):
-                add_text(pa.get('subheader', ''))
-                add_text(pa.get('intro', ''))
+                add_text(clean(pa.get('subheader', '')))
+                add_text(clean(pa.get('intro', '')))
                 for tip in pa.get('tips', []):
                     if isinstance(tip, dict):
-                        add_text(f"• {tip.get('title', '')}: {tip.get('content', '')}")
+                        add_text(f"• {clean(tip.get('title', ''))}: {clean(tip.get('content', ''))}")
                     else:
-                        add_text(f"• {tip}")
+                        add_text(f"• {clean(tip)}")
             else:
-                add_text(str(pa))
+                add_text(clean(pa))
 
         if content.get('industry_news'):
             add_text('Industry News', bold=True)
@@ -2533,20 +2558,20 @@ def export_to_docs():
             if isinstance(news, dict) and 'bullets' in news:
                 for bullet in news['bullets']:
                     if isinstance(bullet, dict):
-                        bullet_text = f"• {bullet.get('text', '')}"
+                        bullet_text = f"• {clean(bullet.get('text', ''))}"
                         bullet_url = bullet.get('url', None)
                         add_text(bullet_text, link_url=bullet_url)
                     else:
-                        add_text(f"• {bullet}")
+                        add_text(f"• {clean(bullet)}")
             elif isinstance(news, list):
                 for item in news:
-                    add_text(f"• {item}")
+                    add_text(f"• {clean(item)}")
 
         # Special Section (if included)
         if content.get('special_section'):
             ss = content['special_section']
             ss_title = ss.get('title', 'Special Section') if isinstance(ss, dict) else 'Special Section'
-            ss_body = ss.get('body', str(ss)) if isinstance(ss, dict) else str(ss)
+            ss_body = clean(ss.get('body', '')) if isinstance(ss, dict) else clean(ss)
             add_text(ss_title, bold=True)
             add_text(ss_body)
 
