@@ -5476,6 +5476,122 @@
             }
         }
 
+        // Sync edited content from DOM back into generatedContent object
+        function syncContentFromDOM() {
+            // Helper: strip source URL divs appended by populateReviewContent
+            function stripSources(html) {
+                return html.replace(/<div style="margin-top: 1[05]px;[^"]*">[^]*$/i, '').trim();
+            }
+
+            // Intro
+            const introEl = document.getElementById('review-intro');
+            if (introEl && introEl.innerHTML.trim()) {
+                generatedContent.intro = introEl.innerHTML.trim();
+            }
+
+            // Brite Spot
+            const bsEl = document.getElementById('review-britespot');
+            if (bsEl && bsEl.innerHTML.trim()) {
+                const bsHtml = bsEl.innerHTML;
+                const m = bsHtml.match(/<strong>([\s\S]*?)<\/strong>(?:\s*<br\s*\/?>)*([\s\S]*)/i);
+                if (m) {
+                    generatedContent.brite_spot = {
+                        title: m[1].replace(/<[^>]+>/g, '').trim(),
+                        body: m[2].replace(/^(\s*<br\s*\/?>)+/, '').trim()
+                    };
+                } else {
+                    generatedContent.brite_spot = bsHtml.trim();
+                }
+            }
+
+            // GBU sections
+            ['the_good', 'the_bad', 'the_ugly'].forEach(key => {
+                const el = document.getElementById('review-' + key.replace('the_', ''));
+                if (el && el.innerHTML.trim()) {
+                    const html = stripSources(el.innerHTML);
+                    const m = html.match(/<strong>([\s\S]*?)<\/strong>(?:\s*<br\s*\/?>)*([\s\S]*)/i);
+                    if (m) {
+                        // Extract plain text subtitle (may contain link)
+                        const subtitleHtml = m[1];
+                        const linkMatch = subtitleHtml.match(/<a[^>]*>([\s\S]*?)<\/a>/i);
+                        const subtitle = linkMatch ? linkMatch[1].trim() : subtitleHtml.replace(/<[^>]+>/g, '').trim();
+                        generatedContent[key] = {
+                            subtitle: subtitle,
+                            copy: m[2].replace(/^(\s*<br\s*\/?>)+/, '').trim(),
+                            url: selectedArticles[key]?.url || ''
+                        };
+                    }
+                }
+            });
+
+            // Industry Pulse
+            const pulseEl = document.getElementById('review-pulse');
+            if (pulseEl && !skippedSections.pulse && pulseEl.innerHTML.trim()) {
+                const html = stripSources(pulseEl.innerHTML);
+                const tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                const h4 = tmp.querySelector('h4');
+                const h5s = tmp.querySelectorAll('h5');
+                const ps = tmp.querySelectorAll('p');
+                if (h4 || h5s.length || ps.length) {
+                    generatedContent.industry_pulse = {
+                        title: h4 ? h4.textContent.trim() : (generatedContent.industry_pulse?.title || ''),
+                        intro: ps[0] ? ps[0].innerHTML.trim() : (generatedContent.industry_pulse?.intro || ''),
+                        h3_1_title: h5s[0] ? h5s[0].textContent.trim() : (generatedContent.industry_pulse?.h3_1_title || ''),
+                        h3_1_content: ps[1] ? ps[1].innerHTML.trim() : (generatedContent.industry_pulse?.h3_1_content || ''),
+                        h3_2_title: h5s[1] ? h5s[1].textContent.trim() : (generatedContent.industry_pulse?.h3_2_title || ''),
+                        h3_2_content: ps[2] ? ps[2].innerHTML.trim() : (generatedContent.industry_pulse?.h3_2_content || '')
+                    };
+                }
+            }
+
+            // Partner Advantage
+            const partnerEl = document.getElementById('review-partner');
+            if (partnerEl && !skippedSections.partner && partnerEl.innerHTML.trim()) {
+                const html = stripSources(partnerEl.innerHTML);
+                const tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                const strong = tmp.querySelector(':scope > strong');
+                const p = tmp.querySelector(':scope > p');
+                const lis = tmp.querySelectorAll('li');
+                const tips = [];
+                lis.forEach(li => {
+                    const tipStrong = li.querySelector('strong');
+                    if (tipStrong) {
+                        const title = tipStrong.textContent.trim();
+                        const fullHtml = li.innerHTML;
+                        const content = fullHtml.replace(/<strong>[\s\S]*?<\/strong>\s*:\s*/, '').trim();
+                        tips.push({ title, content });
+                    } else {
+                        tips.push({ title: '', content: li.innerHTML.trim() });
+                    }
+                });
+                generatedContent.partner_advantage = {
+                    subheader: strong ? strong.textContent.trim() : (generatedContent.partner_advantage?.subheader || ''),
+                    intro: p ? p.innerHTML.trim() : (generatedContent.partner_advantage?.intro || ''),
+                    tips: tips.length > 0 ? tips : (generatedContent.partner_advantage?.tips || [])
+                };
+            }
+
+            // Industry News
+            const newsEl = document.getElementById('review-news');
+            if (newsEl && !skippedSections.news && newsEl.innerHTML.trim()) {
+                const html = stripSources(newsEl.innerHTML);
+                const tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                const lis = tmp.querySelectorAll('li');
+                if (lis.length > 0) {
+                    const bullets = [];
+                    lis.forEach(li => {
+                        bullets.push({ text: li.innerHTML.trim() });
+                    });
+                    generatedContent.industry_news = { bullets };
+                }
+            }
+
+            console.log('[Sync] generatedContent updated from DOM');
+        }
+
         function populateReviewContent() {
             document.getElementById('review-intro').innerHTML = generatedContent.intro || '';
 
@@ -5947,6 +6063,9 @@
             btnText.textContent = 'Exporting...';
 
             try {
+                // Sync any edits from the review step DOM back into generatedContent
+                syncContentFromDOM();
+
                 const monthCapitalized = selectedMonth.charAt(0).toUpperCase() + selectedMonth.slice(1);
                 const currentYear = new Date().getFullYear();
                 // Include special section if enabled
@@ -7024,6 +7143,10 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
 
         async function saveDraft() {
             if (!selectedMonth) return;
+            // Sync any edits from review step DOM before saving
+            if (document.getElementById('review-intro')?.innerHTML) {
+                syncContentFromDOM();
+            }
             try {
                 const userEmail = (window.AUTH_USER && window.AUTH_USER.email) || 'unknown';
                 const resp = await fetch(`${API_BASE}/api/save-draft`, {
