@@ -7075,6 +7075,10 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 // Navigate to saved step (redirect removed brand check steps to edit)
                 let step = d.currentStep || 1;
                 if (step === '6c' || step === 7 || step === '7') step = '6b';
+                // If content exists but step is too early, jump to review
+                if (generatedContent && Object.keys(generatedContent).length > 0 && (step === 1 || step === 2 || step === 3 || step === 4 || step === 5 || step === 6)) {
+                    step = '6b';
+                }
                 if (step === '6b' || step === '7b') {
                     showStep(step);
                 } else {
