@@ -2295,6 +2295,7 @@
 
             <div class="buttons">
                 <button class="btn btn-secondary" onclick="goToStep(5)">← Back to Research</button>
+                <button class="btn" onclick="saveDraft(); this.textContent='✓ Saved'; setTimeout(() => this.textContent='💾 Save Draft', 2000);" style="background: #22c55e; padding: 10px 30px;">💾 Save Draft</button>
                 <button class="btn" id="step6bNextBtn" onclick="populateFinalCopy(); goToStep('7b');">Continue to Final Copy →</button>
             </div>
         </div>
