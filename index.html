@@ -5356,12 +5356,11 @@
 
                     generatedContent = data.generated;
                     populateReviewContent();
+                    showStep('6b');
 
-                    // Auto-save immediately after content generation
+                    // Auto-save after content generation (after showStep so currentStep = '6b')
                     await saveDraft();
                     console.log('[Draft] Auto-saved after content generation');
-
-                    showStep('6b');
                 } else {
                     console.error('[API] Generation failed:', data.error);
                     alert('Error generating content: ' + (data.error || 'Unknown error'));
