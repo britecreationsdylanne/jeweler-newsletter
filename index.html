@@ -3334,9 +3334,9 @@
 
         // Navigation
         function goToStep(step) {
-            // Auto-save draft at key transitions
+            // Auto-save draft at key transitions (skip during draft load to prevent overwrites)
             const savePoints = [5, '6b', '6d', '7b', 9, 10, 11];
-            if (selectedMonth && (savePoints.includes(step) || savePoints.includes(String(step)))) {
+            if (!isLoadingDraft && selectedMonth && (savePoints.includes(step) || savePoints.includes(String(step)))) {
                 saveDraft();
             }
             // Brand check step removed - flow goes directly from 6b to 7b
@@ -3645,8 +3645,8 @@
         }
 
         function showStep(stepId) {
-            // Auto-save at key transitions
-            if (selectedMonth && ['6b', '6d', '7b'].includes(String(stepId))) {
+            // Auto-save at key transitions (skip during draft load to prevent overwrites)
+            if (!isLoadingDraft && selectedMonth && ['6b', '6d', '7b'].includes(String(stepId))) {
                 saveDraft();
             }
             document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
@@ -6986,11 +6986,14 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
             }
         }
 
+        let isLoadingDraft = false;
+
         async function loadDraft(filename) {
             try {
+                isLoadingDraft = true; // Prevent auto-save from overwriting during load
                 const response = await fetch(`${API_BASE}/api/load-draft?file=${encodeURIComponent(filename)}`);
                 const data = await response.json();
-                if (!data.success || !data.draft) { alert('Failed to load draft'); return; }
+                if (!data.success || !data.draft) { isLoadingDraft = false; alert('Failed to load draft'); return; }
                 const d = data.draft;
 
                 // Restore state
@@ -7084,7 +7087,9 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 } else {
                     goToStep(typeof step === 'string' ? step : parseInt(step));
                 }
+                isLoadingDraft = false;
             } catch (e) {
+                isLoadingDraft = false;
                 console.error('[Draft] Load failed:', e);
                 alert('Error loading draft');
             }
