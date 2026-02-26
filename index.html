@@ -2535,7 +2535,7 @@
             </div>
 
             <div class="buttons">
-                <button class="btn btn-secondary" onclick="goToStep('6b')">← Back to Edit</button>
+                <button class="btn btn-secondary" onclick="syncContentFromDOM(); populateReviewContent(); goToStep('6b');">← Back to Edit</button>
                 <button class="btn" onclick="saveFinalCopyToState(); generateImagePrompts();">Continue to Image Prompts →</button>
             </div>
         </div>
@@ -5477,20 +5477,25 @@
         }
 
         // Sync edited content from DOM back into generatedContent object
+        // Reads from whichever page is active: review step (review-*) or final copy (fc-*)
         function syncContentFromDOM() {
+            // Determine which set of divs to read from based on current step
+            const onFinalCopy = (currentStep === '7b');
+            const prefix = onFinalCopy ? 'fc-' : 'review-';
+
             // Helper: strip source URL divs appended by populateReviewContent
             function stripSources(html) {
                 return html.replace(/<div style="margin-top: 1[05]px;[^"]*">[^]*$/i, '').trim();
             }
 
             // Intro
-            const introEl = document.getElementById('review-intro');
+            const introEl = document.getElementById(prefix + 'intro');
             if (introEl && introEl.innerHTML.trim()) {
                 generatedContent.intro = introEl.innerHTML.trim();
             }
 
             // Brite Spot
-            const bsEl = document.getElementById('review-britespot');
+            const bsEl = document.getElementById(prefix + 'britespot');
             if (bsEl && bsEl.innerHTML.trim()) {
                 const bsHtml = bsEl.innerHTML;
                 const m = bsHtml.match(/<strong>([\s\S]*?)<\/strong>(?:\s*<br\s*\/?>)*([\s\S]*)/i);
@@ -5506,12 +5511,12 @@
 
             // GBU sections
             ['the_good', 'the_bad', 'the_ugly'].forEach(key => {
-                const el = document.getElementById('review-' + key.replace('the_', ''));
+                const shortKey = key.replace('the_', '');
+                const el = document.getElementById(prefix + shortKey);
                 if (el && el.innerHTML.trim()) {
                     const html = stripSources(el.innerHTML);
                     const m = html.match(/<strong>([\s\S]*?)<\/strong>(?:\s*<br\s*\/?>)*([\s\S]*)/i);
                     if (m) {
-                        // Extract plain text subtitle (may contain link)
                         const subtitleHtml = m[1];
                         const linkMatch = subtitleHtml.match(/<a[^>]*>([\s\S]*?)<\/a>/i);
                         const subtitle = linkMatch ? linkMatch[1].trim() : subtitleHtml.replace(/<[^>]+>/g, '').trim();
@@ -5525,71 +5530,141 @@
             });
 
             // Industry Pulse
-            const pulseEl = document.getElementById('review-pulse');
+            const pulseEl = document.getElementById(prefix + 'pulse');
             if (pulseEl && !skippedSections.pulse && pulseEl.innerHTML.trim()) {
                 const html = stripSources(pulseEl.innerHTML);
                 const tmp = document.createElement('div');
                 tmp.innerHTML = html;
-                const h4 = tmp.querySelector('h4');
-                const h5s = tmp.querySelectorAll('h5');
-                const ps = tmp.querySelectorAll('p');
-                if (h4 || h5s.length || ps.length) {
-                    generatedContent.industry_pulse = {
-                        title: h4 ? h4.textContent.trim() : (generatedContent.industry_pulse?.title || ''),
-                        intro: ps[0] ? ps[0].innerHTML.trim() : (generatedContent.industry_pulse?.intro || ''),
-                        h3_1_title: h5s[0] ? h5s[0].textContent.trim() : (generatedContent.industry_pulse?.h3_1_title || ''),
-                        h3_1_content: ps[1] ? ps[1].innerHTML.trim() : (generatedContent.industry_pulse?.h3_1_content || ''),
-                        h3_2_title: h5s[1] ? h5s[1].textContent.trim() : (generatedContent.industry_pulse?.h3_2_title || ''),
-                        h3_2_content: ps[2] ? ps[2].innerHTML.trim() : (generatedContent.industry_pulse?.h3_2_content || '')
+
+                if (onFinalCopy) {
+                    // fc-pulse format: "<strong>Title:</strong> value<br><br><strong>Intro:</strong><br>value<br><br><strong>H3 title:</strong><br>value..."
+                    // Split by <strong> labels and extract values
+                    const parts = html.split(/<strong>/).filter(Boolean);
+                    const getValue = (label) => {
+                        const part = parts.find(p => p.startsWith(label));
+                        if (!part) return generatedContent.industry_pulse?.[label] || '';
+                        return part.replace(/^[^:]*:<\/strong>\s*(?:<br\s*\/?>)*\s*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim();
                     };
+                    // First part has "Title:</strong> value"
+                    const titlePart = parts.find(p => p.startsWith('Title:'));
+                    const titleVal = titlePart ? titlePart.replace(/^Title:<\/strong>\s*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim() : '';
+                    const introPart = parts.find(p => p.startsWith('Intro:'));
+                    const introVal = introPart ? introPart.replace(/^Intro:<\/strong>\s*(?:<br\s*\/?>)*\s*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim() : '';
+                    // H3 sections - find the ones that aren't Title/Intro/Section labels
+                    const h3Parts = parts.filter(p => !p.startsWith('Title:') && !p.startsWith('Intro:'));
+                    generatedContent.industry_pulse = {
+                        title: titleVal || (generatedContent.industry_pulse?.title || ''),
+                        intro: introVal || (generatedContent.industry_pulse?.intro || ''),
+                        h3_1_title: h3Parts[0] ? h3Parts[0].replace(/<\/strong>[\s\S]*/i, '').replace(/:$/, '').trim() : (generatedContent.industry_pulse?.h3_1_title || ''),
+                        h3_1_content: h3Parts[0] ? h3Parts[0].replace(/^[^:]*:<\/strong>\s*(?:<br\s*\/?>)*\s*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim() : (generatedContent.industry_pulse?.h3_1_content || ''),
+                        h3_2_title: h3Parts[1] ? h3Parts[1].replace(/<\/strong>[\s\S]*/i, '').replace(/:$/, '').trim() : (generatedContent.industry_pulse?.h3_2_title || ''),
+                        h3_2_content: h3Parts[1] ? h3Parts[1].replace(/^[^:]*:<\/strong>\s*(?:<br\s*\/?>)*\s*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim() : (generatedContent.industry_pulse?.h3_2_content || '')
+                    };
+                } else {
+                    // review-pulse format: <h4>title</h4><p>intro</p><h5>h3 title</h5><p>content</p>...
+                    const h4 = tmp.querySelector('h4');
+                    const h5s = tmp.querySelectorAll('h5');
+                    const ps = tmp.querySelectorAll('p');
+                    if (h4 || h5s.length || ps.length) {
+                        generatedContent.industry_pulse = {
+                            title: h4 ? h4.textContent.trim() : (generatedContent.industry_pulse?.title || ''),
+                            intro: ps[0] ? ps[0].innerHTML.trim() : (generatedContent.industry_pulse?.intro || ''),
+                            h3_1_title: h5s[0] ? h5s[0].textContent.trim() : (generatedContent.industry_pulse?.h3_1_title || ''),
+                            h3_1_content: ps[1] ? ps[1].innerHTML.trim() : (generatedContent.industry_pulse?.h3_1_content || ''),
+                            h3_2_title: h5s[1] ? h5s[1].textContent.trim() : (generatedContent.industry_pulse?.h3_2_title || ''),
+                            h3_2_content: ps[2] ? ps[2].innerHTML.trim() : (generatedContent.industry_pulse?.h3_2_content || '')
+                        };
+                    }
                 }
             }
 
             // Partner Advantage
-            const partnerEl = document.getElementById('review-partner');
+            const partnerEl = document.getElementById(prefix + 'partner');
             if (partnerEl && !skippedSections.partner && partnerEl.innerHTML.trim()) {
                 const html = stripSources(partnerEl.innerHTML);
                 const tmp = document.createElement('div');
                 tmp.innerHTML = html;
-                const strong = tmp.querySelector(':scope > strong');
-                const p = tmp.querySelector(':scope > p');
-                const lis = tmp.querySelectorAll('li');
-                const tips = [];
-                lis.forEach(li => {
-                    const tipStrong = li.querySelector('strong');
-                    if (tipStrong) {
-                        const title = tipStrong.textContent.trim();
-                        const fullHtml = li.innerHTML;
-                        const content = fullHtml.replace(/<strong>[\s\S]*?<\/strong>\s*:\s*/, '').trim();
+
+                if (onFinalCopy) {
+                    // fc-partner format: "<strong>Subheader:</strong> value<br><br>intro<br><br><strong>Tip 1: title</strong><br>content..."
+                    const parts = html.split(/<strong>/).filter(Boolean);
+                    const subPart = parts.find(p => p.startsWith('Subheader:'));
+                    const subheader = subPart ? subPart.replace(/^Subheader:<\/strong>\s*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim() : '';
+                    // Intro is the text between subheader and first Tip
+                    const tipParts = parts.filter(p => /^Tip \d+:/.test(p));
+                    const nonTipNonSub = parts.filter(p => !p.startsWith('Subheader:') && !/^Tip \d+:/.test(p));
+                    const intro = nonTipNonSub.length > 0 ? nonTipNonSub[0].replace(/<\/strong>[\s\S]*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim() : '';
+                    // Actually intro is just the plain text between subheader and first tip
+                    // Let's get it from the full HTML
+                    const introMatch = html.match(/Subheader:<\/strong>[^<]*(?:<br\s*\/?>)*\s*([\s\S]*?)(?:<strong>Tip|$)/i);
+                    const introVal = introMatch ? introMatch[1].replace(/(<br\s*\/?>)+$/i, '').trim() : (generatedContent.partner_advantage?.intro || '');
+                    const tips = [];
+                    tipParts.forEach(tp => {
+                        const titleMatch = tp.match(/^Tip \d+:\s*(.*?)<\/strong>/i);
+                        const title = titleMatch ? titleMatch[1].trim() : '';
+                        const content = tp.replace(/^Tip \d+:\s*.*?<\/strong>\s*(?:<br\s*\/?>)*\s*/i, '').replace(/(<br\s*\/?>)+$/i, '').trim();
                         tips.push({ title, content });
-                    } else {
-                        tips.push({ title: '', content: li.innerHTML.trim() });
-                    }
-                });
-                generatedContent.partner_advantage = {
-                    subheader: strong ? strong.textContent.trim() : (generatedContent.partner_advantage?.subheader || ''),
-                    intro: p ? p.innerHTML.trim() : (generatedContent.partner_advantage?.intro || ''),
-                    tips: tips.length > 0 ? tips : (generatedContent.partner_advantage?.tips || [])
-                };
+                    });
+                    generatedContent.partner_advantage = {
+                        subheader: subheader || (generatedContent.partner_advantage?.subheader || ''),
+                        intro: introVal,
+                        tips: tips.length > 0 ? tips : (generatedContent.partner_advantage?.tips || [])
+                    };
+                } else {
+                    // review-partner format: <strong>subheader</strong><p>intro</p><ul><li>...</li></ul>
+                    const strong = tmp.querySelector(':scope > strong');
+                    const p = tmp.querySelector(':scope > p');
+                    const lis = tmp.querySelectorAll('li');
+                    const tips = [];
+                    lis.forEach(li => {
+                        const tipStrong = li.querySelector('strong');
+                        if (tipStrong) {
+                            const title = tipStrong.textContent.trim();
+                            const fullHtml = li.innerHTML;
+                            const content = fullHtml.replace(/<strong>[\s\S]*?<\/strong>\s*:\s*/, '').trim();
+                            tips.push({ title, content });
+                        } else {
+                            tips.push({ title: '', content: li.innerHTML.trim() });
+                        }
+                    });
+                    generatedContent.partner_advantage = {
+                        subheader: strong ? strong.textContent.trim() : (generatedContent.partner_advantage?.subheader || ''),
+                        intro: p ? p.innerHTML.trim() : (generatedContent.partner_advantage?.intro || ''),
+                        tips: tips.length > 0 ? tips : (generatedContent.partner_advantage?.tips || [])
+                    };
+                }
             }
 
             // Industry News
-            const newsEl = document.getElementById('review-news');
+            const newsEl = document.getElementById(prefix + 'news');
             if (newsEl && !skippedSections.news && newsEl.innerHTML.trim()) {
                 const html = stripSources(newsEl.innerHTML);
                 const tmp = document.createElement('div');
                 tmp.innerHTML = html;
                 const lis = tmp.querySelectorAll('li');
+
                 if (lis.length > 0) {
+                    // review-news uses <ul><li> format
                     const bullets = [];
                     lis.forEach(li => {
                         bullets.push({ text: li.innerHTML.trim() });
                     });
                     generatedContent.industry_news = { bullets };
+                } else if (onFinalCopy) {
+                    // fc-news format: "• text<br><br>• text<br><br>..."
+                    const bulletTexts = html.split(/•\s*/).filter(Boolean);
+                    if (bulletTexts.length > 0) {
+                        const bullets = [];
+                        bulletTexts.forEach(bt => {
+                            const cleaned = bt.replace(/(<br\s*\/?>)+$/i, '').trim();
+                            if (cleaned) bullets.push({ text: cleaned });
+                        });
+                        if (bullets.length > 0) generatedContent.industry_news = { bullets };
+                    }
                 }
             }
 
-            console.log('[Sync] generatedContent updated from DOM');
+            console.log('[Sync] generatedContent updated from DOM (step: ' + currentStep + ', prefix: ' + prefix + ')');
         }
 
         function populateReviewContent() {
@@ -7709,58 +7784,11 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
         }
 
         function saveFinalCopyToState() {
-            // Write all Final Copy contenteditable divs back into generatedContent
-            try {
-            const getHtml = id => (document.getElementById(id)?.innerHTML || '').trim();
-
-            generatedContent.intro = getHtml('fc-intro');
-
-            // Brite Spot: parse "<strong>title</strong><br><br>body"
-            const bsHtml = getHtml('fc-britespot');
-            const bsMatch = bsHtml.match(/^<strong>(.*?)<\/strong>(?:<br\s*\/?>){0,2}([\s\S]*)$/i);
-            generatedContent.brite_spot = {
-                ...(generatedContent.brite_spot || {}),
-                title: bsMatch ? bsMatch[1] : generatedContent.brite_spot?.title || '',
-                body: bsMatch ? bsMatch[2].replace(/^(<br\s*\/?>)+/, '') : bsHtml
-            };
-
-            // GBU: parse "<strong>subtitle</strong><br><br>copy"
-            ['good', 'bad', 'ugly'].forEach(key => {
-                const html = getHtml('fc-' + key);
-                const m = html.match(/^<strong>(.*?)<\/strong>(?:<br\s*\/?>){0,2}([\s\S]*)$/i);
-                generatedContent['the_' + key] = {
-                    ...(generatedContent['the_' + key] || {}),
-                    subtitle: m ? m[1] : generatedContent['the_' + key]?.subtitle || '',
-                    copy: m ? m[2].replace(/^(<br\s*\/?>)+/, '') : html
-                };
-            });
-
-            // Pulse: read full innerHTML back — keep existing structured data, update from editable
-            const pulseEl = document.getElementById('fc-pulse');
-            if (pulseEl) {
-                // Best effort: preserve existing structured data but allow free-form edits
-                // The contenteditable div is the source of truth for display, but we keep structure
-                const pulseHtml = pulseEl.innerHTML;
-                // Keep existing structure unless user made changes
-                generatedContent.industry_pulse = generatedContent.industry_pulse || {};
-            }
-
-            // Partner: keep existing structure
-            const partnerEl = document.getElementById('fc-partner');
-            if (partnerEl) {
-                generatedContent.partner_advantage = generatedContent.partner_advantage || {};
-            }
-
-            // News: keep existing structure
-            const newsEl = document.getElementById('fc-news');
-            if (newsEl) {
-                generatedContent.industry_news = generatedContent.industry_news || {};
-            }
-
-            // Save special section body from final copy editable div
-            const ssHtml = getHtml('fc-specialSection');
+            // Sync all edits from whichever step is active (fc-* or review-*) into generatedContent
+            syncContentFromDOM();
+            // Also save special section body from final copy editable div
+            const ssHtml = (document.getElementById('fc-specialSection')?.innerHTML || '').trim();
             if (ssHtml && specialSection.enabled) specialSection.body = ssHtml;
-            } catch (e) { console.error('[FinalCopy] Save error:', e); }
         }
 
         // loadArchive removed — consolidated into loadPublishedNewsletters() called from initApp()
