@@ -2576,6 +2576,16 @@ def export_to_docs():
         # Add content sections
         add_text(title, heading=True)
 
+        # Subject line & preheader (if provided)
+        subject_line = data.get('subject_line', '')
+        preheader_text = data.get('preheader', '')
+        if subject_line:
+            add_text('Subject Line:', bold=True)
+            add_text(subject_line)
+        if preheader_text:
+            add_text('Preheader:', bold=True)
+            add_text(preheader_text)
+
         if content.get('intro'):
             add_rich_text(content['intro'])
 
