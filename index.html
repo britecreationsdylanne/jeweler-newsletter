@@ -2387,7 +2387,7 @@
                 <h3>Industry Pulse</h3>
                 <div class="sandbox-preview" id="sandbox-pulse">
                     <div class="sandbox-header">
-                        <span class="sandbox-label" title="Use this as a scratch pad — read, highlight, rearrange. Copy-paste into the fields below when ready. This content is saved with your draft but does not export or pass to final copy.">Scratch Pad</span>
+                        <span class="sandbox-label" title="AI-generated draft copy for reference. Edit freely here, then copy-paste into the labeled fields below to build the newsletter. Saves with your draft but is not included in the final email or export.">Scratch Pad — Edit here, then add to fields below</span>
                         <button class="sandbox-toggle" onclick="toggleSandbox('pulse')">Collapse</button>
                     </div>
                     <div class="sandbox-body" contenteditable="true" id="sandbox-pulse-body"></div>
@@ -2419,7 +2419,7 @@
                 <h3>Partner Advantage</h3>
                 <div class="sandbox-preview" id="sandbox-partner">
                     <div class="sandbox-header">
-                        <span class="sandbox-label" title="Use this as a scratch pad — read, highlight, rearrange. Copy-paste into the fields below when ready. This content is saved with your draft but does not export or pass to final copy.">Scratch Pad</span>
+                        <span class="sandbox-label" title="AI-generated draft copy for reference. Edit freely here, then copy-paste into the labeled fields below to build the newsletter. Saves with your draft but is not included in the final email or export.">Scratch Pad — Edit here, then add to fields below</span>
                         <button class="sandbox-toggle" onclick="toggleSandbox('partner')">Collapse</button>
                     </div>
                     <div class="sandbox-body" contenteditable="true" id="sandbox-partner-body"></div>
@@ -2451,7 +2451,7 @@
                 <h3>Industry News</h3>
                 <div class="sandbox-preview" id="sandbox-news">
                     <div class="sandbox-header">
-                        <span class="sandbox-label" title="Use this as a scratch pad — read, highlight, rearrange. Copy-paste into the fields below when ready. This content is saved with your draft but does not export or pass to final copy.">Scratch Pad</span>
+                        <span class="sandbox-label" title="AI-generated draft copy for reference. Edit freely here, then copy-paste into the labeled fields below to build the newsletter. Saves with your draft but is not included in the final email or export.">Scratch Pad — Edit here, then add to fields below</span>
                         <button class="sandbox-toggle" onclick="toggleSandbox('news')">Collapse</button>
                     </div>
                     <div class="sandbox-body" contenteditable="true" id="sandbox-news-body"></div>
@@ -7994,11 +7994,17 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                     renderSourceUrls('review-partner-sources', selectedArticles.partner_advantage);
                     renderSourceUrls('review-news-sources', selectedArticles.industry_news);
 
-                    // Restore sandbox content
+                    // Restore sandbox content — or populate from generated content if draft predates sandbox
                     ['pulse', 'partner', 'news'].forEach(section => {
                         const sbBody = document.getElementById('sandbox-' + section + '-body');
                         if (sbBody && savedHTML['sandbox-' + section]) {
                             sbBody.innerHTML = savedHTML['sandbox-' + section];
+                        } else {
+                            // Draft was saved before sandbox existed — populate from generated globals
+                            const sectionKey = section === 'pulse' ? 'industry_pulse'
+                                : section === 'partner' ? 'partner_advantage'
+                                : 'industry_news';
+                            if (generatedContent[sectionKey]) populateSandbox(section, generatedContent[sectionKey]);
                         }
                         const sbBox = document.getElementById('sandbox-' + section);
                         if (sbBox && savedHTML['sandbox-' + section + '-collapsed']) {
