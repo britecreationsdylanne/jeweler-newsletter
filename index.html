@@ -2360,6 +2360,23 @@
                     </div>
                     <div class="editable" contenteditable="true" id="review-pulse-h3-2-content"></div>
                 </div>
+                <div class="field-group">
+                    <label class="field-label">Subheading 3 Title</label>
+                    <div class="editable editable-sm" contenteditable="true" id="review-pulse-h3-3-title"></div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Subheading 3 Content</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-pulse-h3-3-content')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-review-pulse-h3-3-content">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('review-pulse-h3-3-content')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('review-pulse-h3-3-content')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="review-pulse-h3-3-content"></div>
+                </div>
                 <div class="source-urls" id="review-pulse-sources"></div>
             </div>
 
@@ -2705,6 +2722,23 @@
                         </div>
                     </div>
                     <div class="editable" contenteditable="true" id="fc-pulse-h3-2-content"></div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Subheading 3 Title</label>
+                    <div class="editable editable-sm" contenteditable="true" id="fc-pulse-h3-3-title"></div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Subheading 3 Content</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-pulse-h3-3-content')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-fc-pulse-h3-3-content">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('fc-pulse-h3-3-content')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('fc-pulse-h3-3-content')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="fc-pulse-h3-3-content"></div>
                 </div>
             </div>
 
@@ -3935,7 +3969,7 @@
                     },
                     industry_pulse: {
                         title: gc.industry_pulse?.title || 'Industry Pulse',
-                        content: [gc.industry_pulse?.intro, gc.industry_pulse?.h3_1_content, gc.industry_pulse?.h3_2_content].filter(Boolean).join(' ')
+                        content: [gc.industry_pulse?.intro, gc.industry_pulse?.h3_1_content, gc.industry_pulse?.h3_2_content, gc.industry_pulse?.h3_3_content].filter(Boolean).join(' ')
                     },
                     partner_advantage: {
                         title: gc.partner_advantage?.subheader || 'Partner Advantage',
@@ -5715,7 +5749,7 @@
                 }
             });
 
-            // Industry Pulse — 6 individual fields
+            // Industry Pulse — individual fields (title, intro, up to 3 subheadings)
             if (!skippedSections.pulse) {
                 const pulseTitle = getText('pulse-title');
                 const pulseIntro = getHTML('pulse-intro');
@@ -5723,14 +5757,18 @@
                 const h31Content = getHTML('pulse-h3-1-content');
                 const h32Title = getText('pulse-h3-2-title');
                 const h32Content = getHTML('pulse-h3-2-content');
-                if (pulseTitle || pulseIntro || h31Title || h31Content || h32Title || h32Content) {
+                const h33Title = getText('pulse-h3-3-title');
+                const h33Content = getHTML('pulse-h3-3-content');
+                if (pulseTitle || pulseIntro || h31Title || h31Content || h32Title || h32Content || h33Title || h33Content) {
                     generatedContent.industry_pulse = {
                         title: pulseTitle,
                         intro: pulseIntro,
                         h3_1_title: h31Title,
                         h3_1_content: h31Content,
                         h3_2_title: h32Title,
-                        h3_2_content: h32Content
+                        h3_2_content: h32Content,
+                        h3_3_title: h33Title,
+                        h3_3_content: h33Content
                     };
                 }
             }
@@ -5921,7 +5959,9 @@
                     'review-pulse-h3-1-title': p.h3_1_title,
                     'review-pulse-h3-1-content': p.h3_1_content,
                     'review-pulse-h3-2-title': p.h3_2_title,
-                    'review-pulse-h3-2-content': p.h3_2_content
+                    'review-pulse-h3-2-content': p.h3_2_content,
+                    'review-pulse-h3-3-title': p.h3_3_title,
+                    'review-pulse-h3-3-content': p.h3_3_content
                 };
                 Object.entries(fields).forEach(([id, val]) => {
                     const el = document.getElementById(id);
@@ -6050,7 +6090,8 @@
             const pulseContent = highlightContent(
                 [getFieldsHTML('review-pulse-title'), getFieldsHTML('review-pulse-intro'),
                  getFieldsHTML('review-pulse-h3-1-title'), getFieldsHTML('review-pulse-h3-1-content'),
-                 getFieldsHTML('review-pulse-h3-2-title'), getFieldsHTML('review-pulse-h3-2-content')].join(' '),
+                 getFieldsHTML('review-pulse-h3-2-title'), getFieldsHTML('review-pulse-h3-2-content'),
+                 getFieldsHTML('review-pulse-h3-3-title'), getFieldsHTML('review-pulse-h3-3-content')].join(' '),
                 suggestions.filter(s => s.section === 'industry_pulse' || s.section === 'pulse')
             );
             const partnerContent = highlightContent(
@@ -6762,6 +6803,8 @@
             const pulseH3_1_content = getDomHTML('review-pulse-h3-1-content') || '';
             const pulseH3_2_title = getDomText('review-pulse-h3-2-title') || '';
             const pulseH3_2_content = getDomHTML('review-pulse-h3-2-content') || '';
+            const pulseH3_3_title = getDomText('review-pulse-h3-3-title') || '';
+            const pulseH3_3_content = getDomHTML('review-pulse-h3-3-content') || '';
             const partnerSubheader = getDomText('review-partner-subheader') || '';
             const partnerIntro = getDomHTML('review-partner-intro') || '';
 
@@ -7096,23 +7139,30 @@ ${!skippedSections.pulse ? `<!-- Spacer -->
 <img src="${pulseImage}" alt="Industry Pulse" width="570" style="display:block;width:100%;max-width:570px;height:auto;">
 </td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
-<!-- Intro -->
+${pulseIntro ? `<!-- Intro -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${pulseIntro}</p>
 </td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
-<!-- H3 Section 1 -->
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>` : ''}
+${(pulseH3_1_title || pulseH3_1_content) ? `<!-- H3 Section 1 -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
-<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:18px;line-height:26px;font-weight:600;color:#3B3B3B;">${pulseH3_1_title}</h3>
-<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${pulseH3_1_content}</p>
+${pulseH3_1_title ? `<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:18px;line-height:26px;font-weight:600;color:#3B3B3B;">${pulseH3_1_title}</h3>` : ''}
+${pulseH3_1_content ? `<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${pulseH3_1_content}</p>` : ''}
 </td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
-<!-- H3 Section 2 -->
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>` : ''}
+${(pulseH3_2_title || pulseH3_2_content) ? `<!-- H3 Section 2 -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
-<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:18px;line-height:26px;font-weight:600;color:#3B3B3B;">${pulseH3_2_title}</h3>
-<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${pulseH3_2_content}</p>
+${pulseH3_2_title ? `<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:18px;line-height:26px;font-weight:600;color:#3B3B3B;">${pulseH3_2_title}</h3>` : ''}
+${pulseH3_2_content ? `<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${pulseH3_2_content}</p>` : ''}
 </td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="30" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>` : ''}
+${(pulseH3_3_title || pulseH3_3_content) ? `<!-- H3 Section 3 -->
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
+${pulseH3_3_title ? `<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:18px;line-height:26px;font-weight:600;color:#3B3B3B;">${pulseH3_3_title}</h3>` : ''}
+${pulseH3_3_content ? `<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${pulseH3_3_content}</p>` : ''}
+</td></tr></table>
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>` : ''}
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="10" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 </td></tr>` : ''}
 
 ${ssPosition === 'after-pulse' ? specialSectionHtml : ''}
@@ -7380,6 +7430,7 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 'pulse-title', 'pulse-intro',
                 'pulse-h3-1-title', 'pulse-h3-1-content',
                 'pulse-h3-2-title', 'pulse-h3-2-content',
+                'pulse-h3-3-title', 'pulse-h3-3-content',
                 'partner-subheader', 'partner-intro'
             ];
             simpleFields.forEach(field => {
@@ -7584,6 +7635,7 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                         'pulse-title', 'pulse-intro',
                         'pulse-h3-1-title', 'pulse-h3-1-content',
                         'pulse-h3-2-title', 'pulse-h3-2-content',
+                        'pulse-h3-3-title', 'pulse-h3-3-content',
                         'partner-subheader', 'partner-intro'
                     ];
                     simpleFields.forEach(field => {
@@ -7838,6 +7890,7 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 'pulse-title', 'pulse-intro',
                 'pulse-h3-1-title', 'pulse-h3-1-content',
                 'pulse-h3-2-title', 'pulse-h3-2-content',
+                'pulse-h3-3-title', 'pulse-h3-3-content',
                 'partner-subheader', 'partner-intro'
             ];
             simpleFields.forEach(field => {

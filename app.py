@@ -2540,7 +2540,15 @@ def export_to_docs():
                 h3_2_title = clean(pulse.get('h3_2_title', ''))
                 if h3_2_title:
                     add_text(h3_2_title, bold=True)
-                add_text(clean(pulse.get('h3_2_content', '')))
+                h3_2_content = clean(pulse.get('h3_2_content', ''))
+                if h3_2_content:
+                    add_text(h3_2_content)
+                h3_3_title = clean(pulse.get('h3_3_title', ''))
+                if h3_3_title:
+                    add_text(h3_3_title, bold=True)
+                h3_3_content = clean(pulse.get('h3_3_content', ''))
+                if h3_3_content:
+                    add_text(h3_3_content)
             else:
                 add_text(clean(pulse))
 
