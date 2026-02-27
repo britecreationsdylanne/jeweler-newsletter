@@ -3182,6 +3182,7 @@ def save_draft():
             'preheader': data.get('preheader'),
             'customLinks': data.get('customLinks'),
             'skippedSections': data.get('skippedSections'),
+            'reviewHTML': data.get('reviewHTML'),
             'lastSavedBy': data.get('savedBy', 'unknown'),
             'lastSavedAt': datetime.now(CHICAGO_TZ).isoformat()
         }
