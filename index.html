@@ -1022,6 +1022,52 @@
             border-color: #018181;
         }
 
+        .sandbox-preview {
+            background: #fefce8;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #374151;
+            position: relative;
+        }
+        .sandbox-preview h4 {
+            font-weight: 700;
+            margin: 12px 0 4px;
+            font-size: 15px;
+        }
+        .sandbox-preview .sandbox-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .sandbox-preview .sandbox-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #92400e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: help;
+        }
+        .sandbox-toggle {
+            font-size: 12px;
+            color: #92400e;
+            background: none;
+            border: 1px solid #fde68a;
+            border-radius: 4px;
+            padding: 2px 8px;
+            cursor: pointer;
+        }
+        .sandbox-toggle:hover {
+            background: #fef3c7;
+        }
+        .sandbox-preview.collapsed .sandbox-body {
+            display: none;
+        }
+
         .editable-sm {
             min-height: 36px;
             padding: 8px 12px;
@@ -1073,10 +1119,33 @@
         .dynamic-field-item {
             padding: 10px 0;
             border-bottom: 1px dashed #e5e7eb;
+            position: relative;
         }
 
         .dynamic-field-item:last-child {
             border-bottom: none;
+        }
+
+        .dynamic-remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 14px;
+            cursor: pointer;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+        .dynamic-remove-btn:hover {
+            background: #fca5a5;
         }
 
         .link-toolbar {
@@ -1825,9 +1894,10 @@
                     <h3>Researching for: <strong>The Good</strong> section. Search and select one article below.</h3>
                     <p id="step3SectionDescription">Positive jewelry news - new designs, trends, sales records, success stories</p>
                 </div>
-                <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                <div style="display: flex; gap: 6px; flex-shrink: 0; align-items: center;">
                     <button class="btn-add-link" onclick="showCustomLinkModal('gbu')">📎 Add Custom Link</button>
                     <button class="btn-add-link" onclick="showSavedArticlesModal('gbu')">📌 Saved Articles</button>
+                    <button id="skipGBUBtn" onclick="toggleSkipGBU(currentGBUTab)" style="padding: 6px 14px; border: 2px solid #d1d5db; background: white; color: #6b7280; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">Skip Section</button>
                 </div>
             </div>
 
@@ -1844,7 +1914,13 @@
             </div>
 
             <!-- Research Dashboard - 3 Cards -->
-            <div class="research-dashboard" id="gbuResearchDashboard">
+            <div class="research-dashboard" id="gbuResearchDashboard" style="position: relative;">
+                <div id="skipGBUOverlay" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.9); z-index: 10; border-radius: 8px; align-items: center; justify-content: center;">
+                    <div style="text-align: center; padding: 30px; color: #b45309; font-weight: 600; font-size: 16px;">
+                        This section will be skipped<br>
+                        <p style="margin-top: 8px; font-size: 13px; font-weight: 400; color: #6b7280;">No copy will be generated for this section. Click "Unskip Section" to restore.</p>
+                    </div>
+                </div>
                 <!-- Perplexity Research Card -->
                 <div class="research-card">
                     <div class="research-card-header">
@@ -2309,6 +2385,13 @@
             <!-- Industry Pulse -->
             <div class="content-section">
                 <h3>Industry Pulse</h3>
+                <div class="sandbox-preview" id="sandbox-pulse">
+                    <div class="sandbox-header">
+                        <span class="sandbox-label" title="Use this as a scratch pad — read, highlight, rearrange. Copy-paste into the fields below when ready. This content is saved with your draft but does not export or pass to final copy.">Scratch Pad</span>
+                        <button class="sandbox-toggle" onclick="toggleSandbox('pulse')">Collapse</button>
+                    </div>
+                    <div class="sandbox-body" contenteditable="true" id="sandbox-pulse-body"></div>
+                </div>
                 <div class="field-group">
                     <label class="field-label">Title</label>
                     <div class="editable editable-sm" contenteditable="true" id="review-pulse-title"></div>
@@ -2334,6 +2417,13 @@
             <!-- Partner Advantage -->
             <div class="content-section">
                 <h3>Partner Advantage</h3>
+                <div class="sandbox-preview" id="sandbox-partner">
+                    <div class="sandbox-header">
+                        <span class="sandbox-label" title="Use this as a scratch pad — read, highlight, rearrange. Copy-paste into the fields below when ready. This content is saved with your draft but does not export or pass to final copy.">Scratch Pad</span>
+                        <button class="sandbox-toggle" onclick="toggleSandbox('partner')">Collapse</button>
+                    </div>
+                    <div class="sandbox-body" contenteditable="true" id="sandbox-partner-body"></div>
+                </div>
                 <div class="field-group">
                     <label class="field-label">Subheader</label>
                     <div class="editable editable-sm" contenteditable="true" id="review-partner-subheader"></div>
@@ -2359,6 +2449,13 @@
             <!-- Industry News -->
             <div class="content-section">
                 <h3>Industry News</h3>
+                <div class="sandbox-preview" id="sandbox-news">
+                    <div class="sandbox-header">
+                        <span class="sandbox-label" title="Use this as a scratch pad — read, highlight, rearrange. Copy-paste into the fields below when ready. This content is saved with your draft but does not export or pass to final copy.">Scratch Pad</span>
+                        <button class="sandbox-toggle" onclick="toggleSandbox('news')">Collapse</button>
+                    </div>
+                    <div class="sandbox-body" contenteditable="true" id="sandbox-news-body"></div>
+                </div>
                 <div id="review-news-bullets-container" class="dynamic-fields-container"></div>
                 <button type="button" class="btn-secondary btn" onclick="addNewsBullet('review')" style="margin: 10px 0; font-size: 13px;">+ Add Bullet</button>
                 <div class="source-urls" id="review-news-sources"></div>
@@ -3280,6 +3377,7 @@
         };
 
         let skippedSections = { pulse: false, partner: false, news: false };
+        let skippedGBU = { good: false, bad: false, ugly: false };
 
         let customLinks = {
             gbu: [],
@@ -4428,6 +4526,25 @@
                 const cb = item.querySelector('.research-result-checkbox');
                 if (cb) cb.checked = item.classList.contains('selected');
             });
+
+            // Sync skip button state for this tab
+            const skipBtn = document.getElementById('skipGBUBtn');
+            const overlay = document.getElementById('skipGBUOverlay');
+            if (skipBtn && overlay) {
+                if (skippedGBU[tab]) {
+                    skipBtn.textContent = 'Unskip Section';
+                    skipBtn.style.background = '#fef3c7';
+                    skipBtn.style.borderColor = '#f59e0b';
+                    skipBtn.style.color = '#b45309';
+                    overlay.style.display = 'flex';
+                } else {
+                    skipBtn.textContent = 'Skip Section';
+                    skipBtn.style.background = 'white';
+                    skipBtn.style.borderColor = '#d1d5db';
+                    skipBtn.style.color = '#6b7280';
+                    overlay.style.display = 'none';
+                }
+            }
         }
 
         // Step 5 tab switching (pulse, partner, news)
@@ -4561,6 +4678,88 @@
                 const keyMap = { pulse: 'industry_pulse', partner: 'partner_advantage', news: 'industry_news' };
                 const selectedCount = selectedArticles[keyMap[tab]]?.length || 0;
                 document.getElementById('step5Counter').innerHTML = `<span>Selected: (<span id="step5SelectedCount">${selectedCount}</span>/${counts[tab]}) (min ${mins[tab]})</span>`;
+            }
+        }
+
+        // Sandbox toggle
+        function toggleSandbox(section) {
+            const box = document.getElementById('sandbox-' + section);
+            if (!box) return;
+            box.classList.toggle('collapsed');
+            const btn = box.querySelector('.sandbox-toggle');
+            if (btn) btn.textContent = box.classList.contains('collapsed') ? 'Expand' : 'Collapse';
+        }
+
+        // Populate sandbox with formatted AI content
+        function populateSandbox(section, data) {
+            let html = '';
+            if (section === 'pulse' && data) {
+                html += '<strong>' + (data.title || '') + '</strong>';
+                if (data.intro) html += '<p>' + data.intro + '</p>';
+                const subheadings = data.subheadings || [];
+                // Also check old h3_N format
+                if (subheadings.length === 0) {
+                    for (let i = 1; i <= 20; i++) {
+                        const t = data['h3_' + i + '_title'];
+                        const c = data['h3_' + i + '_content'];
+                        if (t || c) subheadings.push({ title: t || '', content: c || '' });
+                        else break;
+                    }
+                }
+                subheadings.forEach(sh => {
+                    if (sh.title) html += '<h4>' + sh.title + '</h4>';
+                    if (sh.content) html += '<p>' + sh.content + '</p>';
+                });
+            } else if (section === 'partner' && data) {
+                html += '<strong>' + (data.subheader || '') + '</strong>';
+                if (data.intro) html += '<p>' + data.intro + '</p>';
+                (data.tips || []).forEach(tip => {
+                    if (tip.title) html += '<h4>' + tip.title + '</h4>';
+                    if (tip.content) html += '<p>' + tip.content + '</p>';
+                });
+            } else if (section === 'news' && data) {
+                const bullets = data.bullets || [];
+                if (bullets.length > 0) {
+                    html += '<ul>';
+                    bullets.forEach(b => {
+                        let text = b.text || b.headline || (typeof b === 'string' ? b : '');
+                        html += '<li>' + text + '</li>';
+                    });
+                    html += '</ul>';
+                }
+            }
+            const body = document.getElementById('sandbox-' + section + '-body');
+            if (body) body.innerHTML = html;
+        }
+
+        // Skip Section functionality for GBU
+        function toggleSkipGBU(tab) {
+            skippedGBU[tab] = !skippedGBU[tab];
+            const skipBtn = document.getElementById('skipGBUBtn');
+            const overlay = document.getElementById('skipGBUOverlay');
+            const tabCheck = document.getElementById(tab + '-check');
+            const tabIndex = tab === 'good' ? 1 : tab === 'bad' ? 2 : 3;
+            const tabBtn = document.querySelector('#step3 .research-tab:nth-child(' + tabIndex + ')');
+
+            if (skippedGBU[tab]) {
+                skipBtn.textContent = 'Unskip Section';
+                skipBtn.style.background = '#fef3c7';
+                skipBtn.style.borderColor = '#f59e0b';
+                skipBtn.style.color = '#b45309';
+                overlay.style.display = 'flex';
+                if (tabCheck) { tabCheck.textContent = 'SKIP'; tabCheck.style.color = '#f59e0b'; }
+                if (tabBtn) tabBtn.style.opacity = '0.6';
+                // Clear selected article for this GBU section
+                const keyMap = { good: 'the_good', bad: 'the_bad', ugly: 'the_ugly' };
+                selectedArticles[keyMap[tab]] = null;
+            } else {
+                skipBtn.textContent = 'Skip Section';
+                skipBtn.style.background = 'white';
+                skipBtn.style.borderColor = '#d1d5db';
+                skipBtn.style.color = '#6b7280';
+                overlay.style.display = 'none';
+                if (tabCheck) { tabCheck.textContent = ''; tabCheck.style.color = '#059669'; }
+                if (tabBtn) tabBtn.style.opacity = '1';
             }
         }
 
@@ -5441,10 +5640,19 @@
         // Generate content - Two-stage process: GPT-5.2 Research → Claude Opus 4.5 Writing
         async function generateContent() {
             // Enforce minimum selections before generating
+            const missing = [];
+            // GBU validation (need at least 1 non-skipped)
+            if (!skippedGBU.good && !selectedArticles.the_good) missing.push('The Good (select 1 article)');
+            if (!skippedGBU.bad && !selectedArticles.the_bad) missing.push('The Bad (select 1 article)');
+            if (!skippedGBU.ugly && !selectedArticles.the_ugly) missing.push('The Ugly (select 1 article)');
+            if (skippedGBU.good && skippedGBU.bad && skippedGBU.ugly) {
+                alert('You cannot skip all three Good/Bad/Ugly sections. At least one must have an article.');
+                return;
+            }
+            // Pulse/Partner/News validation
             const pulseCount = selectedArticles.industry_pulse?.length || 0;
             const partnerCount = selectedArticles.partner_advantage?.length || 0;
             const newsCount = selectedArticles.industry_news?.length || 0;
-            const missing = [];
             if (!skippedSections.pulse && pulseCount < 2) missing.push(`Industry Pulse (need ${2 - pulseCount} more, min 2)`);
             if (!skippedSections.partner && partnerCount < 1) missing.push('Partner Advantage (need at least 1)');
             if (!skippedSections.news && newsCount < 5) missing.push(`Industry News (need ${5 - newsCount} more, need 5)`);
@@ -5508,9 +5716,9 @@
 
                 // Build articles object from selectedArticles for research (skip sections marked as skipped)
                 const articlesToResearch = {};
-                if (selectedArticles.the_good) articlesToResearch.the_good = selectedArticles.the_good;
-                if (selectedArticles.the_bad) articlesToResearch.the_bad = selectedArticles.the_bad;
-                if (selectedArticles.the_ugly) articlesToResearch.the_ugly = selectedArticles.the_ugly;
+                if (!skippedGBU.good && selectedArticles.the_good) articlesToResearch.the_good = selectedArticles.the_good;
+                if (!skippedGBU.bad && selectedArticles.the_bad) articlesToResearch.the_bad = selectedArticles.the_bad;
+                if (!skippedGBU.ugly && selectedArticles.the_ugly) articlesToResearch.the_ugly = selectedArticles.the_ugly;
                 if (!skippedSections.pulse && selectedArticles.industry_pulse) articlesToResearch.industry_pulse = selectedArticles.industry_pulse;
                 if (!skippedSections.partner && selectedArticles.partner_advantage) articlesToResearch.partner_advantage = selectedArticles.partner_advantage;
                 if (!skippedSections.news && selectedArticles.industry_news && selectedArticles.industry_news.length) articlesToResearch.industry_news = selectedArticles.industry_news;
@@ -5565,6 +5773,9 @@
                 if (skippedSections.pulse) delete sectionsPayload.industry_pulse;
                 if (skippedSections.partner) delete sectionsPayload.partner_advantage;
                 if (skippedSections.news) delete sectionsPayload.industry_news;
+                if (skippedGBU.good) delete sectionsPayload.the_good;
+                if (skippedGBU.bad) delete sectionsPayload.the_bad;
+                if (skippedGBU.ugly) delete sectionsPayload.the_ugly;
 
                 const response = await fetch(`${API_BASE}/api/generate-newsletter`, {
                     method: 'POST',
@@ -5573,6 +5784,7 @@
                         month: selectedMonth,
                         sections: sectionsPayload,
                         skippedSections: skippedSections,
+                        skippedGBU: skippedGBU,
                         research: researchData.researched  // Pass GPT-5.2 research results
                         // intro and brite_spot are now auto-generated by backend
                     })
@@ -5759,6 +5971,7 @@
                 const tipTitleId = `${prefix}-partner-tip-${idx}-title`;
                 const tipContentId = `${prefix}-partner-tip-${idx}-content`;
                 item.innerHTML = `
+                    <button class="dynamic-remove-btn" onclick="this.closest('.dynamic-field-item').remove()" title="Remove">&times;</button>
                     <div class="field-group">
                         <label class="field-label">Tip ${idx + 1} Title</label>
                         <div class="editable editable-sm" contenteditable="true" id="${tipTitleId}"></div>
@@ -5798,6 +6011,7 @@
                 item.className = 'dynamic-field-item';
                 item.dataset.bulletIndex = idx;
                 item.innerHTML = `
+                    <button class="dynamic-remove-btn" onclick="this.closest('.dynamic-field-item').remove()" title="Remove">&times;</button>
                     <div class="field-group">
                         <label class="field-label">Bullet ${idx + 1}</label>
                         <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('${bulletId}')" type="button">🔗 Insert Link</button></div>
@@ -5835,6 +6049,7 @@
                 const titleId = `${prefix}-pulse-h3-${idx}-title`;
                 const contentId = `${prefix}-pulse-h3-${idx}-content`;
                 item.innerHTML = `
+                    <button class="dynamic-remove-btn" onclick="this.closest('.dynamic-field-item').remove()" title="Remove">&times;</button>
                     <div class="field-group">
                         <label class="field-label">Subheading ${idx + 1} Title</label>
                         <div class="editable editable-sm" contenteditable="true" id="${titleId}"></div>
@@ -5869,6 +6084,7 @@
             const titleId = `${prefix}-pulse-h3-${idx}-title`;
             const contentId = `${prefix}-pulse-h3-${idx}-content`;
             item.innerHTML = `
+                <button class="dynamic-remove-btn" onclick="this.closest('.dynamic-field-item').remove()" title="Remove">&times;</button>
                 <div class="field-group">
                     <label class="field-label">Subheading ${idx + 1} Title</label>
                     <div class="editable editable-sm" contenteditable="true" id="${titleId}"></div>
@@ -5902,6 +6118,7 @@
             const tipTitleId = `${prefix}-partner-tip-${idx}-title`;
             const tipContentId = `${prefix}-partner-tip-${idx}-content`;
             item.innerHTML = `
+                <button class="dynamic-remove-btn" onclick="this.closest('.dynamic-field-item').remove()" title="Remove">&times;</button>
                 <div class="field-group">
                     <label class="field-label">Tip ${idx + 1} Title</label>
                     <div class="editable editable-sm" contenteditable="true" id="${tipTitleId}"></div>
@@ -5932,6 +6149,7 @@
             item.className = 'dynamic-field-item';
             item.dataset.bulletIndex = idx;
             item.innerHTML = `
+                <button class="dynamic-remove-btn" onclick="this.closest('.dynamic-field-item').remove()" title="Remove">&times;</button>
                 <div class="field-group">
                     <label class="field-label">Bullet ${idx + 1}</label>
                     <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('${bulletId}')" type="button">🔗 Insert Link</button></div>
@@ -5965,7 +6183,10 @@
             // GBU - separate subtitle and copy fields, source URLs outside
             ['the_good', 'the_bad', 'the_ugly'].forEach(key => {
                 const shortKey = key.replace('the_', '');
-                if (generatedContent[key]) {
+                if (skippedGBU[shortKey]) {
+                    const subEl = document.getElementById('review-' + shortKey + '-subtitle');
+                    if (subEl) subEl.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
+                } else if (generatedContent[key]) {
                     const s = generatedContent[key];
                     const subEl = document.getElementById('review-' + shortKey + '-subtitle');
                     const copyEl = document.getElementById('review-' + shortKey + '-copy');
@@ -6023,6 +6244,32 @@
             } else if (generatedContent.industry_news) {
                 renderDynamicBullets('review', generatedContent.industry_news.bullets || []);
                 renderSourceUrls('review-news-sources', selectedArticles.industry_news);
+            }
+
+            // Populate sandboxes
+            if (!skippedSections.pulse && generatedContent.industry_pulse) {
+                populateSandbox('pulse', generatedContent.industry_pulse);
+                const sb = document.getElementById('sandbox-pulse');
+                if (sb) sb.style.display = '';
+            } else {
+                const sb = document.getElementById('sandbox-pulse');
+                if (sb) sb.style.display = 'none';
+            }
+            if (!skippedSections.partner && generatedContent.partner_advantage) {
+                populateSandbox('partner', generatedContent.partner_advantage);
+                const sb = document.getElementById('sandbox-partner');
+                if (sb) sb.style.display = '';
+            } else {
+                const sb = document.getElementById('sandbox-partner');
+                if (sb) sb.style.display = 'none';
+            }
+            if (!skippedSections.news && generatedContent.industry_news) {
+                populateSandbox('news', generatedContent.industry_news);
+                const sb = document.getElementById('sandbox-news');
+                if (sb) sb.style.display = '';
+            } else {
+                const sb = document.getElementById('sandbox-news');
+                if (sb) sb.style.display = 'none';
             }
         }
 
@@ -7097,7 +7344,7 @@ u + .body .section-header, u + .body .section-header font, u + .body .section-he
 <!-- Good/Bad/Ugly Section - Design A: Centered image below headline -->
 <tr><td style="padding:0;border:1px solid #008181;background-color:#ffffff;">
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><th align="center" class="section-header" style="background:#008181;padding:18px 20px;font-family:Montserrat,Arial,Helvetica,sans-serif;font-size:26px;font-weight:700;color:#ffffff;-webkit-text-fill-color:#ffffff;letter-spacing:0.5px;"><font color="#ffffff" style="color:#ffffff;"><span style="color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">The Good, The Bad &amp; The Ugly</span></font></th></tr></table>
-<!-- Good -->
+${!skippedGBU.good ? `<!-- Good -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="border-top:5px solid #008182;padding:20px 20px 6px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:700;color:#008182;text-transform:uppercase;letter-spacing:1px;">Good:</p>
 </td></tr></table>
@@ -7109,8 +7356,8 @@ ${goodUrl ? `<a href="${goodUrl}" target="_blank" style="text-decoration:none;">
 </td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:12px 20px 25px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${goodBody}</p>
-</td></tr></table>
-<!-- Bad -->
+</td></tr></table>` : ''}
+${!skippedGBU.bad ? `<!-- Bad -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="border-top:5px solid #FE8916;padding:20px 20px 6px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:700;color:#FE8916;text-transform:uppercase;letter-spacing:1px;">Bad:</p>
 </td></tr></table>
@@ -7122,8 +7369,8 @@ ${badUrl ? `<a href="${badUrl}" target="_blank" style="text-decoration:none;">` 
 </td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:12px 20px 25px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${badBody}</p>
-</td></tr></table>
-<!-- Ugly -->
+</td></tr></table>` : ''}
+${!skippedGBU.ugly ? `<!-- Ugly -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="border-top:5px solid #272D3F;padding:20px 20px 6px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:14px;line-height:20px;font-weight:700;color:#272D3F;text-transform:uppercase;letter-spacing:1px;">Ugly:</p>
 </td></tr></table>
@@ -7135,7 +7382,7 @@ ${uglyUrl ? `<a href="${uglyUrl}" target="_blank" style="text-decoration:none;">
 </td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:12px 20px 25px;">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${uglyBody}</p>
-</td></tr></table>
+</td></tr></table>` : ''}
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="10" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 </td></tr>
 
@@ -7503,6 +7750,14 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 });
             }
 
+            // Save sandbox content
+            ['pulse', 'partner', 'news'].forEach(section => {
+                const sbBody = document.getElementById('sandbox-' + section + '-body');
+                if (sbBody) reviewHTML['sandbox-' + section] = sbBody.innerHTML;
+                const sbBox = document.getElementById('sandbox-' + section);
+                if (sbBox) reviewHTML['sandbox-' + section + '-collapsed'] = sbBox.classList.contains('collapsed');
+            });
+
             try {
                 const userEmail = (window.AUTH_USER && window.AUTH_USER.email) || 'unknown';
                 const resp = await fetch(`${API_BASE}/api/save-draft`, {
@@ -7524,6 +7779,7 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                         preheader: document.getElementById('finalPreheader')?.value || '',
                         customLinks: customLinks,
                         skippedSections: skippedSections,
+                        skippedGBU: skippedGBU,
                         reviewHTML: reviewHTML,
                         savedBy: userEmail
                     })
@@ -7594,6 +7850,7 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 generatedPrompts = d.generatedPrompts || {};
                 customLinks = d.customLinks || { gbu: [], pulse: [], partner: [], news: [] };
                 skippedSections = d.skippedSections || { pulse: false, partner: false, news: false };
+                skippedGBU = d.skippedGBU || { good: false, bad: false, ugly: false };
 
                 // Set flag to prevent regenerating prompts if they were saved
                 if (generatedPrompts && Object.keys(generatedPrompts).length > 0) {
@@ -7736,6 +7993,20 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                     renderSourceUrls('review-pulse-sources', selectedArticles.industry_pulse);
                     renderSourceUrls('review-partner-sources', selectedArticles.partner_advantage);
                     renderSourceUrls('review-news-sources', selectedArticles.industry_news);
+
+                    // Restore sandbox content
+                    ['pulse', 'partner', 'news'].forEach(section => {
+                        const sbBody = document.getElementById('sandbox-' + section + '-body');
+                        if (sbBody && savedHTML['sandbox-' + section]) {
+                            sbBody.innerHTML = savedHTML['sandbox-' + section];
+                        }
+                        const sbBox = document.getElementById('sandbox-' + section);
+                        if (sbBox && savedHTML['sandbox-' + section + '-collapsed']) {
+                            sbBox.classList.add('collapsed');
+                            const btn = sbBox.querySelector('.sandbox-toggle');
+                            if (btn) btn.textContent = 'Expand';
+                        }
+                    });
                 } else if (Object.keys(savedHTML).length > 0) {
                     // Old format: best effort — populate from generatedContent into labeled fields
                     console.log('[Draft] Old format draft — populating from generatedContent');
@@ -7985,6 +8256,13 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 const fcNewsContainer = document.getElementById('fc-news-bullets-container');
                 if (fcNewsContainer) fcNewsContainer.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
             }
+            // Handle skipped GBU sections
+            ['good', 'bad', 'ugly'].forEach(shortKey => {
+                if (skippedGBU[shortKey]) {
+                    const fcSubEl = document.getElementById('fc-' + shortKey + '-subtitle');
+                    if (fcSubEl) fcSubEl.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
+                }
+            });
 
             // Partner tips — read from review dynamic fields, render into fc
             if (!skippedSections.partner) {
