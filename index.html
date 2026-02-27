@@ -2326,57 +2326,8 @@
                     </div>
                     <div class="editable" contenteditable="true" id="review-pulse-intro"></div>
                 </div>
-                <div class="field-group">
-                    <label class="field-label">Subheading 1 Title</label>
-                    <div class="editable editable-sm" contenteditable="true" id="review-pulse-h3-1-title"></div>
-                </div>
-                <div class="field-group">
-                    <label class="field-label">Subheading 1 Content</label>
-                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-pulse-h3-1-content')" type="button">🔗 Insert Link</button></div>
-                    <div class="link-popover" id="lp-review-pulse-h3-1-content">
-                        <input type="text" placeholder="Display text" class="lp-text">
-                        <input type="text" placeholder="https://..." class="lp-url">
-                        <div class="link-popover-actions">
-                            <button type="button" onclick="hideLinkPopover('review-pulse-h3-1-content')">Cancel</button>
-                            <button type="button" class="link-insert-btn" onclick="insertLink('review-pulse-h3-1-content')">Insert</button>
-                        </div>
-                    </div>
-                    <div class="editable" contenteditable="true" id="review-pulse-h3-1-content"></div>
-                </div>
-                <div class="field-group">
-                    <label class="field-label">Subheading 2 Title</label>
-                    <div class="editable editable-sm" contenteditable="true" id="review-pulse-h3-2-title"></div>
-                </div>
-                <div class="field-group">
-                    <label class="field-label">Subheading 2 Content</label>
-                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-pulse-h3-2-content')" type="button">🔗 Insert Link</button></div>
-                    <div class="link-popover" id="lp-review-pulse-h3-2-content">
-                        <input type="text" placeholder="Display text" class="lp-text">
-                        <input type="text" placeholder="https://..." class="lp-url">
-                        <div class="link-popover-actions">
-                            <button type="button" onclick="hideLinkPopover('review-pulse-h3-2-content')">Cancel</button>
-                            <button type="button" class="link-insert-btn" onclick="insertLink('review-pulse-h3-2-content')">Insert</button>
-                        </div>
-                    </div>
-                    <div class="editable" contenteditable="true" id="review-pulse-h3-2-content"></div>
-                </div>
-                <div class="field-group">
-                    <label class="field-label">Subheading 3 Title</label>
-                    <div class="editable editable-sm" contenteditable="true" id="review-pulse-h3-3-title"></div>
-                </div>
-                <div class="field-group">
-                    <label class="field-label">Subheading 3 Content</label>
-                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-pulse-h3-3-content')" type="button">🔗 Insert Link</button></div>
-                    <div class="link-popover" id="lp-review-pulse-h3-3-content">
-                        <input type="text" placeholder="Display text" class="lp-text">
-                        <input type="text" placeholder="https://..." class="lp-url">
-                        <div class="link-popover-actions">
-                            <button type="button" onclick="hideLinkPopover('review-pulse-h3-3-content')">Cancel</button>
-                            <button type="button" class="link-insert-btn" onclick="insertLink('review-pulse-h3-3-content')">Insert</button>
-                        </div>
-                    </div>
-                    <div class="editable" contenteditable="true" id="review-pulse-h3-3-content"></div>
-                </div>
+                <div class="dynamic-fields-container" id="review-pulse-subheadings-container"></div>
+                <button type="button" class="btn-secondary btn" onclick="addPulseSubheading('review')" style="margin: 10px 0; font-size: 13px;">+ Add Subheading</button>
                 <div class="source-urls" id="review-pulse-sources"></div>
             </div>
 
@@ -2401,6 +2352,7 @@
                     <div class="editable" contenteditable="true" id="review-partner-intro"></div>
                 </div>
                 <div id="review-partner-tips-container" class="dynamic-fields-container"></div>
+                <button type="button" class="btn-secondary btn" onclick="addPartnerTip('review')" style="margin: 10px 0; font-size: 13px;">+ Add Tip</button>
                 <div class="source-urls" id="review-partner-sources"></div>
             </div>
 
@@ -2408,6 +2360,7 @@
             <div class="content-section">
                 <h3>Industry News</h3>
                 <div id="review-news-bullets-container" class="dynamic-fields-container"></div>
+                <button type="button" class="btn-secondary btn" onclick="addNewsBullet('review')" style="margin: 10px 0; font-size: 13px;">+ Add Bullet</button>
                 <div class="source-urls" id="review-news-sources"></div>
             </div>
 
@@ -2689,57 +2642,7 @@
                     </div>
                     <div class="editable" contenteditable="true" id="fc-pulse-intro"></div>
                 </div>
-                <div class="field-group">
-                    <label class="field-label">Subheading 1 Title</label>
-                    <div class="editable editable-sm" contenteditable="true" id="fc-pulse-h3-1-title"></div>
-                </div>
-                <div class="field-group">
-                    <label class="field-label">Subheading 1 Content</label>
-                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-pulse-h3-1-content')" type="button">🔗 Insert Link</button></div>
-                    <div class="link-popover" id="lp-fc-pulse-h3-1-content">
-                        <input type="text" placeholder="Display text" class="lp-text">
-                        <input type="text" placeholder="https://..." class="lp-url">
-                        <div class="link-popover-actions">
-                            <button type="button" onclick="hideLinkPopover('fc-pulse-h3-1-content')">Cancel</button>
-                            <button type="button" class="link-insert-btn" onclick="insertLink('fc-pulse-h3-1-content')">Insert</button>
-                        </div>
-                    </div>
-                    <div class="editable" contenteditable="true" id="fc-pulse-h3-1-content"></div>
-                </div>
-                <div class="field-group">
-                    <label class="field-label">Subheading 2 Title</label>
-                    <div class="editable editable-sm" contenteditable="true" id="fc-pulse-h3-2-title"></div>
-                </div>
-                <div class="field-group">
-                    <label class="field-label">Subheading 2 Content</label>
-                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-pulse-h3-2-content')" type="button">🔗 Insert Link</button></div>
-                    <div class="link-popover" id="lp-fc-pulse-h3-2-content">
-                        <input type="text" placeholder="Display text" class="lp-text">
-                        <input type="text" placeholder="https://..." class="lp-url">
-                        <div class="link-popover-actions">
-                            <button type="button" onclick="hideLinkPopover('fc-pulse-h3-2-content')">Cancel</button>
-                            <button type="button" class="link-insert-btn" onclick="insertLink('fc-pulse-h3-2-content')">Insert</button>
-                        </div>
-                    </div>
-                    <div class="editable" contenteditable="true" id="fc-pulse-h3-2-content"></div>
-                </div>
-                <div class="field-group">
-                    <label class="field-label">Subheading 3 Title</label>
-                    <div class="editable editable-sm" contenteditable="true" id="fc-pulse-h3-3-title"></div>
-                </div>
-                <div class="field-group">
-                    <label class="field-label">Subheading 3 Content</label>
-                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-pulse-h3-3-content')" type="button">🔗 Insert Link</button></div>
-                    <div class="link-popover" id="lp-fc-pulse-h3-3-content">
-                        <input type="text" placeholder="Display text" class="lp-text">
-                        <input type="text" placeholder="https://..." class="lp-url">
-                        <div class="link-popover-actions">
-                            <button type="button" onclick="hideLinkPopover('fc-pulse-h3-3-content')">Cancel</button>
-                            <button type="button" class="link-insert-btn" onclick="insertLink('fc-pulse-h3-3-content')">Insert</button>
-                        </div>
-                    </div>
-                    <div class="editable" contenteditable="true" id="fc-pulse-h3-3-content"></div>
-                </div>
+                <div class="dynamic-fields-container" id="fc-pulse-subheadings-container"></div>
             </div>
 
             <!-- Partner Advantage -->
@@ -3969,7 +3872,7 @@
                     },
                     industry_pulse: {
                         title: gc.industry_pulse?.title || 'Industry Pulse',
-                        content: [gc.industry_pulse?.intro, gc.industry_pulse?.h3_1_content, gc.industry_pulse?.h3_2_content, gc.industry_pulse?.h3_3_content].filter(Boolean).join(' ')
+                        content: [gc.industry_pulse?.intro, ...(gc.industry_pulse?.subheadings || []).map(sh => sh.content)].filter(Boolean).join(' ')
                     },
                     partner_advantage: {
                         title: gc.partner_advantage?.subheader || 'Partner Advantage',
@@ -5749,26 +5652,27 @@
                 }
             });
 
-            // Industry Pulse — individual fields (title, intro, up to 3 subheadings)
+            // Industry Pulse — title, intro, and dynamic subheadings
             if (!skippedSections.pulse) {
                 const pulseTitle = getText('pulse-title');
                 const pulseIntro = getHTML('pulse-intro');
-                const h31Title = getText('pulse-h3-1-title');
-                const h31Content = getHTML('pulse-h3-1-content');
-                const h32Title = getText('pulse-h3-2-title');
-                const h32Content = getHTML('pulse-h3-2-content');
-                const h33Title = getText('pulse-h3-3-title');
-                const h33Content = getHTML('pulse-h3-3-content');
-                if (pulseTitle || pulseIntro || h31Title || h31Content || h32Title || h32Content || h33Title || h33Content) {
+                const subheadings = [];
+                const pulseContainer = document.getElementById(prefix + 'pulse-subheadings-container');
+                if (pulseContainer) {
+                    pulseContainer.querySelectorAll('.dynamic-field-item').forEach((item, idx) => {
+                        const titleEl = document.getElementById(prefix + 'pulse-h3-' + idx + '-title');
+                        const contentEl = document.getElementById(prefix + 'pulse-h3-' + idx + '-content');
+                        subheadings.push({
+                            title: titleEl ? titleEl.textContent.trim() : '',
+                            content: contentEl ? contentEl.innerHTML.trim() : ''
+                        });
+                    });
+                }
+                if (pulseTitle || pulseIntro || subheadings.length > 0) {
                     generatedContent.industry_pulse = {
                         title: pulseTitle,
                         intro: pulseIntro,
-                        h3_1_title: h31Title,
-                        h3_1_content: h31Content,
-                        h3_2_title: h32Title,
-                        h3_2_content: h32Content,
-                        h3_3_title: h33Title,
-                        h3_3_content: h33Content
+                        subheadings: subheadings
                     };
                 }
             }
@@ -5919,6 +5823,131 @@
             if (src && dst) dst.innerHTML = src.innerHTML;
         }
 
+        // Helper: create dynamic subheading fields for Industry Pulse
+        function renderDynamicPulseSubheadings(prefix, subheadings) {
+            const container = document.getElementById(prefix + '-pulse-subheadings-container');
+            if (!container) return;
+            container.innerHTML = '';
+            subheadings.forEach((sh, idx) => {
+                const item = document.createElement('div');
+                item.className = 'dynamic-field-item';
+                item.dataset.shIndex = idx;
+                const titleId = `${prefix}-pulse-h3-${idx}-title`;
+                const contentId = `${prefix}-pulse-h3-${idx}-content`;
+                item.innerHTML = `
+                    <div class="field-group">
+                        <label class="field-label">Subheading ${idx + 1} Title</label>
+                        <div class="editable editable-sm" contenteditable="true" id="${titleId}"></div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Subheading ${idx + 1} Content</label>
+                        <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('${contentId}')" type="button">🔗 Insert Link</button></div>
+                        <div class="link-popover" id="lp-${contentId}">
+                            <input type="text" placeholder="Display text" class="lp-text">
+                            <input type="text" placeholder="https://..." class="lp-url">
+                            <div class="link-popover-actions">
+                                <button type="button" onclick="hideLinkPopover('${contentId}')">Cancel</button>
+                                <button type="button" class="link-insert-btn" onclick="insertLink('${contentId}')">Insert</button>
+                            </div>
+                        </div>
+                        <div class="editable" contenteditable="true" id="${contentId}"></div>
+                    </div>`;
+                container.appendChild(item);
+                document.getElementById(titleId).textContent = sh.title || '';
+                document.getElementById(contentId).innerHTML = sh.content || '';
+            });
+        }
+
+        // Add a new empty subheading to Industry Pulse
+        function addPulseSubheading(prefix) {
+            const container = document.getElementById(prefix + '-pulse-subheadings-container');
+            if (!container) return;
+            const idx = container.querySelectorAll('.dynamic-field-item').length;
+            const item = document.createElement('div');
+            item.className = 'dynamic-field-item';
+            item.dataset.shIndex = idx;
+            const titleId = `${prefix}-pulse-h3-${idx}-title`;
+            const contentId = `${prefix}-pulse-h3-${idx}-content`;
+            item.innerHTML = `
+                <div class="field-group">
+                    <label class="field-label">Subheading ${idx + 1} Title</label>
+                    <div class="editable editable-sm" contenteditable="true" id="${titleId}"></div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Subheading ${idx + 1} Content</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('${contentId}')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-${contentId}">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('${contentId}')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('${contentId}')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="${contentId}"></div>
+                </div>`;
+            container.appendChild(item);
+        }
+
+        // Add a new empty tip to Partner Advantage
+        function addPartnerTip(prefix) {
+            const container = document.getElementById(prefix + '-partner-tips-container');
+            if (!container) return;
+            const idx = container.querySelectorAll('.dynamic-field-item').length;
+            const tip = { title: '', content: '' };
+            // Reuse renderDynamicTips logic for a single new item
+            const item = document.createElement('div');
+            item.className = 'dynamic-field-item';
+            item.dataset.tipIndex = idx;
+            const tipTitleId = `${prefix}-partner-tip-${idx}-title`;
+            const tipContentId = `${prefix}-partner-tip-${idx}-content`;
+            item.innerHTML = `
+                <div class="field-group">
+                    <label class="field-label">Tip ${idx + 1} Title</label>
+                    <div class="editable editable-sm" contenteditable="true" id="${tipTitleId}"></div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Tip ${idx + 1} Content</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('${tipContentId}')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-${tipContentId}">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('${tipContentId}')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('${tipContentId}')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="${tipContentId}"></div>
+                </div>`;
+            container.appendChild(item);
+        }
+
+        // Add a new empty bullet to Industry News
+        function addNewsBullet(prefix) {
+            const container = document.getElementById(prefix + '-news-bullets-container');
+            if (!container) return;
+            const idx = container.querySelectorAll('.dynamic-field-item').length;
+            const bulletId = `${prefix}-news-bullet-${idx}`;
+            const item = document.createElement('div');
+            item.className = 'dynamic-field-item';
+            item.dataset.bulletIndex = idx;
+            item.innerHTML = `
+                <div class="field-group">
+                    <label class="field-label">Bullet ${idx + 1}</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('${bulletId}')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-${bulletId}">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('${bulletId}')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('${bulletId}')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="${bulletId}"></div>
+                </div>`;
+            container.appendChild(item);
+        }
+
         function populateReviewContent() {
             // Intro
             const introEl = document.getElementById('review-intro');
@@ -5947,29 +5976,29 @@
                 }
             });
 
-            // Industry Pulse - 6 separate fields
+            // Industry Pulse - title, intro, and dynamic subheadings
             if (skippedSections.pulse) {
                 const pt = document.getElementById('review-pulse-title');
                 if (pt) pt.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
             } else if (generatedContent.industry_pulse) {
                 const p = generatedContent.industry_pulse;
-                const fields = {
-                    'review-pulse-title': p.title,
-                    'review-pulse-intro': p.intro,
-                    'review-pulse-h3-1-title': p.h3_1_title,
-                    'review-pulse-h3-1-content': p.h3_1_content,
-                    'review-pulse-h3-2-title': p.h3_2_title,
-                    'review-pulse-h3-2-content': p.h3_2_content,
-                    'review-pulse-h3-3-title': p.h3_3_title,
-                    'review-pulse-h3-3-content': p.h3_3_content
-                };
-                Object.entries(fields).forEach(([id, val]) => {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        if (id.endsWith('-title')) el.textContent = val || '';
-                        else el.innerHTML = val || '';
+                const titleEl = document.getElementById('review-pulse-title');
+                const introEl2 = document.getElementById('review-pulse-intro');
+                if (titleEl) titleEl.textContent = p.title || '';
+                if (introEl2) introEl2.innerHTML = p.intro || '';
+
+                // Build subheadings array: prefer new format, fall back to old h3_N fields
+                let subheadings = p.subheadings;
+                if (!subheadings || !Array.isArray(subheadings) || subheadings.length === 0) {
+                    subheadings = [];
+                    for (let i = 1; i <= 20; i++) {
+                        const t = p['h3_' + i + '_title'];
+                        const c = p['h3_' + i + '_content'];
+                        if (t || c) subheadings.push({ title: t || '', content: c || '' });
+                        else break;
                     }
-                });
+                }
+                renderDynamicPulseSubheadings('review', subheadings);
                 renderSourceUrls('review-pulse-sources', selectedArticles.industry_pulse);
             }
 
@@ -6087,11 +6116,18 @@
                 getFieldsHTML('review-ugly-subtitle') + ' ' + getFieldsHTML('review-ugly-copy'),
                 suggestions.filter(s => s.section === 'the_ugly' || s.section === 'ugly')
             );
+            const pulseFieldParts = [getFieldsHTML('review-pulse-title'), getFieldsHTML('review-pulse-intro')];
+            const bcPulseContainer = document.getElementById('review-pulse-subheadings-container');
+            if (bcPulseContainer) {
+                bcPulseContainer.querySelectorAll('.dynamic-field-item').forEach((item, idx) => {
+                    const tEl = document.getElementById('review-pulse-h3-' + idx + '-title');
+                    const cEl = document.getElementById('review-pulse-h3-' + idx + '-content');
+                    if (tEl) pulseFieldParts.push(tEl.innerHTML.trim());
+                    if (cEl) pulseFieldParts.push(cEl.innerHTML.trim());
+                });
+            }
             const pulseContent = highlightContent(
-                [getFieldsHTML('review-pulse-title'), getFieldsHTML('review-pulse-intro'),
-                 getFieldsHTML('review-pulse-h3-1-title'), getFieldsHTML('review-pulse-h3-1-content'),
-                 getFieldsHTML('review-pulse-h3-2-title'), getFieldsHTML('review-pulse-h3-2-content'),
-                 getFieldsHTML('review-pulse-h3-3-title'), getFieldsHTML('review-pulse-h3-3-content')].join(' '),
+                pulseFieldParts.join(' '),
                 suggestions.filter(s => s.section === 'industry_pulse' || s.section === 'pulse')
             );
             const partnerContent = highlightContent(
@@ -6799,12 +6835,19 @@
             const uglyBody = getDomHTML('review-ugly-copy') || '';
             const pulseTitle = getDomText('review-pulse-title') || '';
             const pulseIntro = getDomHTML('review-pulse-intro') || '';
-            const pulseH3_1_title = getDomText('review-pulse-h3-1-title') || '';
-            const pulseH3_1_content = getDomHTML('review-pulse-h3-1-content') || '';
-            const pulseH3_2_title = getDomText('review-pulse-h3-2-title') || '';
-            const pulseH3_2_content = getDomHTML('review-pulse-h3-2-content') || '';
-            const pulseH3_3_title = getDomText('review-pulse-h3-3-title') || '';
-            const pulseH3_3_content = getDomHTML('review-pulse-h3-3-content') || '';
+            // Read pulse subheadings from dynamic container
+            const pulseSubheadings = [];
+            const pulseShContainer = document.getElementById('review-pulse-subheadings-container');
+            if (pulseShContainer) {
+                pulseShContainer.querySelectorAll('.dynamic-field-item').forEach((item, idx) => {
+                    const titleEl = document.getElementById('review-pulse-h3-' + idx + '-title');
+                    const contentEl = document.getElementById('review-pulse-h3-' + idx + '-content');
+                    pulseSubheadings.push({
+                        title: titleEl ? titleEl.textContent.trim() : '',
+                        content: contentEl ? contentEl.innerHTML.trim() : ''
+                    });
+                });
+            }
             const partnerSubheader = getDomText('review-partner-subheader') || '';
             const partnerIntro = getDomHTML('review-partner-intro') || '';
 
@@ -7144,24 +7187,12 @@ ${pulseIntro ? `<!-- Intro -->
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${pulseIntro}</p>
 </td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>` : ''}
-${(pulseH3_1_title || pulseH3_1_content) ? `<!-- H3 Section 1 -->
+${pulseSubheadings.map((sh, i) => (sh.title || sh.content) ? `<!-- H3 Section ${i + 1} -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
-${pulseH3_1_title ? `<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:18px;line-height:26px;font-weight:600;color:#3B3B3B;">${pulseH3_1_title}</h3>` : ''}
-${pulseH3_1_content ? `<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${pulseH3_1_content}</p>` : ''}
+${sh.title ? `<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:18px;line-height:26px;font-weight:600;color:#3B3B3B;">${sh.title}</h3>` : ''}
+${sh.content ? `<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${sh.content}</p>` : ''}
 </td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>` : ''}
-${(pulseH3_2_title || pulseH3_2_content) ? `<!-- H3 Section 2 -->
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
-${pulseH3_2_title ? `<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:18px;line-height:26px;font-weight:600;color:#3B3B3B;">${pulseH3_2_title}</h3>` : ''}
-${pulseH3_2_content ? `<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${pulseH3_2_content}</p>` : ''}
-</td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>` : ''}
-${(pulseH3_3_title || pulseH3_3_content) ? `<!-- H3 Section 3 -->
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
-${pulseH3_3_title ? `<h3 style="margin:0 0 8px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:18px;line-height:26px;font-weight:600;color:#3B3B3B;">${pulseH3_3_title}</h3>` : ''}
-${pulseH3_3_content ? `<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${pulseH3_3_content}</p>` : ''}
-</td></tr></table>
-<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>` : ''}
+<table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>` : '').join('\n')}
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="10" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 </td></tr>` : ''}
 
@@ -7428,15 +7459,25 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 'bad-subtitle', 'bad-copy',
                 'ugly-subtitle', 'ugly-copy',
                 'pulse-title', 'pulse-intro',
-                'pulse-h3-1-title', 'pulse-h3-1-content',
-                'pulse-h3-2-title', 'pulse-h3-2-content',
-                'pulse-h3-3-title', 'pulse-h3-3-content',
                 'partner-subheader', 'partner-intro'
             ];
             simpleFields.forEach(field => {
                 const el = document.getElementById(prefix + field);
                 if (el) reviewHTML[field] = el.innerHTML;
             });
+
+            // Pulse subheadings — save count + each subheading's title/content
+            const pulseContainer = document.getElementById(prefix + 'pulse-subheadings-container');
+            if (pulseContainer) {
+                const shItems = pulseContainer.querySelectorAll('.dynamic-field-item');
+                reviewHTML['pulse-sh-count'] = shItems.length;
+                shItems.forEach((item, idx) => {
+                    const titleEl = document.getElementById(prefix + 'pulse-h3-' + idx + '-title');
+                    const contentEl = document.getElementById(prefix + 'pulse-h3-' + idx + '-content');
+                    reviewHTML['pulse-sh-' + idx + '-title'] = titleEl ? titleEl.innerHTML : '';
+                    reviewHTML['pulse-sh-' + idx + '-content'] = contentEl ? contentEl.innerHTML : '';
+                });
+            }
 
             // Partner tips — save count + each tip's title/content
             const tipsContainer = document.getElementById(prefix + 'partner-tips-container');
@@ -7633,9 +7674,6 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                         'bad-subtitle', 'bad-copy',
                         'ugly-subtitle', 'ugly-copy',
                         'pulse-title', 'pulse-intro',
-                        'pulse-h3-1-title', 'pulse-h3-1-content',
-                        'pulse-h3-2-title', 'pulse-h3-2-content',
-                        'pulse-h3-3-title', 'pulse-h3-3-content',
                         'partner-subheader', 'partner-intro'
                     ];
                     simpleFields.forEach(field => {
@@ -7644,6 +7682,28 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                             el.innerHTML = savedHTML[field];
                         }
                     });
+
+                    // Restore pulse subheadings dynamically
+                    const shCount = savedHTML['pulse-sh-count'] || 0;
+                    if (shCount > 0) {
+                        const subheadings = [];
+                        for (let i = 0; i < shCount; i++) {
+                            subheadings.push({
+                                title: savedHTML['pulse-sh-' + i + '-title'] || '',
+                                content: savedHTML['pulse-sh-' + i + '-content'] || ''
+                            });
+                        }
+                        renderDynamicPulseSubheadings('review', subheadings);
+                    } else if (savedHTML['pulse-h3-1-title'] !== undefined || savedHTML['pulse-h3-1-content'] !== undefined) {
+                        // Backward compat: old drafts with static h3 fields
+                        const subheadings = [];
+                        for (let i = 1; i <= 3; i++) {
+                            const t = savedHTML['pulse-h3-' + i + '-title'] || '';
+                            const c = savedHTML['pulse-h3-' + i + '-content'] || '';
+                            if (t || c) subheadings.push({ title: t, content: c });
+                        }
+                        if (subheadings.length > 0) renderDynamicPulseSubheadings('review', subheadings);
+                    }
 
                     // Restore partner tips dynamically
                     const tipCount = savedHTML['partner-tip-count'] || 0;
@@ -7888,14 +7948,28 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 'bad-subtitle', 'bad-copy',
                 'ugly-subtitle', 'ugly-copy',
                 'pulse-title', 'pulse-intro',
-                'pulse-h3-1-title', 'pulse-h3-1-content',
-                'pulse-h3-2-title', 'pulse-h3-2-content',
-                'pulse-h3-3-title', 'pulse-h3-3-content',
                 'partner-subheader', 'partner-intro'
             ];
             simpleFields.forEach(field => {
                 copyField('review-' + field, 'fc-' + field);
             });
+
+            // Pulse subheadings — read from review dynamic container, render into fc
+            if (!skippedSections.pulse) {
+                const reviewPulseContainer = document.getElementById('review-pulse-subheadings-container');
+                if (reviewPulseContainer) {
+                    const subheadings = [];
+                    reviewPulseContainer.querySelectorAll('.dynamic-field-item').forEach((item, idx) => {
+                        const titleEl = document.getElementById('review-pulse-h3-' + idx + '-title');
+                        const contentEl = document.getElementById('review-pulse-h3-' + idx + '-content');
+                        subheadings.push({
+                            title: titleEl ? titleEl.textContent.trim() : '',
+                            content: contentEl ? contentEl.innerHTML.trim() : ''
+                        });
+                    });
+                    if (subheadings.length > 0) renderDynamicPulseSubheadings('fc', subheadings);
+                }
+            }
 
             // Handle skipped sections
             if (skippedSections.pulse) {
