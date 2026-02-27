@@ -1022,6 +1022,63 @@
             border-color: #018181;
         }
 
+        .editable-sm {
+            min-height: 36px;
+            padding: 8px 12px;
+        }
+
+        .field-group {
+            margin-bottom: 12px;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .source-urls {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .source-urls a {
+            color: #018181;
+            text-decoration: underline;
+        }
+
+        .source-urls code {
+            display: block;
+            margin-top: 4px;
+            padding: 4px 8px;
+            background: #f3f4f6;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #374151;
+            word-break: break-all;
+            user-select: all;
+        }
+
+        .dynamic-fields-container {
+            margin-top: 8px;
+        }
+
+        .dynamic-field-item {
+            padding: 10px 0;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+
+        .dynamic-field-item:last-child {
+            border-bottom: none;
+        }
+
         .link-toolbar {
             display: flex;
             align-items: center;
@@ -2140,116 +2197,201 @@
             <h2>Review Generated Content</h2>
             <p class="step-description">Edit any section before proceeding to brand check</p>
 
+            <!-- Introduction -->
             <div class="content-section">
                 <h3>Introduction</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-intro')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-review-intro">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('review-intro')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('review-intro')">Insert</button>
+                <div class="field-group">
+                    <label class="field-label">Body</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-intro')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-review-intro">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('review-intro')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('review-intro')">Insert</button>
+                        </div>
                     </div>
+                    <div class="editable" contenteditable="true" id="review-intro"></div>
                 </div>
-                <div class="editable" contenteditable="true" id="review-intro"></div>
             </div>
 
+            <!-- Brite Spot -->
             <div class="content-section">
                 <h3>The Brite Spot</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-britespot')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-review-britespot">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('review-britespot')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('review-britespot')">Insert</button>
-                    </div>
+                <div class="field-group">
+                    <label class="field-label">Title</label>
+                    <div class="editable editable-sm" contenteditable="true" id="review-britespot-title"></div>
                 </div>
-                <div class="editable" contenteditable="true" id="review-britespot"></div>
+                <div class="field-group">
+                    <label class="field-label">Body</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-britespot-body')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-review-britespot-body">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('review-britespot-body')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('review-britespot-body')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="review-britespot-body"></div>
+                </div>
             </div>
 
+            <!-- The Good -->
             <div class="content-section">
                 <h3>The Good</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-good')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-review-good">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('review-good')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('review-good')">Insert</button>
-                    </div>
+                <div class="field-group">
+                    <label class="field-label">Subtitle</label>
+                    <div class="editable editable-sm" contenteditable="true" id="review-good-subtitle"></div>
                 </div>
-                <div class="editable" contenteditable="true" id="review-good"></div>
+                <div class="field-group">
+                    <label class="field-label">Copy</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-good-copy')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-review-good-copy">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('review-good-copy')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('review-good-copy')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="review-good-copy"></div>
+                </div>
+                <div class="source-urls" id="review-good-sources"></div>
             </div>
 
+            <!-- The Bad -->
             <div class="content-section">
                 <h3>The Bad</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-bad')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-review-bad">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('review-bad')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('review-bad')">Insert</button>
-                    </div>
+                <div class="field-group">
+                    <label class="field-label">Subtitle</label>
+                    <div class="editable editable-sm" contenteditable="true" id="review-bad-subtitle"></div>
                 </div>
-                <div class="editable" contenteditable="true" id="review-bad"></div>
+                <div class="field-group">
+                    <label class="field-label">Copy</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-bad-copy')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-review-bad-copy">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('review-bad-copy')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('review-bad-copy')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="review-bad-copy"></div>
+                </div>
+                <div class="source-urls" id="review-bad-sources"></div>
             </div>
 
+            <!-- The Ugly -->
             <div class="content-section">
                 <h3>The Ugly</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-ugly')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-review-ugly">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('review-ugly')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('review-ugly')">Insert</button>
-                    </div>
+                <div class="field-group">
+                    <label class="field-label">Subtitle</label>
+                    <div class="editable editable-sm" contenteditable="true" id="review-ugly-subtitle"></div>
                 </div>
-                <div class="editable" contenteditable="true" id="review-ugly"></div>
+                <div class="field-group">
+                    <label class="field-label">Copy</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-ugly-copy')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-review-ugly-copy">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('review-ugly-copy')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('review-ugly-copy')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="review-ugly-copy"></div>
+                </div>
+                <div class="source-urls" id="review-ugly-sources"></div>
             </div>
 
+            <!-- Industry Pulse -->
             <div class="content-section">
                 <h3>Industry Pulse</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-pulse')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-review-pulse">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('review-pulse')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('review-pulse')">Insert</button>
-                    </div>
+                <div class="field-group">
+                    <label class="field-label">Title</label>
+                    <div class="editable editable-sm" contenteditable="true" id="review-pulse-title"></div>
                 </div>
-                <div class="editable" contenteditable="true" id="review-pulse"></div>
+                <div class="field-group">
+                    <label class="field-label">Intro</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-pulse-intro')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-review-pulse-intro">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('review-pulse-intro')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('review-pulse-intro')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="review-pulse-intro"></div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Subheading 1 Title</label>
+                    <div class="editable editable-sm" contenteditable="true" id="review-pulse-h3-1-title"></div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Subheading 1 Content</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-pulse-h3-1-content')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-review-pulse-h3-1-content">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('review-pulse-h3-1-content')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('review-pulse-h3-1-content')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="review-pulse-h3-1-content"></div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Subheading 2 Title</label>
+                    <div class="editable editable-sm" contenteditable="true" id="review-pulse-h3-2-title"></div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Subheading 2 Content</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-pulse-h3-2-content')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-review-pulse-h3-2-content">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('review-pulse-h3-2-content')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('review-pulse-h3-2-content')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="review-pulse-h3-2-content"></div>
+                </div>
+                <div class="source-urls" id="review-pulse-sources"></div>
             </div>
 
+            <!-- Partner Advantage -->
             <div class="content-section">
                 <h3>Partner Advantage</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-partner')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-review-partner">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('review-partner')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('review-partner')">Insert</button>
-                    </div>
+                <div class="field-group">
+                    <label class="field-label">Subheader</label>
+                    <div class="editable editable-sm" contenteditable="true" id="review-partner-subheader"></div>
                 </div>
-                <div class="editable" contenteditable="true" id="review-partner"></div>
+                <div class="field-group">
+                    <label class="field-label">Intro</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-partner-intro')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-review-partner-intro">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('review-partner-intro')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('review-partner-intro')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="review-partner-intro"></div>
+                </div>
+                <div id="review-partner-tips-container" class="dynamic-fields-container"></div>
+                <div class="source-urls" id="review-partner-sources"></div>
             </div>
 
+            <!-- Industry News -->
             <div class="content-section">
                 <h3>Industry News</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('review-news')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-review-news">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('review-news')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('review-news')">Insert</button>
-                    </div>
-                </div>
-                <div class="editable" contenteditable="true" id="review-news"></div>
+                <div id="review-news-bullets-container" class="dynamic-fields-container"></div>
+                <div class="source-urls" id="review-news-sources"></div>
             </div>
 
             <!-- Special Section Toggle -->
@@ -2404,116 +2546,195 @@
             <h2>📝 Final Copy</h2>
             <p class="step-description">Review and edit all content before generating images. This is the source of truth.</p>
 
+            <!-- Introduction -->
             <div class="content-section">
                 <h3>Introduction</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-intro')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-fc-intro">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('fc-intro')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('fc-intro')">Insert</button>
+                <div class="field-group">
+                    <label class="field-label">Body</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-intro')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-fc-intro">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('fc-intro')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('fc-intro')">Insert</button>
+                        </div>
                     </div>
+                    <div class="editable" contenteditable="true" id="fc-intro"></div>
                 </div>
-                <div class="editable" contenteditable="true" id="fc-intro"></div>
             </div>
 
+            <!-- Brite Spot -->
             <div class="content-section">
                 <h3>The Brite Spot</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-britespot')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-fc-britespot">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('fc-britespot')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('fc-britespot')">Insert</button>
-                    </div>
+                <div class="field-group">
+                    <label class="field-label">Title</label>
+                    <div class="editable editable-sm" contenteditable="true" id="fc-britespot-title"></div>
                 </div>
-                <div class="editable" contenteditable="true" id="fc-britespot"></div>
+                <div class="field-group">
+                    <label class="field-label">Body</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-britespot-body')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-fc-britespot-body">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('fc-britespot-body')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('fc-britespot-body')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="fc-britespot-body"></div>
+                </div>
             </div>
 
+            <!-- The Good -->
             <div class="content-section">
                 <h3>The Good</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-good')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-fc-good">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('fc-good')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('fc-good')">Insert</button>
-                    </div>
+                <div class="field-group">
+                    <label class="field-label">Subtitle</label>
+                    <div class="editable editable-sm" contenteditable="true" id="fc-good-subtitle"></div>
                 </div>
-                <div class="editable" contenteditable="true" id="fc-good"></div>
+                <div class="field-group">
+                    <label class="field-label">Copy</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-good-copy')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-fc-good-copy">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('fc-good-copy')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('fc-good-copy')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="fc-good-copy"></div>
+                </div>
             </div>
 
+            <!-- The Bad -->
             <div class="content-section">
                 <h3>The Bad</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-bad')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-fc-bad">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('fc-bad')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('fc-bad')">Insert</button>
-                    </div>
+                <div class="field-group">
+                    <label class="field-label">Subtitle</label>
+                    <div class="editable editable-sm" contenteditable="true" id="fc-bad-subtitle"></div>
                 </div>
-                <div class="editable" contenteditable="true" id="fc-bad"></div>
+                <div class="field-group">
+                    <label class="field-label">Copy</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-bad-copy')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-fc-bad-copy">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('fc-bad-copy')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('fc-bad-copy')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="fc-bad-copy"></div>
+                </div>
             </div>
 
+            <!-- The Ugly -->
             <div class="content-section">
                 <h3>The Ugly</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-ugly')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-fc-ugly">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('fc-ugly')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('fc-ugly')">Insert</button>
-                    </div>
+                <div class="field-group">
+                    <label class="field-label">Subtitle</label>
+                    <div class="editable editable-sm" contenteditable="true" id="fc-ugly-subtitle"></div>
                 </div>
-                <div class="editable" contenteditable="true" id="fc-ugly"></div>
+                <div class="field-group">
+                    <label class="field-label">Copy</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-ugly-copy')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-fc-ugly-copy">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('fc-ugly-copy')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('fc-ugly-copy')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="fc-ugly-copy"></div>
+                </div>
             </div>
 
+            <!-- Industry Pulse -->
             <div class="content-section">
                 <h3>Industry Pulse</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-pulse')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-fc-pulse">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('fc-pulse')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('fc-pulse')">Insert</button>
-                    </div>
+                <div class="field-group">
+                    <label class="field-label">Title</label>
+                    <div class="editable editable-sm" contenteditable="true" id="fc-pulse-title"></div>
                 </div>
-                <div class="editable" contenteditable="true" id="fc-pulse"></div>
+                <div class="field-group">
+                    <label class="field-label">Intro</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-pulse-intro')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-fc-pulse-intro">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('fc-pulse-intro')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('fc-pulse-intro')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="fc-pulse-intro"></div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Subheading 1 Title</label>
+                    <div class="editable editable-sm" contenteditable="true" id="fc-pulse-h3-1-title"></div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Subheading 1 Content</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-pulse-h3-1-content')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-fc-pulse-h3-1-content">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('fc-pulse-h3-1-content')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('fc-pulse-h3-1-content')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="fc-pulse-h3-1-content"></div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Subheading 2 Title</label>
+                    <div class="editable editable-sm" contenteditable="true" id="fc-pulse-h3-2-title"></div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Subheading 2 Content</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-pulse-h3-2-content')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-fc-pulse-h3-2-content">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('fc-pulse-h3-2-content')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('fc-pulse-h3-2-content')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="fc-pulse-h3-2-content"></div>
+                </div>
             </div>
 
+            <!-- Partner Advantage -->
             <div class="content-section">
                 <h3>Partner Advantage</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-partner')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-fc-partner">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('fc-partner')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('fc-partner')">Insert</button>
-                    </div>
+                <div class="field-group">
+                    <label class="field-label">Subheader</label>
+                    <div class="editable editable-sm" contenteditable="true" id="fc-partner-subheader"></div>
                 </div>
-                <div class="editable" contenteditable="true" id="fc-partner"></div>
+                <div class="field-group">
+                    <label class="field-label">Intro</label>
+                    <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-partner-intro')" type="button">🔗 Insert Link</button></div>
+                    <div class="link-popover" id="lp-fc-partner-intro">
+                        <input type="text" placeholder="Display text" class="lp-text">
+                        <input type="text" placeholder="https://..." class="lp-url">
+                        <div class="link-popover-actions">
+                            <button type="button" onclick="hideLinkPopover('fc-partner-intro')">Cancel</button>
+                            <button type="button" class="link-insert-btn" onclick="insertLink('fc-partner-intro')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="editable" contenteditable="true" id="fc-partner-intro"></div>
+                </div>
+                <div id="fc-partner-tips-container" class="dynamic-fields-container"></div>
             </div>
 
+            <!-- Industry News -->
             <div class="content-section">
                 <h3>Industry News</h3>
-                <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('fc-news')" type="button">🔗 Insert Link</button></div>
-                <div class="link-popover" id="lp-fc-news">
-                    <input type="text" placeholder="Display text" class="lp-text">
-                    <input type="text" placeholder="https://..." class="lp-url">
-                    <div class="link-popover-actions">
-                        <button type="button" onclick="hideLinkPopover('fc-news')">Cancel</button>
-                        <button type="button" class="link-insert-btn" onclick="insertLink('fc-news')">Insert</button>
-                    </div>
-                </div>
-                <div class="editable" contenteditable="true" id="fc-news"></div>
+                <div id="fc-news-bullets-container" class="dynamic-fields-container"></div>
             </div>
 
             <!-- Special Section Copy (shown only when specialSection.enabled && specialSection.body) -->
@@ -2558,8 +2779,7 @@
             <div id="promptEditing" style="display: none;">
                 <!-- The Good Image Prompt -->
                 <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #e5e7eb;">
-                    <h3 style="margin: 0 0 5px 0;">👍 The Good Image Prompt</h3>
-                    <p style="font-size: 13px; color: #666; margin-bottom: 15px;" id="goodPromptArticle"></p>
+                    <h3 style="margin: 0 0 15px 0;">👍 The Good Image Prompt</h3>
                     <div style="margin-bottom: 12px;">
                         <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px;">Image Style:</label>
                         <select id="goodImageStyle" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; background: white;" onchange="updatePromptWithStyle('good')">
@@ -2577,8 +2797,7 @@
 
                 <!-- The Bad Image Prompt -->
                 <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #e5e7eb;">
-                    <h3 style="margin: 0 0 5px 0;">👎 The Bad Image Prompt</h3>
-                    <p style="font-size: 13px; color: #666; margin-bottom: 15px;" id="badPromptArticle"></p>
+                    <h3 style="margin: 0 0 15px 0;">👎 The Bad Image Prompt</h3>
                     <div style="margin-bottom: 12px;">
                         <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px;">Image Style:</label>
                         <select id="badImageStyle" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; background: white;" onchange="updatePromptWithStyle('bad')">
@@ -2596,8 +2815,7 @@
 
                 <!-- The Ugly Image Prompt -->
                 <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #e5e7eb;">
-                    <h3 style="margin: 0 0 5px 0;">😱 The Ugly Image Prompt</h3>
-                    <p style="font-size: 13px; color: #666; margin-bottom: 15px;" id="uglyPromptArticle"></p>
+                    <h3 style="margin: 0 0 15px 0;">😱 The Ugly Image Prompt</h3>
                     <div style="margin-bottom: 12px;">
                         <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px;">Image Style:</label>
                         <select id="uglyImageStyle" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; background: white;" onchange="updatePromptWithStyle('ugly')">
@@ -2615,8 +2833,7 @@
 
                 <!-- Brite Spot Image Prompt -->
                 <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #e5e7eb;">
-                    <h3 style="margin: 0 0 5px 0;">✨ Brite Spot Image Prompt</h3>
-                    <p style="font-size: 13px; color: #666; margin-bottom: 15px;" id="briteSpotPromptArticle"></p>
+                    <h3 style="margin: 0 0 15px 0;">✨ Brite Spot Image Prompt</h3>
                     <div style="margin-bottom: 12px;">
                         <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px;">Image Style:</label>
                         <select id="briteSpotImageStyle" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; background: white;" onchange="updatePromptWithStyle('briteSpot')">
@@ -2634,8 +2851,7 @@
 
                 <!-- Industry Pulse Image Prompt -->
                 <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #e5e7eb;">
-                    <h3 style="margin: 0 0 5px 0;">📊 Industry Pulse Image Prompt</h3>
-                    <p style="font-size: 13px; color: #666; margin-bottom: 15px;" id="pulsePromptArticle"></p>
+                    <h3 style="margin: 0 0 15px 0;">📊 Industry Pulse Image Prompt</h3>
                     <div style="margin-bottom: 12px;">
                         <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px;">Image Style:</label>
                         <select id="pulseImageStyle" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; background: white;" onchange="updatePromptWithStyle('pulse')">
@@ -2653,8 +2869,7 @@
 
                 <!-- Partner Advantage Image Prompt -->
                 <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #e5e7eb;">
-                    <h3 style="margin: 0 0 5px 0;">💡 Partner Advantage Image Prompt</h3>
-                    <p style="font-size: 13px; color: #666; margin-bottom: 15px;" id="partnerPromptArticle"></p>
+                    <h3 style="margin: 0 0 15px 0;">💡 Partner Advantage Image Prompt</h3>
                     <div style="margin-bottom: 12px;">
                         <label style="display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px;">Image Style:</label>
                         <select id="partnerImageStyle" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; background: white;" onchange="updatePromptWithStyle('partner')">
@@ -2702,8 +2917,6 @@
             <!-- The Good Image -->
             <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #e5e7eb;">
                 <h3 style="margin: 0 0 10px 0;">👍 The Good Image</h3>
-                <p style="font-size: 14px; color: #666; margin-bottom: 15px;" id="goodImageTitle">For your Good section</p>
-
                 <div id="goodImagePreview" style="background: #f5f5f5; border: 2px dashed #ddd; border-radius: 8px; min-height: 300px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
                     <div style="text-align: center; color: #999;">
                         <div class="spinner" style="margin: 0 auto 10px;"></div>
@@ -2724,8 +2937,6 @@
             <!-- The Bad Image -->
             <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #e5e7eb;">
                 <h3 style="margin: 0 0 10px 0;">👎 The Bad Image</h3>
-                <p style="font-size: 14px; color: #666; margin-bottom: 15px;" id="badImageTitle">For your Bad section</p>
-
                 <div id="badImagePreview" style="background: #f5f5f5; border: 2px dashed #ddd; border-radius: 8px; min-height: 300px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
                     <div style="text-align: center; color: #999;">
                         <div class="spinner" style="margin: 0 auto 10px;"></div>
@@ -2746,8 +2957,6 @@
             <!-- The Ugly Image -->
             <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #e5e7eb;">
                 <h3 style="margin: 0 0 10px 0;">😱 The Ugly Image</h3>
-                <p style="font-size: 14px; color: #666; margin-bottom: 15px;" id="uglyImageTitle">For your Ugly section</p>
-
                 <div id="uglyImagePreview" style="background: #f5f5f5; border: 2px dashed #ddd; border-radius: 8px; min-height: 300px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
                     <div style="text-align: center; color: #999;">
                         <div class="spinner" style="margin: 0 auto 10px;"></div>
@@ -2768,8 +2977,6 @@
             <!-- Brite Spot Image -->
             <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #e5e7eb;">
                 <h3 style="margin: 0 0 10px 0;">✨ Brite Spot Image</h3>
-                <p style="font-size: 14px; color: #666; margin-bottom: 15px;" id="briteSpotImageTitle">For your Brite Spot section</p>
-
                 <div id="briteSpotImagePreview" style="background: #f5f5f5; border: 2px dashed #ddd; border-radius: 8px; min-height: 300px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
                     <div style="text-align: center; color: #999;">
                         <div class="spinner" style="margin: 0 auto 10px;"></div>
@@ -2790,8 +2997,6 @@
             <!-- Industry Pulse Image -->
             <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #e5e7eb;">
                 <h3 style="margin: 0 0 10px 0;">📊 Industry Pulse Image</h3>
-                <p style="font-size: 14px; color: #666; margin-bottom: 15px;" id="pulseImageTitle">For your Industry Pulse section</p>
-
                 <div id="pulseImagePreview" style="background: #f5f5f5; border: 2px dashed #ddd; border-radius: 8px; min-height: 300px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
                     <div style="text-align: center; color: #999;">
                         <div class="spinner" style="margin: 0 auto 10px;"></div>
@@ -2812,8 +3017,6 @@
             <!-- Partner Advantage Image -->
             <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #e5e7eb;">
                 <h3 style="margin: 0 0 10px 0;">💡 Partner Advantage Image</h3>
-                <p style="font-size: 14px; color: #666; margin-bottom: 15px;" id="partnerImageTitle">For your Partner Advantage section</p>
-
                 <div id="partnerImagePreview" style="background: #f5f5f5; border: 2px dashed #ddd; border-radius: 8px; min-height: 300px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
                     <div style="text-align: center; color: #999;">
                         <div class="spinner" style="margin: 0 auto 10px;"></div>
@@ -3708,31 +3911,35 @@
                 document.getElementById('promptGenerationLoading').style.display = 'block';
                 document.getElementById('promptEditing').style.display = 'none';
 
-                // Gather content for prompt generation - backend expects sections with title and content
+                // Sync edits from DOM into generatedContent before building prompts
+                syncContentFromDOM();
+
+                // Gather content for prompt generation from edited DOM fields
+                const gc = generatedContent;
                 const sections = {
                     the_good: {
-                        title: selectedArticles.the_good?.title || 'The Good',
-                        content: document.getElementById('goodContent')?.value || generatedContent.the_good || ''
+                        title: gc.the_good?.subtitle || selectedArticles.the_good?.title || 'The Good',
+                        content: gc.the_good?.copy || ''
                     },
                     the_bad: {
-                        title: selectedArticles.the_bad?.title || 'The Bad',
-                        content: document.getElementById('badContent')?.value || generatedContent.the_bad || ''
+                        title: gc.the_bad?.subtitle || selectedArticles.the_bad?.title || 'The Bad',
+                        content: gc.the_bad?.copy || ''
                     },
                     the_ugly: {
-                        title: selectedArticles.the_ugly?.title || 'The Ugly',
-                        content: document.getElementById('uglyContent')?.value || generatedContent.the_ugly || ''
+                        title: gc.the_ugly?.subtitle || selectedArticles.the_ugly?.title || 'The Ugly',
+                        content: gc.the_ugly?.copy || ''
                     },
                     brite_spot: {
-                        title: document.getElementById('briteSpotSubheader')?.value || 'Brite Spot',
-                        content: document.getElementById('briteSpotBody')?.value || generatedContent.brite_spot || ''
+                        title: gc.brite_spot?.title || 'Brite Spot',
+                        content: gc.brite_spot?.body || ''
                     },
                     industry_pulse: {
-                        title: 'Industry Pulse',
-                        content: document.getElementById('pulseContent')?.value || generatedContent.industry_pulse || ''
+                        title: gc.industry_pulse?.title || 'Industry Pulse',
+                        content: [gc.industry_pulse?.intro, gc.industry_pulse?.h3_1_content, gc.industry_pulse?.h3_2_content].filter(Boolean).join(' ')
                     },
                     partner_advantage: {
-                        title: 'Partner Advantage',
-                        content: document.getElementById('partnerContent')?.value || generatedContent.partner_advantage || ''
+                        title: gc.partner_advantage?.subheader || 'Partner Advantage',
+                        content: [gc.partner_advantage?.intro, ...(gc.partner_advantage?.tips || []).map(t => t.content)].filter(Boolean).join(' ')
                     }
                 };
 
@@ -3755,17 +3962,6 @@
                     document.getElementById('briteSpotImagePromptText').value = data.prompts.brite_spot?.prompt || '';
                     document.getElementById('pulseImagePromptText').value = data.prompts.industry_pulse?.prompt || '';
                     document.getElementById('partnerImagePromptText').value = data.prompts.partner_advantage?.prompt || '';
-
-                    // Show article titles if available
-                    if (selectedArticles.the_good?.title) {
-                        document.getElementById('goodPromptArticle').textContent = `Article: ${selectedArticles.the_good.title}`;
-                    }
-                    if (selectedArticles.the_bad?.title) {
-                        document.getElementById('badPromptArticle').textContent = `Article: ${selectedArticles.the_bad.title}`;
-                    }
-                    if (selectedArticles.the_ugly?.title) {
-                        document.getElementById('uglyPromptArticle').textContent = `Article: ${selectedArticles.the_ugly.title}`;
-                    }
 
                     document.getElementById('promptGenerationLoading').style.display = 'none';
                     document.getElementById('promptEditing').style.display = 'block';
@@ -5479,276 +5675,285 @@
         }
 
         // Sync edited content from DOM back into generatedContent object
-        // Reads from whichever page is active: review step (review-*) or final copy (fc-*)
-        // Stores innerHTML as-is (the backend strips HTML before exporting to Google Docs)
+        // Reads directly from labeled sub-fields — no HTML parsing needed
         function syncContentFromDOM() {
-            // Determine which set of divs to read from based on current step
             const onFinalCopy = (currentStep === '7b');
             const prefix = onFinalCopy ? 'fc-' : 'review-';
 
-            // Helper: strip source URL divs appended by populateReviewContent
-            function stripSources(html) {
-                return html.replace(/<div style="margin-top: 1[05]px;[^"]*">[^]*$/i, '').trim();
+            // Helper: read element content safely
+            function getText(id) {
+                const el = document.getElementById(prefix + id);
+                return el ? el.textContent.trim() : '';
+            }
+            function getHTML(id) {
+                const el = document.getElementById(prefix + id);
+                return el ? el.innerHTML.trim() : '';
             }
 
-            // Helper: strip all HTML tags to get plain text
-            function toPlainText(html) {
-                if (!html) return '';
-                const tmp = document.createElement('div');
-                tmp.innerHTML = html;
-                return tmp.textContent.trim();
+            // Intro
+            const introHTML = getHTML('intro');
+            if (introHTML) generatedContent.intro = introHTML;
+
+            // Brite Spot — separate title + body fields
+            const bsTitle = getText('britespot-title');
+            const bsBody = getHTML('britespot-body');
+            if (bsTitle || bsBody) {
+                generatedContent.brite_spot = { title: bsTitle, body: bsBody };
             }
 
-            // Intro - store as-is (may contain light HTML from user edits)
-            const introEl = document.getElementById(prefix + 'intro');
-            if (introEl && introEl.innerHTML.trim()) {
-                generatedContent.intro = introEl.innerHTML.trim();
-            }
-
-            // Brite Spot - parse title/body from <strong>title</strong><br>body
-            const bsEl = document.getElementById(prefix + 'britespot');
-            if (bsEl && bsEl.innerHTML.trim()) {
-                const bsHtml = bsEl.innerHTML;
-                const m = bsHtml.match(/<strong>([\s\S]*?)<\/strong>(?:\s*<br\s*\/?>)*([\s\S]*)/i);
-                if (m) {
-                    generatedContent.brite_spot = {
-                        title: toPlainText(m[1]),
-                        body: m[2].replace(/^(\s*<br\s*\/?>)+/, '').trim()
-                    };
-                } else {
-                    // User removed the <strong> formatting - store whole thing as body
-                    generatedContent.brite_spot = { title: '', body: bsHtml.trim() };
-                }
-            }
-
-            // GBU sections - parse subtitle/copy from <strong>subtitle</strong><br>copy
+            // GBU sections — separate subtitle + copy fields
             ['the_good', 'the_bad', 'the_ugly'].forEach(key => {
                 const shortKey = key.replace('the_', '');
-                const el = document.getElementById(prefix + shortKey);
-                if (el && el.innerHTML.trim()) {
-                    const html = stripSources(el.innerHTML);
-                    const m = html.match(/<strong>([\s\S]*?)<\/strong>(?:\s*<br\s*\/?>)*([\s\S]*)/i);
-                    if (m) {
-                        const subtitleHtml = m[1];
-                        const linkMatch = subtitleHtml.match(/<a[^>]*>([\s\S]*?)<\/a>/i);
-                        const subtitle = linkMatch ? linkMatch[1].trim() : toPlainText(subtitleHtml);
-                        generatedContent[key] = {
-                            subtitle: subtitle,
-                            copy: m[2].replace(/^(\s*<br\s*\/?>)+/, '').trim(),
-                            url: selectedArticles[key]?.url || ''
-                        };
-                    } else {
-                        // No <strong> found - store whole thing as copy
-                        generatedContent[key] = {
-                            subtitle: generatedContent[key]?.subtitle || '',
-                            copy: html,
-                            url: selectedArticles[key]?.url || ''
-                        };
-                    }
+                const subtitle = getText(shortKey + '-subtitle');
+                const copy = getHTML(shortKey + '-copy');
+                if (subtitle || copy) {
+                    generatedContent[key] = {
+                        subtitle: subtitle,
+                        copy: copy,
+                        url: selectedArticles[key]?.url || ''
+                    };
                 }
             });
 
-            // Industry Pulse - parse from review format: <h4>title</h4><p>intro</p><h5>h3</h5><p>content</p>
-            const pulseEl = document.getElementById(prefix + 'pulse');
-            if (pulseEl && !skippedSections.pulse && pulseEl.innerHTML.trim()) {
-                const html = stripSources(pulseEl.innerHTML);
-                const tmp = document.createElement('div');
-                tmp.innerHTML = html;
-
-                const h4 = tmp.querySelector('h4');
-                const h5s = tmp.querySelectorAll('h5');
-                const ps = tmp.querySelectorAll('p');
-                if (h4 || h5s.length || ps.length) {
+            // Industry Pulse — 6 individual fields
+            if (!skippedSections.pulse) {
+                const pulseTitle = getText('pulse-title');
+                const pulseIntro = getHTML('pulse-intro');
+                const h31Title = getText('pulse-h3-1-title');
+                const h31Content = getHTML('pulse-h3-1-content');
+                const h32Title = getText('pulse-h3-2-title');
+                const h32Content = getHTML('pulse-h3-2-content');
+                if (pulseTitle || pulseIntro || h31Title || h31Content || h32Title || h32Content) {
                     generatedContent.industry_pulse = {
-                        title: h4 ? h4.textContent.trim() : (generatedContent.industry_pulse?.title || ''),
-                        intro: ps[0] ? ps[0].innerHTML.trim() : (generatedContent.industry_pulse?.intro || ''),
-                        h3_1_title: h5s[0] ? h5s[0].textContent.trim() : (generatedContent.industry_pulse?.h3_1_title || ''),
-                        h3_1_content: ps[1] ? ps[1].innerHTML.trim() : (generatedContent.industry_pulse?.h3_1_content || ''),
-                        h3_2_title: h5s[1] ? h5s[1].textContent.trim() : (generatedContent.industry_pulse?.h3_2_title || ''),
-                        h3_2_content: ps[2] ? ps[2].innerHTML.trim() : (generatedContent.industry_pulse?.h3_2_content || '')
+                        title: pulseTitle,
+                        intro: pulseIntro,
+                        h3_1_title: h31Title,
+                        h3_1_content: h31Content,
+                        h3_2_title: h32Title,
+                        h3_2_content: h32Content
                     };
                 }
             }
 
-            // Partner Advantage - parse from review format: <strong>subheader</strong><p>intro</p><ul><li>...</li></ul>
-            const partnerEl = document.getElementById(prefix + 'partner');
-            if (partnerEl && !skippedSections.partner && partnerEl.innerHTML.trim()) {
-                const html = stripSources(partnerEl.innerHTML);
-                const tmp = document.createElement('div');
-                tmp.innerHTML = html;
-
-                const strong = tmp.querySelector(':scope > strong');
-                const p = tmp.querySelector(':scope > p');
-                const lis = tmp.querySelectorAll('li');
+            // Partner Advantage — subheader + intro + dynamic tips
+            if (!skippedSections.partner) {
+                const partnerSubheader = getText('partner-subheader');
+                const partnerIntro = getHTML('partner-intro');
                 const tips = [];
-                lis.forEach(li => {
-                    const tipStrong = li.querySelector('strong');
-                    if (tipStrong) {
-                        const title = tipStrong.textContent.trim();
-                        const fullHtml = li.innerHTML;
-                        const content = fullHtml.replace(/<strong>[\s\S]*?<\/strong>\s*:\s*/, '').trim();
-                        tips.push({ title, content });
-                    } else {
-                        tips.push({ title: '', content: li.innerHTML.trim() });
-                    }
-                });
-                generatedContent.partner_advantage = {
-                    subheader: strong ? strong.textContent.trim() : (generatedContent.partner_advantage?.subheader || ''),
-                    intro: p ? p.innerHTML.trim() : (generatedContent.partner_advantage?.intro || ''),
-                    tips: tips.length > 0 ? tips : (generatedContent.partner_advantage?.tips || [])
-                };
+                const tipsContainer = document.getElementById(prefix + 'partner-tips-container');
+                if (tipsContainer) {
+                    tipsContainer.querySelectorAll('.dynamic-field-item').forEach((item, idx) => {
+                        const titleEl = document.getElementById(prefix + 'partner-tip-' + idx + '-title');
+                        const contentEl = document.getElementById(prefix + 'partner-tip-' + idx + '-content');
+                        tips.push({
+                            title: titleEl ? titleEl.textContent.trim() : '',
+                            content: contentEl ? contentEl.innerHTML.trim() : ''
+                        });
+                    });
+                }
+                if (partnerSubheader || partnerIntro || tips.length > 0) {
+                    generatedContent.partner_advantage = {
+                        subheader: partnerSubheader,
+                        intro: partnerIntro,
+                        tips: tips
+                    };
+                }
             }
 
-            // Industry News - parse from review format: <ul><li>...</li></ul>
-            const newsEl = document.getElementById(prefix + 'news');
-            if (newsEl && !skippedSections.news && newsEl.innerHTML.trim()) {
-                const html = stripSources(newsEl.innerHTML);
-                const tmp = document.createElement('div');
-                tmp.innerHTML = html;
-                const lis = tmp.querySelectorAll('li');
-
-                if (lis.length > 0) {
-                    const bullets = [];
-                    lis.forEach(li => {
-                        bullets.push({ text: li.innerHTML.trim() });
+            // Industry News — dynamic bullet fields
+            if (!skippedSections.news) {
+                const bullets = [];
+                const bulletsContainer = document.getElementById(prefix + 'news-bullets-container');
+                if (bulletsContainer) {
+                    bulletsContainer.querySelectorAll('.dynamic-field-item').forEach((item, idx) => {
+                        const bulletEl = document.getElementById(prefix + 'news-bullet-' + idx);
+                        if (bulletEl) {
+                            bullets.push({ text: bulletEl.innerHTML.trim() });
+                        }
                     });
+                }
+                if (bullets.length > 0) {
                     generatedContent.industry_news = { bullets };
                 }
             }
 
-            console.log('[Sync] generatedContent updated from DOM (step: ' + currentStep + ', prefix: ' + prefix + ')');
+            console.log('[Sync] generatedContent updated from labeled fields (step: ' + currentStep + ', prefix: ' + prefix + ')');
+        }
+
+        // Helper: render source URLs into a non-editable container
+        function renderSourceUrls(containerId, articles, singleArticle) {
+            const el = document.getElementById(containerId);
+            if (!el) return;
+            if (singleArticle) {
+                const url = singleArticle.url || singleArticle.source_url || '';
+                if (!url) return;
+                const title = singleArticle.title || singleArticle.headline || 'Source Article';
+                el.innerHTML = `<strong>Source:</strong><br>
+                    <a href="${url}" target="_blank">${title}</a>
+                    <code>${url}</code>`;
+                return;
+            }
+            if (!articles || articles.length === 0) return;
+            let html = '<strong>Sources:</strong><br>';
+            articles.forEach((art, idx) => {
+                const title = art.title || art.headline || `Article ${idx + 1}`;
+                html += `<div style="margin: 8px 0;">
+                    <a href="${art.url}" target="_blank">${title}</a>
+                    <code>${art.url}</code>
+                </div>`;
+            });
+            el.innerHTML = html;
+        }
+
+        // Helper: create dynamic tip fields for Partner Advantage
+        function renderDynamicTips(prefix, tips) {
+            const container = document.getElementById(prefix + '-partner-tips-container');
+            if (!container) return;
+            container.innerHTML = '';
+            tips.forEach((tip, idx) => {
+                const item = document.createElement('div');
+                item.className = 'dynamic-field-item';
+                item.dataset.tipIndex = idx;
+                const tipTitleId = `${prefix}-partner-tip-${idx}-title`;
+                const tipContentId = `${prefix}-partner-tip-${idx}-content`;
+                item.innerHTML = `
+                    <div class="field-group">
+                        <label class="field-label">Tip ${idx + 1} Title</label>
+                        <div class="editable editable-sm" contenteditable="true" id="${tipTitleId}"></div>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Tip ${idx + 1} Content</label>
+                        <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('${tipContentId}')" type="button">🔗 Insert Link</button></div>
+                        <div class="link-popover" id="lp-${tipContentId}">
+                            <input type="text" placeholder="Display text" class="lp-text">
+                            <input type="text" placeholder="https://..." class="lp-url">
+                            <div class="link-popover-actions">
+                                <button type="button" onclick="hideLinkPopover('${tipContentId}')">Cancel</button>
+                                <button type="button" class="link-insert-btn" onclick="insertLink('${tipContentId}')">Insert</button>
+                            </div>
+                        </div>
+                        <div class="editable" contenteditable="true" id="${tipContentId}"></div>
+                    </div>`;
+                container.appendChild(item);
+                document.getElementById(tipTitleId).textContent = tip.title || '';
+                document.getElementById(tipContentId).innerHTML = tip.content || '';
+            });
+        }
+
+        // Helper: create dynamic bullet fields for Industry News
+        function renderDynamicBullets(prefix, bullets) {
+            const container = document.getElementById(prefix + '-news-bullets-container');
+            if (!container) return;
+            container.innerHTML = '';
+            bullets.forEach((b, idx) => {
+                let text = b.text || b.headline || (typeof b === 'string' ? b : '');
+                if (typeof text === 'string') {
+                    text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g,
+                        '<a href="$2" target="_blank" style="color: #018181; text-decoration: underline;">$1</a>');
+                }
+                const bulletId = `${prefix}-news-bullet-${idx}`;
+                const item = document.createElement('div');
+                item.className = 'dynamic-field-item';
+                item.dataset.bulletIndex = idx;
+                item.innerHTML = `
+                    <div class="field-group">
+                        <label class="field-label">Bullet ${idx + 1}</label>
+                        <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('${bulletId}')" type="button">🔗 Insert Link</button></div>
+                        <div class="link-popover" id="lp-${bulletId}">
+                            <input type="text" placeholder="Display text" class="lp-text">
+                            <input type="text" placeholder="https://..." class="lp-url">
+                            <div class="link-popover-actions">
+                                <button type="button" onclick="hideLinkPopover('${bulletId}')">Cancel</button>
+                                <button type="button" class="link-insert-btn" onclick="insertLink('${bulletId}')">Insert</button>
+                            </div>
+                        </div>
+                        <div class="editable" contenteditable="true" id="${bulletId}"></div>
+                    </div>`;
+                container.appendChild(item);
+                document.getElementById(bulletId).innerHTML = text;
+            });
+        }
+
+        // Helper: copy innerHTML between two elements
+        function copyField(srcId, dstId) {
+            const src = document.getElementById(srcId);
+            const dst = document.getElementById(dstId);
+            if (src && dst) dst.innerHTML = src.innerHTML;
         }
 
         function populateReviewContent() {
-            document.getElementById('review-intro').innerHTML = generatedContent.intro || '';
+            // Intro
+            const introEl = document.getElementById('review-intro');
+            if (introEl) introEl.innerHTML = generatedContent.intro || '';
 
+            // Brite Spot - separate title and body fields
             if (generatedContent.brite_spot) {
                 const bs = generatedContent.brite_spot;
-                document.getElementById('review-britespot').innerHTML = `<strong>${bs.title || ''}</strong><br>${bs.body || ''}`;
+                const bsTitle = document.getElementById('review-britespot-title');
+                const bsBody = document.getElementById('review-britespot-body');
+                if (bsTitle) bsTitle.textContent = bs.title || '';
+                if (bsBody) bsBody.innerHTML = bs.body || '';
             }
 
+            // GBU - separate subtitle and copy fields, source URLs outside
             ['the_good', 'the_bad', 'the_ugly'].forEach(key => {
-                const el = document.getElementById('review-' + key.replace('the_', ''));
+                const shortKey = key.replace('the_', '');
                 if (generatedContent[key]) {
                     const s = generatedContent[key];
-                    const sourceUrl = selectedArticles[key]?.url || selectedArticles[key]?.source_url || '';
-                    const titleHtml = sourceUrl
-                        ? `<a href="${sourceUrl}" target="_blank" style="color: #018181; text-decoration: underline;">${s.subtitle || ''}</a>`
-                        : `${s.subtitle || ''}`;
-                    el.innerHTML = `<strong>${titleHtml}</strong><br>${s.copy || ''}`;
-
-                    // Add source URL below content
-                    if (sourceUrl && selectedArticles[key]) {
-                        const articleTitle = selectedArticles[key].title || selectedArticles[key].headline || 'Source Article';
-                        el.innerHTML += `<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;">
-                            <strong>Source:</strong><br>
-                            <a href="${sourceUrl}" target="_blank" style="color: #018181; text-decoration: underline; display: block; margin-top: 5px;">${articleTitle}</a>
-                            <code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${sourceUrl}</code>
-                        </div>`;
-                    }
+                    const subEl = document.getElementById('review-' + shortKey + '-subtitle');
+                    const copyEl = document.getElementById('review-' + shortKey + '-copy');
+                    if (subEl) subEl.textContent = s.subtitle || '';
+                    if (copyEl) copyEl.innerHTML = s.copy || '';
+                    // Source URLs in non-editable container
+                    renderSourceUrls('review-' + shortKey + '-sources', null, selectedArticles[key]);
                 }
             });
 
-            // Industry Pulse
+            // Industry Pulse - 6 separate fields
             if (skippedSections.pulse) {
-                document.getElementById('review-pulse').innerHTML = '<div style="padding: 20px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; text-align: center; color: #92400e;"><strong>This section was skipped</strong><p style="margin: 5px 0 0; font-size: 13px;">No copy was generated for Industry Pulse.</p></div>';
+                const pt = document.getElementById('review-pulse-title');
+                if (pt) pt.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
             } else if (generatedContent.industry_pulse) {
                 const p = generatedContent.industry_pulse;
-                console.log('[Display] Industry Pulse content:', p);
-                document.getElementById('review-pulse').innerHTML = `
-                    <h4>${p.title || ''}</h4>
-                    <p>${p.intro || ''}</p>
-                    <h5>${p.h3_1_title || ''}</h5>
-                    <p>${p.h3_1_content || ''}</p>
-                    <h5>${p.h3_2_title || ''}</h5>
-                    <p>${p.h3_2_content || ''}</p>
-                `;
-                // Add source URLs for Industry Pulse
-                if (selectedArticles.industry_pulse && selectedArticles.industry_pulse.length > 0) {
-                    const pulseEl = document.getElementById('review-pulse');
-                    let urlsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Sources:</strong><br>';
-                    selectedArticles.industry_pulse.forEach((art, idx) => {
-                        const title = art.title || art.headline || `Article ${idx + 1}`;
-                        urlsHtml += `
-                            <div style="margin: 8px 0;">
-                                <a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block;">${title}</a>
-                                <code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${art.url}</code>
-                            </div>
-                        `;
-                    });
-                    urlsHtml += '</div>';
-                    pulseEl.innerHTML += urlsHtml;
-                }
-            } else {
-                console.log('[Display] Industry Pulse is missing or null:', generatedContent.industry_pulse);
-                document.getElementById('review-pulse').innerHTML = '<p style="color: #999; font-style: italic;">Industry Pulse not generated. Check backend logs for errors.</p>';
+                const fields = {
+                    'review-pulse-title': p.title,
+                    'review-pulse-intro': p.intro,
+                    'review-pulse-h3-1-title': p.h3_1_title,
+                    'review-pulse-h3-1-content': p.h3_1_content,
+                    'review-pulse-h3-2-title': p.h3_2_title,
+                    'review-pulse-h3-2-content': p.h3_2_content
+                };
+                Object.entries(fields).forEach(([id, val]) => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        if (id.endsWith('-title')) el.textContent = val || '';
+                        else el.innerHTML = val || '';
+                    }
+                });
+                renderSourceUrls('review-pulse-sources', selectedArticles.industry_pulse);
             }
 
-            // Partner Advantage
+            // Partner Advantage - subheader, intro, dynamic tips
             if (skippedSections.partner) {
-                document.getElementById('review-partner').innerHTML = '<div style="padding: 20px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; text-align: center; color: #92400e;"><strong>This section was skipped</strong><p style="margin: 5px 0 0; font-size: 13px;">No copy was generated for Partner Advantage.</p></div>';
+                const ps = document.getElementById('review-partner-subheader');
+                if (ps) ps.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
             } else if (generatedContent.partner_advantage) {
                 const pa = generatedContent.partner_advantage;
-                let html = `<strong>${pa.subheader || ''}</strong><p>${pa.intro || ''}</p><ul style="margin: 10px 0; padding-left: 20px; list-style-position: inside;">`;
-                (pa.tips || []).forEach(tip => {
-                    html += `<li style="margin-bottom: 8px;"><strong>${tip.title || ''}</strong>: ${tip.content || ''}</li>`;
-                });
-                html += '</ul>';
-                document.getElementById('review-partner').innerHTML = html;
-                // Add source URLs for Partner Advantage
-                if (selectedArticles.partner_advantage && selectedArticles.partner_advantage.length > 0) {
-                    const partnerEl = document.getElementById('review-partner');
-                    let urlsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Sources:</strong><br>';
-                    selectedArticles.partner_advantage.forEach((art, idx) => {
-                        const title = art.title || art.headline || `Article ${idx + 1}`;
-                        urlsHtml += `
-                            <div style="margin: 8px 0;">
-                                <a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block;">${title}</a>
-                                <code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${art.url}</code>
-                            </div>
-                        `;
-                    });
-                    urlsHtml += '</div>';
-                    partnerEl.innerHTML += urlsHtml;
-                }
+                const subEl = document.getElementById('review-partner-subheader');
+                const introEl2 = document.getElementById('review-partner-intro');
+                if (subEl) subEl.textContent = pa.subheader || '';
+                if (introEl2) introEl2.innerHTML = pa.intro || '';
+                renderDynamicTips('review', pa.tips || []);
+                renderSourceUrls('review-partner-sources', selectedArticles.partner_advantage);
             }
 
-            // Industry News
+            // Industry News - dynamic bullets
             if (skippedSections.news) {
-                document.getElementById('review-news').innerHTML = '<div style="padding: 20px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; text-align: center; color: #92400e;"><strong>This section was skipped</strong><p style="margin: 5px 0 0; font-size: 13px;">No copy was generated for Industry News.</p></div>';
+                const nc = document.getElementById('review-news-bullets-container');
+                if (nc) nc.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
             } else if (generatedContent.industry_news) {
-                const news = generatedContent.industry_news;
-                let html = '<ul style="margin: 10px 0; padding-left: 20px; list-style-position: inside;">';
-                (news.bullets || []).forEach(b => {
-                    // Get text which may contain markdown links [text](url)
-                    let bulletText = b.text || b.headline || b;
-
-                    // Convert markdown links to HTML with teal styling
-                    bulletText = bulletText.replace(
-                        /\[([^\]]+)\]\(([^)]+)\)/g,
-                        '<a href="$2" target="_blank" style="color: #018181; text-decoration: underline;">$1</a>'
-                    );
-
-                    html += `<li style="margin-bottom: 8px;">${bulletText}</li>`;
-                });
-                html += '</ul>';
-                document.getElementById('review-news').innerHTML = html;
-                // Add source URLs for Industry News
-                if (selectedArticles.industry_news && selectedArticles.industry_news.length > 0) {
-                    const newsEl = document.getElementById('review-news');
-                    let urlsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Sources:</strong><br>';
-                    selectedArticles.industry_news.forEach((art, idx) => {
-                        const title = art.title || art.headline || `Article ${idx + 1}`;
-                        urlsHtml += `
-                            <div style="margin: 8px 0;">
-                                <a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block;">${title}</a>
-                                <code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${art.url}</code>
-                            </div>
-                        `;
-                    });
-                    urlsHtml += '</div>';
-                    newsEl.innerHTML += urlsHtml;
-                }
+                renderDynamicBullets('review', generatedContent.industry_news.bullets || []);
+                renderSourceUrls('review-news-sources', selectedArticles.industry_news);
             }
         }
 
@@ -5817,36 +6022,43 @@
             }
 
             // Get the full newsletter content with highlighting
+            // Read from labeled sub-fields for brand check
+            function getFieldsHTML(prefix) {
+                const el = document.getElementById(prefix);
+                return el ? el.innerHTML.trim() : '';
+            }
             const introContent = highlightContent(
-                document.getElementById('review-intro')?.innerHTML || '',
+                getFieldsHTML('review-intro'),
                 suggestions.filter(s => s.section === 'intro' || s.section === 'introduction')
             );
             const briteSpotContent = highlightContent(
-                document.getElementById('review-britespot')?.innerHTML || '',
+                getFieldsHTML('review-britespot-title') + ' ' + getFieldsHTML('review-britespot-body'),
                 suggestions.filter(s => s.section === 'brite_spot' || s.section === 'britespot')
             );
             const goodContent = highlightContent(
-                document.getElementById('review-good')?.innerHTML || '',
+                getFieldsHTML('review-good-subtitle') + ' ' + getFieldsHTML('review-good-copy'),
                 suggestions.filter(s => s.section === 'the_good' || s.section === 'good')
             );
             const badContent = highlightContent(
-                document.getElementById('review-bad')?.innerHTML || '',
+                getFieldsHTML('review-bad-subtitle') + ' ' + getFieldsHTML('review-bad-copy'),
                 suggestions.filter(s => s.section === 'the_bad' || s.section === 'bad')
             );
             const uglyContent = highlightContent(
-                document.getElementById('review-ugly')?.innerHTML || '',
+                getFieldsHTML('review-ugly-subtitle') + ' ' + getFieldsHTML('review-ugly-copy'),
                 suggestions.filter(s => s.section === 'the_ugly' || s.section === 'ugly')
             );
             const pulseContent = highlightContent(
-                document.getElementById('review-pulse')?.innerHTML || '',
+                [getFieldsHTML('review-pulse-title'), getFieldsHTML('review-pulse-intro'),
+                 getFieldsHTML('review-pulse-h3-1-title'), getFieldsHTML('review-pulse-h3-1-content'),
+                 getFieldsHTML('review-pulse-h3-2-title'), getFieldsHTML('review-pulse-h3-2-content')].join(' '),
                 suggestions.filter(s => s.section === 'industry_pulse' || s.section === 'pulse')
             );
             const partnerContent = highlightContent(
-                document.getElementById('review-partner')?.innerHTML || '',
+                [getFieldsHTML('review-partner-subheader'), getFieldsHTML('review-partner-intro')].join(' '),
                 suggestions.filter(s => s.section === 'partner_advantage' || s.section === 'partner')
             );
             const newsContent = highlightContent(
-                document.getElementById('review-news')?.innerHTML || '',
+                '', // News bullets are dynamic, brand check can scan generatedContent
                 suggestions.filter(s => s.section === 'industry_news' || s.section === 'news')
             );
 
@@ -6524,27 +6736,58 @@
         }
 
         function generateNewsletterHTML() {
-            // Helper: extract string from content that may be a string or structured object
-            function contentStr(val) {
-                if (!val) return '';
-                if (typeof val === 'string') return val;
-                // Structured object - try common string fields
-                return val.copy || val.content || val.text || val.body || val.intro || '';
+            // Read directly from labeled sub-field DOM elements (captures all user edits)
+            function getDomText(id) {
+                const el = document.getElementById(id);
+                return el ? el.textContent.trim() : '';
             }
-            // Get content from generated sections and editable areas
-            const intro = document.getElementById('review-intro')?.innerHTML || contentStr(generatedContent.intro) || '';
-            const briteSpotEl = document.getElementById('review-britespot')?.innerHTML || '';
-            const briteSpotObj = generatedContent.brite_spot || {};
-            const briteSpot = briteSpotEl ||
-                (briteSpotObj.title || briteSpotObj.body
-                    ? `<strong>${briteSpotObj.title || ''}</strong><br>${briteSpotObj.body || ''}`
-                    : contentStr(generatedContent.brite_spot)) || '';
-            const good = document.getElementById('review-good')?.innerHTML || contentStr(generatedContent.the_good) || '';
-            const bad = document.getElementById('review-bad')?.innerHTML || contentStr(generatedContent.the_bad) || '';
-            const ugly = document.getElementById('review-ugly')?.innerHTML || contentStr(generatedContent.the_ugly) || '';
-            const pulse = document.getElementById('review-pulse')?.innerHTML || contentStr(generatedContent.industry_pulse) || '';
-            const partner = document.getElementById('review-partner')?.innerHTML || contentStr(generatedContent.partner_advantage) || '';
-            const news = document.getElementById('review-news')?.innerHTML || contentStr(generatedContent.industry_news) || '';
+            function getDomHTML(id) {
+                const el = document.getElementById(id);
+                return el ? el.innerHTML.trim() : '';
+            }
+
+            // Read all content from review sub-fields (DOM is source of truth)
+            const intro = getDomHTML('review-intro') || '';
+            const briteSpotTitle = getDomText('review-britespot-title') || '';
+            let briteSpotBody = getDomHTML('review-britespot-body') || '';
+            const goodTitle = getDomText('review-good-subtitle') || '';
+            const goodBody = getDomHTML('review-good-copy') || '';
+            const badTitle = getDomText('review-bad-subtitle') || '';
+            const badBody = getDomHTML('review-bad-copy') || '';
+            const uglyTitle = getDomText('review-ugly-subtitle') || '';
+            const uglyBody = getDomHTML('review-ugly-copy') || '';
+            const pulseTitle = getDomText('review-pulse-title') || '';
+            const pulseIntro = getDomHTML('review-pulse-intro') || '';
+            const pulseH3_1_title = getDomText('review-pulse-h3-1-title') || '';
+            const pulseH3_1_content = getDomHTML('review-pulse-h3-1-content') || '';
+            const pulseH3_2_title = getDomText('review-pulse-h3-2-title') || '';
+            const pulseH3_2_content = getDomHTML('review-pulse-h3-2-content') || '';
+            const partnerSubheader = getDomText('review-partner-subheader') || '';
+            const partnerIntro = getDomHTML('review-partner-intro') || '';
+
+            // Read partner tips from dynamic fields
+            const partnerTips = [];
+            const tipsContainer = document.getElementById('review-partner-tips-container');
+            if (tipsContainer) {
+                tipsContainer.querySelectorAll('.dynamic-field-item').forEach((item, idx) => {
+                    const titleEl = document.getElementById('review-partner-tip-' + idx + '-title');
+                    const contentEl = document.getElementById('review-partner-tip-' + idx + '-content');
+                    partnerTips.push({
+                        title: titleEl ? titleEl.textContent.trim() : '',
+                        content: contentEl ? contentEl.innerHTML.trim() : ''
+                    });
+                });
+            }
+
+            // Read news bullets from dynamic fields
+            const newsBullets = [];
+            const bulletsContainer = document.getElementById('review-news-bullets-container');
+            if (bulletsContainer) {
+                bulletsContainer.querySelectorAll('.dynamic-field-item').forEach((item, idx) => {
+                    const bulletEl = document.getElementById('review-news-bullet-' + idx);
+                    if (bulletEl) newsBullets.push({ text: bulletEl.innerHTML.trim() });
+                });
+            }
 
             // Get subject and preheader
             const subjectLine = document.getElementById('finalSubjectLine')?.value || 'Stay In The Loupe - ' + selectedMonth;
@@ -6555,16 +6798,14 @@
             const ctaButtonText = getCtaButtonText();
             const ctaUrl = 'https://brite.co/for-jewelers/';
 
-            // Get images - for preview show base64, for final HTML use placeholder URLs
+            // Get images
             const PLACEHOLDER = 'https://brite.co/wp-content/uploads/2025/09/blank-image.png';
             const getImageUrl = (img, sectionLabel) => {
                 if (!img) return PLACEHOLDER;
-                // For preview: show the actual image (base64 data URI)
                 const dataUrl = (typeof img === 'string') ? img : (img.url || (img.image_data ? 'data:image/png;base64,' + img.image_data : null));
                 return dataUrl || PLACEHOLDER;
             };
             const getPlaceholderUrl = (sectionLabel) => {
-                // Placeholder URL pattern for Ontraport HTML — user will replace with WP URLs
                 return `https://REPLACE-WITH-HOSTED-URL/${sectionLabel}.png`;
             };
             const goodImage = getImageUrl(generatedImages.the_good || generatedImages.good, 'good');
@@ -6573,40 +6814,6 @@
             const briteSpotImage = getImageUrl(generatedImages.brite_spot || generatedImages.briteSpot, 'brite-spot');
             const pulseImage = getImageUrl(generatedImages.industry_pulse || generatedImages.pulse, 'industry-pulse');
             const partnerImage = getImageUrl(generatedImages.partner_advantage || generatedImages.partner, 'partner-advantage');
-
-            // Use structured data for GBU (subtitle + copy are separate fields)
-            const goodData = generatedContent.the_good || {};
-            const badData = generatedContent.the_bad || {};
-            const uglyData = generatedContent.the_ugly || {};
-            // Parse GBU HTML: "<strong>subtitle</strong><br>copy with links"
-            function parseGbuHtml(html) {
-                if (typeof html !== 'string') return { subtitle: '', copy: '' };
-                const m = html.match(/^<strong>(.*?)<\/strong>(?:<br\s*\/?>)*([\s\S]*)$/i);
-                return m ? { subtitle: m[1], copy: m[2].replace(/^(<br\s*\/?>)+/, '') } : { subtitle: '', copy: html };
-            }
-            const goodParsed = parseGbuHtml(good);
-            const badParsed = parseGbuHtml(bad);
-            const uglyParsed = parseGbuHtml(ugly);
-            const goodTitle = goodData.subtitle || goodParsed.subtitle || '';
-            const goodBody = goodData.copy || goodParsed.copy || '';
-            const badTitle = badData.subtitle || badParsed.subtitle || '';
-            const badBody = badData.copy || badParsed.copy || '';
-            const uglyTitle = uglyData.subtitle || uglyParsed.subtitle || '';
-            const uglyBody = uglyData.copy || uglyParsed.copy || '';
-
-            // BriteSpot title + body split for h2 + copy layout
-            const briteSpotParsed = parseGbuHtml(briteSpot);
-            const briteSpotTitle = briteSpotObj.title || briteSpotParsed.subtitle || '';
-            let briteSpotBody = briteSpotObj.body || briteSpotParsed.copy || '';
-            // Strip duplicate title from body if it begins with the Brite Spot title
-            if (briteSpotTitle && briteSpotBody) {
-                const stripHtml = s => s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
-                const normalTitle = stripHtml(briteSpotTitle);
-                const normalBody = stripHtml(briteSpotBody);
-                if (normalBody.startsWith(normalTitle)) {
-                    briteSpotBody = briteSpotBody.replace(new RegExp('^\\s*(<[^>]+>)*\\s*' + briteSpotTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[:\\s]*(<\\/[^>]+>)*\\s*', 'i'), '').trim();
-                }
-            }
 
             // GBU article URLs for hyperlinks
             const goodUrl = selectedArticles.the_good?.url || '';
@@ -6618,21 +6825,6 @@
                 if (url) return `<a href="${url}" target="_blank" style="color:#3B3B3B;text-decoration:underline;">${title}</a>`;
                 return title;
             };
-
-            // Use structured data for Industry Pulse
-            const pulseData = generatedContent.industry_pulse || {};
-            const pulseTitle = pulseData.title || '';
-            const pulseIntro = pulseData.intro || pulse;
-            const pulseH3_1_title = pulseData.h3_1_title || '';
-            const pulseH3_1_content = pulseData.h3_1_content || '';
-            const pulseH3_2_title = pulseData.h3_2_title || '';
-            const pulseH3_2_content = pulseData.h3_2_content || '';
-
-            // Use structured data for Partner Advantage
-            const partnerData = generatedContent.partner_advantage || {};
-            const partnerSubheader = partnerData.subheader || '';
-            const partnerIntro = partnerData.intro || '';
-            const partnerTips = partnerData.tips || [];
 
             // Build Partner Advantage tips HTML with tick images
             const tickImg = 'https://brite.co/wp-content/uploads/2025/09/tickk.png';
@@ -6651,13 +6843,11 @@
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="10" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>`;
             });
 
-            // Use structured data for Industry News
-            const newsData = generatedContent.industry_news || {};
-            const newsBullets = newsData.bullets || [];
+            // Build Industry News HTML
             let newsHtml = '';
             newsBullets.forEach(b => {
-                let bulletText = b.text || b.headline || b;
-                // Convert markdown links to HTML
+                let bulletText = b.text || '';
+                // Convert markdown links to HTML if needed
                 bulletText = bulletText.replace(
                     /\[([^\]]+)\]\(([^)]+)\)/g,
                     '<a href="$2" target="_blank" style="color:#008182;text-decoration:underline;">$1</a>'
@@ -7175,19 +7365,51 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 syncContentFromDOM();
             }
 
-            // Capture raw innerHTML of review/fc divs so we can restore edits exactly
-            function stripSourceDivs(html) {
-                return html.replace(/<div style="margin-top: 1[05]px;[^"]*">[^]*$/i, '').trim();
-            }
-            const reviewHTML = {};
+            // Capture raw innerHTML of each labeled sub-field for exact restore
+            const reviewHTML = { _layout: 'labeled' };
             const onFinalCopy = (currentStep === '7b');
             const prefix = onFinalCopy ? 'fc-' : 'review-';
-            ['intro', 'britespot', 'good', 'bad', 'ugly', 'pulse', 'partner', 'news'].forEach(key => {
-                const el = document.getElementById(prefix + key);
-                if (el && el.innerHTML.trim()) {
-                    reviewHTML[key] = stripSourceDivs(el.innerHTML);
-                }
+
+            // Simple fields
+            const simpleFields = [
+                'intro',
+                'britespot-title', 'britespot-body',
+                'good-subtitle', 'good-copy',
+                'bad-subtitle', 'bad-copy',
+                'ugly-subtitle', 'ugly-copy',
+                'pulse-title', 'pulse-intro',
+                'pulse-h3-1-title', 'pulse-h3-1-content',
+                'pulse-h3-2-title', 'pulse-h3-2-content',
+                'partner-subheader', 'partner-intro'
+            ];
+            simpleFields.forEach(field => {
+                const el = document.getElementById(prefix + field);
+                if (el) reviewHTML[field] = el.innerHTML;
             });
+
+            // Partner tips — save count + each tip's title/content
+            const tipsContainer = document.getElementById(prefix + 'partner-tips-container');
+            if (tipsContainer) {
+                const tipItems = tipsContainer.querySelectorAll('.dynamic-field-item');
+                reviewHTML['partner-tip-count'] = tipItems.length;
+                tipItems.forEach((item, idx) => {
+                    const titleEl = document.getElementById(prefix + 'partner-tip-' + idx + '-title');
+                    const contentEl = document.getElementById(prefix + 'partner-tip-' + idx + '-content');
+                    reviewHTML['partner-tip-' + idx + '-title'] = titleEl ? titleEl.innerHTML : '';
+                    reviewHTML['partner-tip-' + idx + '-content'] = contentEl ? contentEl.innerHTML : '';
+                });
+            }
+
+            // News bullets — save count + each bullet
+            const bulletsContainer = document.getElementById(prefix + 'news-bullets-container');
+            if (bulletsContainer) {
+                const bulletItems = bulletsContainer.querySelectorAll('.dynamic-field-item');
+                reviewHTML['news-bullet-count'] = bulletItems.length;
+                bulletItems.forEach((item, idx) => {
+                    const bulletEl = document.getElementById(prefix + 'news-bullet-' + idx);
+                    reviewHTML['news-bullet-' + idx] = bulletEl ? bulletEl.innerHTML : '';
+                });
+            }
 
             try {
                 const userEmail = (window.AUTH_USER && window.AUTH_USER.email) || 'unknown';
@@ -7348,68 +7570,64 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                     if (c.textContent.toLowerCase().includes(selectedMonth)) c.classList.add('selected');
                 });
 
-                // Populate UI with stored content so it doesn't need to be regenerated
-                // If we have saved raw HTML from user edits, use that directly (preserves edits exactly)
+                // Populate UI with stored content
                 const savedHTML = d.reviewHTML || {};
-                if (Object.keys(savedHTML).length > 0) {
-                    console.log('[Draft] Restoring from reviewHTML:', Object.keys(savedHTML).join(', '));
-                    ['intro', 'britespot', 'good', 'bad', 'ugly', 'pulse', 'partner', 'news'].forEach(key => {
-                        const reviewEl = document.getElementById('review-' + key);
-                        if (reviewEl && savedHTML[key]) {
-                            reviewEl.innerHTML = savedHTML[key];
+                if (savedHTML._layout === 'labeled') {
+                    // New labeled format: restore each sub-field individually
+                    console.log('[Draft] Restoring from labeled reviewHTML');
+                    const simpleFields = [
+                        'intro',
+                        'britespot-title', 'britespot-body',
+                        'good-subtitle', 'good-copy',
+                        'bad-subtitle', 'bad-copy',
+                        'ugly-subtitle', 'ugly-copy',
+                        'pulse-title', 'pulse-intro',
+                        'pulse-h3-1-title', 'pulse-h3-1-content',
+                        'pulse-h3-2-title', 'pulse-h3-2-content',
+                        'partner-subheader', 'partner-intro'
+                    ];
+                    simpleFields.forEach(field => {
+                        const el = document.getElementById('review-' + field);
+                        if (el && savedHTML[field] !== undefined) {
+                            el.innerHTML = savedHTML[field];
                         }
                     });
-                    // Re-append source URLs to GBU sections (they were stripped on save)
+
+                    // Restore partner tips dynamically
+                    const tipCount = savedHTML['partner-tip-count'] || 0;
+                    if (tipCount > 0) {
+                        const tips = [];
+                        for (let i = 0; i < tipCount; i++) {
+                            tips.push({
+                                title: savedHTML['partner-tip-' + i + '-title'] || '',
+                                content: savedHTML['partner-tip-' + i + '-content'] || ''
+                            });
+                        }
+                        renderDynamicTips('review', tips);
+                    }
+
+                    // Restore news bullets dynamically
+                    const bulletCount = savedHTML['news-bullet-count'] || 0;
+                    if (bulletCount > 0) {
+                        const bullets = [];
+                        for (let i = 0; i < bulletCount; i++) {
+                            bullets.push({ text: savedHTML['news-bullet-' + i] || '' });
+                        }
+                        renderDynamicBullets('review', bullets);
+                    }
+
+                    // Re-render source URLs into non-editable containers
                     ['the_good', 'the_bad', 'the_ugly'].forEach(fullKey => {
                         const shortKey = fullKey.replace('the_', '');
-                        const el = document.getElementById('review-' + shortKey);
-                        const sourceUrl = selectedArticles[fullKey]?.url || selectedArticles[fullKey]?.source_url || '';
-                        if (el && sourceUrl && selectedArticles[fullKey]) {
-                            const articleTitle = selectedArticles[fullKey].title || selectedArticles[fullKey].headline || 'Source Article';
-                            el.innerHTML += `<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;">
-                                <strong>Source:</strong><br>
-                                <a href="${sourceUrl}" target="_blank" style="color: #018181; text-decoration: underline; display: block; margin-top: 5px;">${articleTitle}</a>
-                                <code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${sourceUrl}</code>
-                            </div>`;
-                        }
+                        renderSourceUrls('review-' + shortKey + '-sources', null, selectedArticles[fullKey]);
                     });
-                    // Re-append source URLs to pulse, partner, news
-                    if (selectedArticles.industry_pulse && selectedArticles.industry_pulse.length > 0) {
-                        const pulseEl = document.getElementById('review-pulse');
-                        if (pulseEl) {
-                            let urlsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Sources:</strong><br>';
-                            selectedArticles.industry_pulse.forEach((art, idx) => {
-                                const title = art.title || art.headline || `Article ${idx + 1}`;
-                                urlsHtml += `<div style="margin: 8px 0;"><a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block;">${title}</a><code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${art.url}</code></div>`;
-                            });
-                            urlsHtml += '</div>';
-                            pulseEl.innerHTML += urlsHtml;
-                        }
-                    }
-                    if (selectedArticles.partner_advantage && selectedArticles.partner_advantage.length > 0) {
-                        const partnerEl = document.getElementById('review-partner');
-                        if (partnerEl) {
-                            let urlsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Sources:</strong><br>';
-                            selectedArticles.partner_advantage.forEach((art, idx) => {
-                                const title = art.title || art.headline || `Article ${idx + 1}`;
-                                urlsHtml += `<div style="margin: 8px 0;"><a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block;">${title}</a><code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${art.url}</code></div>`;
-                            });
-                            urlsHtml += '</div>';
-                            partnerEl.innerHTML += urlsHtml;
-                        }
-                    }
-                    if (selectedArticles.industry_news && selectedArticles.industry_news.length > 0) {
-                        const newsEl = document.getElementById('review-news');
-                        if (newsEl) {
-                            let urlsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 13px; color: #666;"><strong>Sources:</strong><br>';
-                            selectedArticles.industry_news.forEach((art, idx) => {
-                                const title = art.title || art.headline || `Article ${idx + 1}`;
-                                urlsHtml += `<div style="margin: 8px 0;"><a href="${art.url}" target="_blank" style="color: #018181; text-decoration: underline; display: block;">${title}</a><code style="display: block; margin-top: 4px; padding: 4px 8px; background: #f3f4f6; border-radius: 4px; font-size: 11px; color: #374151; word-break: break-all; user-select: all;">${art.url}</code></div>`;
-                            });
-                            urlsHtml += '</div>';
-                            newsEl.innerHTML += urlsHtml;
-                        }
-                    }
+                    renderSourceUrls('review-pulse-sources', selectedArticles.industry_pulse);
+                    renderSourceUrls('review-partner-sources', selectedArticles.partner_advantage);
+                    renderSourceUrls('review-news-sources', selectedArticles.industry_news);
+                } else if (Object.keys(savedHTML).length > 0) {
+                    // Old format: best effort — populate from generatedContent into labeled fields
+                    console.log('[Draft] Old format draft — populating from generatedContent');
+                    populateReviewContent();
                 } else {
                     populateReviewContent();  // Fallback: render from generatedContent
                 }
@@ -7609,31 +7827,69 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
         }
 
         function populateFinalCopy() {
-            // Helper: strip the source URL divs that populateReviewContent appends
-            function stripSourceDivs(html) {
-                return html.replace(/<div style="margin-top: 1[05]px;[^"]*">[^]*$/i, '').trim();
-            }
-
-            // Copy directly from review-* to fc-* divs (preserving user edits)
-            const sections = ['intro', 'britespot', 'good', 'bad', 'ugly', 'pulse', 'partner', 'news'];
-            sections.forEach(key => {
-                const reviewEl = document.getElementById('review-' + key);
-                const fcEl = document.getElementById('fc-' + key);
-                if (!reviewEl || !fcEl) return;
-
-                // Handle skipped sections
-                if ((key === 'pulse' && skippedSections.pulse) ||
-                    (key === 'partner' && skippedSections.partner) ||
-                    (key === 'news' && skippedSections.news)) {
-                    fcEl.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
-                    return;
-                }
-
-                // Copy innerHTML directly, but strip source URL divs
-                fcEl.innerHTML = stripSourceDivs(reviewEl.innerHTML);
+            // Copy individual labeled sub-fields from review to fc
+            // Simple fields: just copy innerHTML
+            const simpleFields = [
+                'intro',
+                'britespot-title', 'britespot-body',
+                'good-subtitle', 'good-copy',
+                'bad-subtitle', 'bad-copy',
+                'ugly-subtitle', 'ugly-copy',
+                'pulse-title', 'pulse-intro',
+                'pulse-h3-1-title', 'pulse-h3-1-content',
+                'pulse-h3-2-title', 'pulse-h3-2-content',
+                'partner-subheader', 'partner-intro'
+            ];
+            simpleFields.forEach(field => {
+                copyField('review-' + field, 'fc-' + field);
             });
 
-            // Populate special section if enabled and has body copy
+            // Handle skipped sections
+            if (skippedSections.pulse) {
+                const fcPulseTitle = document.getElementById('fc-pulse-title');
+                if (fcPulseTitle) fcPulseTitle.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
+            }
+            if (skippedSections.partner) {
+                const fcPartnerSub = document.getElementById('fc-partner-subheader');
+                if (fcPartnerSub) fcPartnerSub.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
+            }
+            if (skippedSections.news) {
+                // For news, show in the container
+                const fcNewsContainer = document.getElementById('fc-news-bullets-container');
+                if (fcNewsContainer) fcNewsContainer.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
+            }
+
+            // Partner tips — read from review dynamic fields, render into fc
+            if (!skippedSections.partner) {
+                const reviewTipsContainer = document.getElementById('review-partner-tips-container');
+                if (reviewTipsContainer) {
+                    const tips = [];
+                    reviewTipsContainer.querySelectorAll('.dynamic-field-item').forEach((item, idx) => {
+                        const titleEl = document.getElementById('review-partner-tip-' + idx + '-title');
+                        const contentEl = document.getElementById('review-partner-tip-' + idx + '-content');
+                        tips.push({
+                            title: titleEl ? titleEl.textContent.trim() : '',
+                            content: contentEl ? contentEl.innerHTML.trim() : ''
+                        });
+                    });
+                    if (tips.length > 0) renderDynamicTips('fc', tips);
+                }
+            }
+
+            // News bullets — read from review dynamic fields, render into fc
+            if (!skippedSections.news) {
+                const reviewBulletsContainer = document.getElementById('review-news-bullets-container');
+                if (reviewBulletsContainer) {
+                    const bullets = [];
+                    reviewBulletsContainer.querySelectorAll('.dynamic-field-item').forEach((item, idx) => {
+                        const bulletEl = document.getElementById('review-news-bullet-' + idx);
+                        if (bulletEl) bullets.push({ text: bulletEl.innerHTML.trim() });
+                    });
+                    if (bullets.length > 0) renderDynamicBullets('fc', bullets);
+                }
+            }
+
+            // Populate special section if enabled
             if (specialSection.enabled && specialSection.body) {
                 const ssDst = document.getElementById('fc-specialSection');
                 const ssWrapper = document.getElementById('fc-specialSection-wrapper');
