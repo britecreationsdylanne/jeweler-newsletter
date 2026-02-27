@@ -2488,11 +2488,96 @@ def export_to_docs():
                 return str(val)
             return html_to_plain_text(str(val))
 
+        # Helper: add text with inline hyperlinks preserved as Google Docs links
+        def add_rich_text(html_val, bold=False):
+            if not html_val:
+                return
+            html_str = str(html_val).strip()
+            if not html_str:
+                return
+
+            # Parse HTML to extract text segments and links
+            # Replace <br> and </p> with newlines first
+            text = re.sub(r'<br\s*/?>', '\n', html_str)
+            text = re.sub(r'</p>\s*', '\n\n', text)
+            text = re.sub(r'<p[^>]*>', '', text)
+
+            # Find all <a> tags and their positions
+            link_pattern = re.compile(r'<a[^>]*href=["\']([^"\']*)["\'][^>]*>(.*?)</a>', re.IGNORECASE)
+            segments = []
+            last_end = 0
+            for m in link_pattern.finditer(text):
+                # Text before link
+                before = re.sub(r'<[^>]+>', '', text[last_end:m.start()])
+                if before:
+                    segments.append({'text': before, 'url': None})
+                # Link text
+                link_text = re.sub(r'<[^>]+>', '', m.group(2))
+                segments.append({'text': link_text, 'url': m.group(1)})
+                last_end = m.end()
+            # Remaining text after last link
+            after = re.sub(r'<[^>]+>', '', text[last_end:])
+            if after:
+                segments.append({'text': after, 'url': None})
+
+            if not segments:
+                return
+
+            # Build full plain text string
+            full_text = ''.join(s['text'] for s in segments).strip()
+            # Decode HTML entities
+            full_text = full_text.replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>')
+            full_text = full_text.replace('&quot;', '"').replace('&#39;', "'").replace('&nbsp;', ' ')
+            full_text = re.sub(r'\n{3,}', '\n\n', full_text)
+            if not full_text:
+                return
+
+            full_text += '\n\n'
+            start_index = index_offset[0]
+
+            requests_list.append({
+                'insertText': {
+                    'location': {'index': start_index},
+                    'text': full_text
+                }
+            })
+
+            if bold:
+                requests_list.append({
+                    'updateTextStyle': {
+                        'range': {'startIndex': start_index, 'endIndex': start_index + len(full_text) - 1},
+                        'textStyle': {'bold': True},
+                        'fields': 'bold'
+                    }
+                })
+
+            # Apply hyperlinks to the correct character ranges
+            pos = start_index
+            for seg in segments:
+                # Decode entities in segment text for length calculation
+                seg_text = seg['text'].replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>')
+                seg_text = seg_text.replace('&quot;', '"').replace('&#39;', "'").replace('&nbsp;', ' ')
+                seg_len = len(seg_text)
+                if seg['url'] and seg_len > 0:
+                    requests_list.append({
+                        'updateTextStyle': {
+                            'range': {'startIndex': pos, 'endIndex': pos + seg_len},
+                            'textStyle': {
+                                'link': {'url': seg['url']},
+                                'foregroundColor': {'color': {'rgbColor': {'red': 0.0, 'green': 0.51, 'blue': 0.51}}}
+                            },
+                            'fields': 'link,foregroundColor'
+                        }
+                    })
+                pos += seg_len
+
+            index_offset[0] = start_index + len(full_text)
+
         # Add content sections
         add_text(title, heading=True)
 
         if content.get('intro'):
-            add_text(clean(content['intro']))
+            add_rich_text(content['intro'])
 
         if content.get('brite_spot'):
             add_text('The Brite Spot', bold=True)
@@ -2500,9 +2585,9 @@ def export_to_docs():
             if isinstance(bs, dict):
                 if bs.get('title'):
                     add_text(clean(bs['title']), bold=True)
-                add_text(clean(bs.get('body', '')))
+                add_rich_text(bs.get('body', ''))
             else:
-                add_text(clean(bs))
+                add_rich_text(bs)
 
         for section in ['the_good', 'the_bad', 'the_ugly']:
             if content.get(section):
@@ -2511,60 +2596,53 @@ def export_to_docs():
                 sec = content[section]
                 if isinstance(sec, dict):
                     subtitle = clean(sec.get('subtitle', ''))
-                    copy = clean(sec.get('copy', ''))
                     source_url = sec.get('url', '')
-                    # Strip subtitle from start of copy if duplicated
-                    if subtitle and copy:
-                        copy_lower = copy.lower().strip()
-                        sub_lower = subtitle.lower().strip()
-                        if copy_lower.startswith(sub_lower):
-                            copy = copy[len(subtitle):].strip().lstrip('\n')
                     if subtitle and source_url:
                         add_text(subtitle, link_url=source_url)
                     elif subtitle:
                         add_text(subtitle, bold=True)
-                    add_text(copy)
+                    add_rich_text(sec.get('copy', ''))
                 else:
-                    add_text(clean(sec))
+                    add_rich_text(sec)
 
         if content.get('industry_pulse'):
             add_text('Industry Pulse', bold=True)
             pulse = content['industry_pulse']
             if isinstance(pulse, dict):
                 add_text(clean(pulse.get('title', '')))
-                add_text(clean(pulse.get('intro', '')))
+                add_rich_text(pulse.get('intro', ''))
                 h3_1_title = clean(pulse.get('h3_1_title', ''))
                 if h3_1_title:
                     add_text(h3_1_title, bold=True)
-                add_text(clean(pulse.get('h3_1_content', '')))
+                add_rich_text(pulse.get('h3_1_content', ''))
                 h3_2_title = clean(pulse.get('h3_2_title', ''))
                 if h3_2_title:
                     add_text(h3_2_title, bold=True)
-                h3_2_content = clean(pulse.get('h3_2_content', ''))
-                if h3_2_content:
-                    add_text(h3_2_content)
+                add_rich_text(pulse.get('h3_2_content', ''))
                 h3_3_title = clean(pulse.get('h3_3_title', ''))
                 if h3_3_title:
                     add_text(h3_3_title, bold=True)
-                h3_3_content = clean(pulse.get('h3_3_content', ''))
-                if h3_3_content:
-                    add_text(h3_3_content)
+                add_rich_text(pulse.get('h3_3_content', ''))
             else:
-                add_text(clean(pulse))
+                add_rich_text(pulse)
 
         if content.get('partner_advantage'):
             add_text('Partner Advantage', bold=True)
             pa = content['partner_advantage']
             if isinstance(pa, dict):
-                add_text(clean(pa.get('subheader', '')))
-                add_text(clean(pa.get('intro', '')))
+                add_text(clean(pa.get('subheader', '')), bold=True)
+                add_rich_text(pa.get('intro', ''))
                 for tip in pa.get('tips', []):
                     if isinstance(tip, dict):
-                        add_text(f"• {clean(tip.get('title', ''))}: {clean(tip.get('content', ''))}")
+                        tip_title = clean(tip.get('title', ''))
+                        tip_content = tip.get('content', '')
+                        if tip_title:
+                            add_text(f"• {tip_title}", bold=True)
+                        add_rich_text(tip_content)
                     else:
-                        add_text(f"• {clean(tip)}")
+                        add_rich_text(f"• {tip}")
             else:
-                add_text(clean(pa))
+                add_rich_text(pa)
 
         if content.get('industry_news'):
             add_text('Industry News', bold=True)
@@ -2572,14 +2650,14 @@ def export_to_docs():
             if isinstance(news, dict) and 'bullets' in news:
                 for bullet in news['bullets']:
                     if isinstance(bullet, dict):
-                        bullet_text = f"• {clean(bullet.get('text', ''))}"
-                        bullet_url = bullet.get('url', None)
-                        add_text(bullet_text, link_url=bullet_url)
+                        bullet_html = bullet.get('text', '')
+                        # Prepend bullet marker
+                        add_rich_text(f"• {bullet_html}")
                     else:
-                        add_text(f"• {clean(bullet)}")
+                        add_rich_text(f"• {bullet}")
             elif isinstance(news, list):
                 for item in news:
-                    add_text(f"• {clean(item)}")
+                    add_rich_text(f"• {item}")
 
         # Special Section (if included)
         if content.get('special_section'):
