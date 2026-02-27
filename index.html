@@ -8172,12 +8172,18 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 const d = data.draft;
                 // Temporarily store current state
                 const origMonth = selectedMonth;
-                const origContent = generatedContent;
+                const origContent = JSON.parse(JSON.stringify(generatedContent));
                 const origImages = generatedImages;
+                const origArticles = JSON.parse(JSON.stringify(selectedArticles));
+                const origSkippedGBU = Object.assign({}, skippedGBU);
                 // Set state from published draft
                 selectedMonth = d.month || '';
                 generatedContent = d.generatedContent || {};
                 generatedImages = d.generatedImages || {};
+                selectedArticles = d.selectedArticles || { the_good: null, the_bad: null, the_ugly: null, industry_pulse: null, partner_advantage: null, industry_news: [] };
+                skippedGBU = d.skippedGBU || { good: false, bad: false, ugly: false };
+                // Populate review DOM fields so generateNewsletterHTML() can read them
+                populateReviewContent();
                 // Generate preview
                 const html = generateNewsletterHTML();
                 document.getElementById('publishedModalContent').innerHTML = html;
@@ -8186,6 +8192,10 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 selectedMonth = origMonth;
                 generatedContent = origContent;
                 generatedImages = origImages;
+                selectedArticles = origArticles;
+                skippedGBU = origSkippedGBU;
+                // Re-populate DOM with current session data
+                populateReviewContent();
             } catch (e) {
                 console.error('Error viewing newsletter:', e);
                 alert('Failed to load newsletter preview');
