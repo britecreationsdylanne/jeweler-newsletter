@@ -1534,6 +1534,79 @@
             gap: 10px;
         }
 
+        /* Focus label + info tooltip on search inputs */
+        .focus-label-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+        .focus-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #374151;
+        }
+        .focus-label .optional {
+            color: #9ca3af;
+            font-weight: 400;
+        }
+        .info-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #6b7280;
+            font-size: 10px;
+            font-style: normal;
+            cursor: default;
+            position: relative;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .info-icon::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: #f9fafb;
+            font-size: 11.5px;
+            padding: 8px 12px;
+            border-radius: 7px;
+            white-space: normal;
+            width: 270px;
+            line-height: 1.5;
+            z-index: 200;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.15s;
+            font-weight: 400;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .info-icon::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #1f2937;
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.15s;
+        }
+        .info-icon:hover::after,
+        .info-icon:hover::before {
+            opacity: 1;
+            visibility: visible;
+        }
+
         /* Tips Box */
         .tips-box {
             background: #f0f9ff;
@@ -1938,7 +2011,11 @@
                     </div>
                     <p class="research-card-description">Searches the web via Perplexity AI, then GPT-5.2 transforms findings into newsletter-ready articles with jeweler-specific insights.</p>
                     <div class="research-card-filters">
-                        <input type="text" id="gbu-perplexity-query" placeholder="jewelry design trends 2026">
+                        <div class="focus-label-row">
+                            <span class="focus-label">Add a focus <span class="optional">(optional)</span></span>
+                            <span class="info-icon" id="gbu-perplexity-info" data-tooltip="Default: positive uplifting jewelry news, beautiful designs, new collections, celebrity jewelry, awards, success stories">ⓘ</span>
+                        </div>
+                        <input type="text" id="gbu-perplexity-query" placeholder="e.g. rose gold, lab diamonds, spring trends...">
                         <select id="gbu-perplexity-time">
                             <option value="7d">Last 7 days</option>
                             <option value="15d">Last 15 days</option>
@@ -1999,7 +2076,11 @@
                             <option value="30d" selected>Last 30 days</option>
                             <option value="90d">Last 90 days</option>
                         </select>
-                        <input type="text" id="gbu-source-query" placeholder="jewelry industry news">
+                        <div class="focus-label-row">
+                            <span class="focus-label">Add a focus <span class="optional">(optional)</span></span>
+                            <span class="info-icon" id="gbu-source-info" data-tooltip="Default: searches curated sources for uplifting jewelry news, new collections, design achievements">ⓘ</span>
+                        </div>
+                        <input type="text" id="gbu-source-query" placeholder="e.g. new collection, designer spotlight...">
                     </div>
                     <button class="research-card-search-btn" onclick="searchSources('gbu')">Search Sources</button>
                     <p class="research-card-helper">Select source packs and search</p>
@@ -2073,7 +2154,11 @@
                     </div>
                     <p class="research-card-description">Searches via Perplexity AI, then GPT-5.2 transforms findings into newsletter-ready trend articles.</p>
                     <div class="research-card-filters">
-                        <input type="text" id="pulse-perplexity-query" placeholder="jewelry industry trends 2026">
+                        <div class="focus-label-row">
+                            <span class="focus-label">Add a focus <span class="optional">(optional)</span></span>
+                            <span class="info-icon" id="pulse-perplexity-info" data-tooltip="Default: investigative analysis, in-depth reports on trends impacting the jewelry industry — gold prices, tariffs, lab-grown diamonds, consumer behavior">ⓘ</span>
+                        </div>
+                        <input type="text" id="pulse-perplexity-query" placeholder="e.g. tariffs, gold prices, lab-grown diamonds...">
                         <select id="pulse-perplexity-time">
                             <option value="7d">Last 7 days</option>
                             <option value="15d">Last 15 days</option>
@@ -2122,7 +2207,11 @@
                             <option value="30d" selected>Last 30 days</option>
                             <option value="90d">Last 90 days</option>
                         </select>
-                        <input type="text" id="pulse-source-query" placeholder="jewelry market analysis">
+                        <div class="focus-label-row">
+                            <span class="focus-label">Add a focus <span class="optional">(optional)</span></span>
+                            <span class="info-icon" id="pulse-source-info" data-tooltip="Default: searches curated sources for deep-dive trends, investigative reports, gold market, lab diamonds, consumer behavior">ⓘ</span>
+                        </div>
+                        <input type="text" id="pulse-source-query" placeholder="e.g. tariffs, gold market trends...">
                     </div>
                     <button class="research-card-search-btn" onclick="searchSources('pulse')">Search Sources</button>
                     <div class="research-card-results" id="pulse-source-results"></div>
@@ -2187,7 +2276,11 @@
                     </div>
                     <p class="research-card-description">Searches via Perplexity AI, then GPT-5.2 transforms findings into section-specific content.</p>
                     <div class="research-card-filters">
-                        <input type="text" id="step5-perplexity-query" placeholder="gold prices, tariffs, lab-grown diamonds...">
+                        <div class="focus-label-row">
+                            <span class="focus-label">Add a focus <span class="optional">(optional)</span></span>
+                            <span class="info-icon" id="step5-perplexity-info" data-tooltip="Default: investigative analysis, in-depth reports on trends impacting the jewelry industry — gold prices, tariffs, lab-grown diamonds, consumer behavior">ⓘ</span>
+                        </div>
+                        <input type="text" id="step5-perplexity-query" placeholder="e.g. tariffs, gold prices, lab-grown diamonds...">
                         <select id="step5-perplexity-time">
                             <option value="7d">Last 7 days</option>
                             <option value="15d">Last 15 days</option>
@@ -2242,7 +2335,11 @@
                             <option value="30d" selected>Last 30 days</option>
                             <option value="90d">Last 90 days</option>
                         </select>
-                        <input type="text" id="step5-source-query" placeholder="jeweler best practices">
+                        <div class="focus-label-row">
+                            <span class="focus-label">Add a focus <span class="optional">(optional)</span></span>
+                            <span class="info-icon" id="step5-source-info" data-tooltip="Default: searches curated sources for investigative reports, gold market, lab diamonds, consumer behavior">ⓘ</span>
+                        </div>
+                        <input type="text" id="step5-source-query" placeholder="e.g. tariffs, gold market trends...">
                     </div>
                     <button class="research-card-search-btn" onclick="searchSources('step5')">Search Sources</button>
                     <div class="research-card-results" id="step5-source-results"></div>
@@ -4578,6 +4675,22 @@
             document.querySelector('#step3 .research-section-info h3 strong').textContent = 'The ' + tab.charAt(0).toUpperCase() + tab.slice(1);
             document.getElementById('step3SectionDescription').textContent = descriptions[tab];
 
+            // Update focus tooltips to reflect this tab's default search
+            const gbuPerplexityTooltips = {
+                good: 'Default: positive uplifting jewelry news, beautiful designs, new collections, celebrity jewelry, awards, success stories',
+                bad: 'Default: jewelry heists, robbery, fraud, lawsuits, counterfeit, criminal activity, negative industry news, cautionary tales',
+                ugly: 'Default: bizarre, quirky, novelty, unusual jewelry — food-shaped, wearable art, unconventional design, funny, eccentric pieces'
+            };
+            const gbuSourceTooltips = {
+                good: 'Default: searches curated sources for uplifting jewelry news, new collections, design achievements',
+                bad: 'Default: searches curated sources for jewelry heists, crime, fraud, industry scandals',
+                ugly: 'Default: searches curated sources for bizarre, novelty, and unconventional jewelry stories'
+            };
+            const gbuPInfo = document.getElementById('gbu-perplexity-info');
+            const gbuSInfo = document.getElementById('gbu-source-info');
+            if (gbuPInfo) gbuPInfo.dataset.tooltip = gbuPerplexityTooltips[tab];
+            if (gbuSInfo) gbuSInfo.dataset.tooltip = gbuSourceTooltips[tab];
+
             // Restore new tab's cached results (or show empty state)
             const newState = gbuSearchState[tab];
             const perplexityDiv = document.getElementById('gbu-perplexity-results');
@@ -4702,6 +4815,22 @@
             const sourceInput = document.getElementById('step5-source-query');
             if (perplexityInput) perplexityInput.placeholder = perplexityPlaceholders[tab] || 'jewelry industry news';
             if (sourceInput) sourceInput.placeholder = sourcePlaceholders[tab] || 'jewelry industry news';
+
+            // Update focus tooltips to reflect this tab's default search
+            const step5PerplexityTooltips = {
+                pulse: 'Default: investigative analysis, in-depth reports on trends impacting the jewelry industry — gold prices, tariffs, lab-grown diamonds, consumer behavior',
+                partner: 'Default: actionable tips, best practices, how-to guides for jewelry retail — marketing, customer experience, sales strategies',
+                news: 'Default: breaking news, headlines, latest announcements, jewelry industry recent developments, notable events'
+            };
+            const step5SourceTooltips = {
+                pulse: 'Default: searches curated sources for investigative reports, gold market, lab diamonds, consumer behavior',
+                partner: 'Default: searches curated sources for jeweler best practices, retail tips, customer experience guides',
+                news: 'Default: searches curated sources for breaking jewelry industry news, announcements, recent developments'
+            };
+            const s5PInfo = document.getElementById('step5-perplexity-info');
+            const s5SInfo = document.getElementById('step5-source-info');
+            if (s5PInfo) s5PInfo.dataset.tooltip = step5PerplexityTooltips[tab] || step5PerplexityTooltips.pulse;
+            if (s5SInfo) s5SInfo.dataset.tooltip = step5SourceTooltips[tab] || step5SourceTooltips.pulse;
 
             // Show/hide the Industry Pulse theme suggestion panel
             const themeSection = document.getElementById('pulse-theme-section');
