@@ -42,6 +42,7 @@ from backend.integrations.openai_client import OpenAIClient
 from backend.integrations.claude_client import ClaudeClient
 from backend.integrations.gemini_client import GeminiClient
 from backend.integrations.perplexity_client import PerplexityClient
+from backend.integrations.reddit_client import RedditClient
 
 # Import config
 from config.brand_guidelines import (
@@ -119,6 +120,12 @@ try:
     print("[OK] Perplexity initialized")
 except Exception as e:
     print(f"[WARNING] Perplexity not available: {e}")
+
+reddit_client = None
+try:
+    reddit_client = RedditClient()
+except Exception as e:
+    print(f"[WARNING] Reddit not available: {e}")
 
 # Google Cloud Storage for drafts and images
 GCS_BUCKET_NAME = 'stay-in-the-loupe-drafts'
@@ -582,20 +589,21 @@ def search_perplexity_v2():
 
         # Section-specific search queries based on style guide
         section_queries = {
-            'the_good': 'positive jewelry news new designs trends sales records success stories innovations awards',
-            'the_bad': 'jewelry heists thefts scams fraud robbery security breaches crime negative news',
-            'the_ugly': 'bizarre unusual strange jewelry design pieces weird jewelry ugly jewelry specific jewelry item quirky celebrity jewelry strange jewelry finds',
-            'partner_advantage': 'jewelry business advice tips best practices how to jeweler marketing sales strategies recommendations for jewelers retail tips',
-            'industry_pulse': 'jewelry industry news trends market analysis business developments',
-            'industry_news': 'jewelry industry latest news headlines announcements events'
+            'the_good': 'positive uplifting jewelry news beautiful designs new collections celebrity jewelry awards achievements success stories',
+            'the_bad': 'jewelry heists robbery fraud lawsuits counterfeit criminal activity negative industry news cautionary tales',
+            'the_ugly': 'bizarre quirky novelty unusual jewelry food-shaped wearable art unconventional design funny eccentric jewelry piece',
+            'industry_pulse': 'investigative analysis in-depth report current trend impacting jewelry industry gold prices tariffs lab-grown diamonds consumer behavior',
+            'partner_advantage': 'actionable tips best practices how-to guide jewelry retail marketing customer experience sales strategies for jewelers',
+            'industry_news': 'breaking news headlines latest announcements jewelry industry recent developments notable events'
         }
 
         # Build section-specific query
         section_focus = section_queries.get(section, '')
         if section_focus:
-            # For Partner Advantage, use more specific advice-focused query
             if section == 'partner_advantage':
                 search_query = f"practical tips and advice for jewelry retail {query} jeweler best practices how to guides"
+            elif section == 'industry_pulse':
+                search_query = f"jewelry industry investigative deep dive {query} current trends analysis impact on jewelers"
             else:
                 search_query = f"jewelry {section_focus} {query}"
         else:
@@ -769,8 +777,15 @@ def search_sources_v2():
             'design': [
                 'jckonline.com', 'nationaljeweler.com', 'jewellerynet.com',
                 'rapaport.com'
+            ],
+            'social': [
+                'reddit.com', 'pinterest.com', 'tiktok.com'
             ]
         }
+
+        # For The Ugly, auto-include social sources (Reddit, Pinterest, TikTok)
+        if section == 'the_ugly' and 'social' not in source_packs:
+            source_packs = list(source_packs) + ['social']
 
         # Collect sites from selected packs
         sites = []
@@ -782,38 +797,103 @@ def search_sources_v2():
             sites = JEWELRY_NEWS_SOURCES
 
         # Build site: queries with 3-query cascade
-        site_query = ' OR '.join([f'site:{s}' for s in sites[:6]])
+        # For The Ugly, prioritize social sites; for others, standard 6-site limit
+        if section == 'the_ugly':
+            social_sites = [s for s in sites if s in ('reddit.com', 'pinterest.com', 'tiktok.com')]
+            jewelry_sites = [s for s in sites if s not in ('reddit.com', 'pinterest.com', 'tiktok.com')]
+            ordered_sites = social_sites + jewelry_sites
+            site_query = ' OR '.join([f'site:{s}' for s in ordered_sites[:6]])
+        else:
+            site_query = ' OR '.join([f'site:{s}' for s in sites[:6]])
 
         # Section-specific queries
         if section == 'partner_advantage':
-            # For Partner Advantage, search for advice/tips articles
+            # Actionable tips and best practices for running a jewelry business
             queries = [
                 f"""Search for: ({site_query}) {query} tips advice how to best practices
 
 Find practical advice articles from the {time_desc} from jewelry industry sources.
-Focus on actionable tips, strategies, and best practices for jewelers.
+Focus on actionable tips, strategies, and best practices for independent jewelers.
 Return results with title, url, publisher, published_date, and summary.""",
 
-                f"""Search for: ({site_query}) jeweler business advice marketing sales tips strategies
+                f"""Search for: ({site_query}) jeweler business advice marketing sales customer experience
 
-Find how-to guides and advice articles from the {time_desc} about running a jewelry business.
+Find how-to guides and advice articles from the {time_desc} about running a profitable jewelry business.
 Return results with title, url, publisher, published_date, and summary.""",
 
-                f"""Search for jewelry retail tips best practices from industry experts.
+                f"""Search for jewelry retail tips and best practices from industry experts.
 
 Find advice articles from the {time_desc} about: {query}
-Focus on practical recommendations and strategies for jewelers.
+Focus on practical recommendations and actionable strategies for jewelers.
+Return results with title, url, publisher, published_date, and summary."""
+            ]
+        elif section == 'industry_pulse':
+            # Investigative deep-dive into a specific industry trend
+            queries = [
+                f"""Search for: ({site_query}) {query} analysis trends impact industry
+
+Find investigative or in-depth articles from the {time_desc} covering a significant trend or development impacting the jewelry industry.
+Focus on: gold prices, tariffs, lab-grown diamonds, consumer behavior shifts, supply chain changes.
+Return results with title, url, publisher, published_date, and summary.""",
+
+                f"""Search for: ({site_query}) jewelry industry analysis market report tariffs gold lab-grown diamonds
+
+Find analytical or investigative articles from the {time_desc} about major forces shaping the jewelry business.
+Return results with title, url, publisher, published_date, and summary.""",
+
+                f"""Search for jewelry industry trends and investigative reports from trade publications.
+
+Find in-depth articles from the {time_desc} about: {query}
+Focus on market analysis, industry challenges, and significant business developments.
+Return results with title, url, publisher, published_date, and summary."""
+            ]
+        elif section == 'industry_news':
+            # Breaking news and headline stories
+            queries = [
+                f"""Search for: ({site_query}) {query} latest news
+
+Find the most recent breaking news and headline stories from the {time_desc} about the jewelry industry.
+Return results with title, url, publisher, published_date, and summary.""",
+
+                f"""Search for: ({site_query}) jewelry industry news announcements events
+
+Find news stories and announcements from the {time_desc} about notable happenings in the jewelry business.
+Return results with title, url, publisher, published_date, and summary.""",
+
+                f"""Search for jewelry industry news from trade publications.
+
+Find recent news articles from the {time_desc} about: {query}
+Focus on notable events, company news, and industry announcements.
+Return results with title, url, publisher, published_date, and summary."""
+            ]
+        elif section == 'the_ugly':
+            # Quirky, unusual jewelry items - includes social sources
+            queries = [
+                f"""Search for: ({site_query}) {query} quirky unusual novelty jewelry
+
+Find examples of unusual, non-traditional, or eyebrow-raising jewelry items from the {time_desc}.
+Focus on: food-shaped jewelry, novelty wearables, extreme designs, funny or eccentric pieces.
+Return results with title, url, publisher, published_date, and summary.""",
+
+                f"""Search for: ({site_query}) bizarre unique wearable art jewelry design unconventional
+
+Find playful or conversation-worthy jewelry items from the {time_desc}. Look for pieces that are non-traditional or unique in a fun way.
+Return results with title, url, publisher, published_date, and summary.""",
+
+                f"""Search for unusual or quirky jewelry finds.
+
+Find examples from the {time_desc} of jewelry that's non-traditional, novelty, or unusual in a playful way.
 Return results with title, url, publisher, published_date, and summary."""
             ]
         else:
-            # Default queries for news sections
+            # Default queries for news sections (the_good, the_bad, general)
             queries = [
                 f"""Search for: ({site_query}) {query}
 
 Find articles from the {time_desc} from these jewelry industry sources.
 Return results with title, url, publisher, published_date, and summary.""",
 
-                f"""Search for: ({site_query}) jewelry industry news trends
+                f"""Search for: ({site_query}) jewelry industry news
 
 Find business news from the {time_desc} about jewelry retail and wholesale.
 Return results with title, url, publisher, published_date, and summary.""",
@@ -821,7 +901,6 @@ Return results with title, url, publisher, published_date, and summary.""",
                 f"""Search for jewelry industry news from trade publications.
 
 Find articles from the {time_desc} about: {query}
-Focus on business insights, trends, and industry analysis.
 Return results with title, url, publisher, published_date, and summary."""
             ]
 
@@ -879,6 +958,140 @@ Return results with title, url, publisher, published_date, and summary."""
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e), 'results': []}), 500
+
+
+@app.route('/api/v2/search-reddit-ugly', methods=['POST'])
+def search_reddit_ugly():
+    """
+    Reddit search specifically for The Ugly section.
+    Uses Reddit API with proper time filtering so results are genuinely recent.
+    Targets r/jewelry, r/Justrolledintotheshop, r/mildlyinteresting.
+    """
+    try:
+        data = request.json or {}
+        time_window = data.get('time_window', '30d')
+        exclude_urls = data.get('exclude_urls', [])
+
+        if not reddit_client or not reddit_client.is_available():
+            return jsonify({
+                'success': False,
+                'error': 'Reddit API not configured. Add REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET to .env',
+                'results': []
+            }), 503
+
+        safe_print(f"\n[Reddit Ugly] Searching for quirky jewelry, time_window={time_window}")
+
+        posts = reddit_client.search_for_ugly(
+            time_window=time_window,
+            max_results=8,
+            exclude_urls=exclude_urls
+        )
+
+        # Enrich with LLM to generate newsletter-ready headline and so_what
+        if posts:
+            posts = enrich_results_with_llm(posts, 'quirky unusual jewelry', 'the_ugly')
+
+        safe_print(f"[Reddit Ugly] Returning {len(posts)} posts")
+
+        return jsonify({
+            'success': True,
+            'results': posts,
+            'source': 'reddit',
+            'time_window': time_window,
+            'generated_at': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        safe_print(f"[API v2 ERROR] Reddit Ugly: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e), 'results': []}), 500
+
+
+@app.route('/api/v2/suggest-pulse-themes', methods=['POST'])
+def suggest_pulse_themes():
+    """
+    Industry Pulse: Two-layer theme clustering
+    Takes existing search results and groups them into 3-4 investigative themes.
+    Each theme includes a focused search query so editors can drill deeper.
+    """
+    try:
+        data = request.json
+        results = data.get('results', [])
+
+        if not results:
+            return jsonify({'success': False, 'error': 'No results provided', 'themes': []}), 400
+
+        # Build a summary of the results for the LLM
+        results_summary = ""
+        for i, r in enumerate(results[:12]):
+            results_summary += f"""
+Article {i+1}:
+- Title: {r.get('title', r.get('headline', ''))}
+- Publisher: {r.get('publisher', '')}
+- Summary: {r.get('snippet', r.get('industry_data', ''))[:300]}
+- URL: {r.get('url', '')}
+"""
+
+        prompt = f"""You are an editor for "Stay In The Loupe," a monthly jewelry industry newsletter.
+The Industry Pulse section features an investigative deep-dive into a single significant topic impacting the jewelry business right now.
+
+Here are articles collected from recent research:
+{results_summary}
+
+Based on these articles, identify 3-4 distinct investigative themes an editor could build a Pulse story around.
+For each theme:
+1. title: A compelling 6-10 word headline for the potential story
+2. description: One sentence explaining what the investigative angle is
+3. query: A focused search query to find MORE articles on this specific topic (8-15 words)
+4. article_urls: List of URLs from the above articles that best support this theme
+
+Return ONLY a JSON object:
+{{
+    "themes": [
+        {{
+            "title": "Theme title here",
+            "description": "One sentence description of the investigative angle",
+            "query": "focused search query to find more articles",
+            "article_urls": ["url1", "url2"]
+        }}
+    ]
+}}"""
+
+        model_config = get_model_for_task('research_enrichment')
+        model_id = model_config.get('id', 'gpt-4o')
+        max_tokens_param = model_config.get('max_tokens_param', 'max_tokens')
+
+        api_params = {
+            "model": model_id,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.3,
+        }
+        api_params[max_tokens_param] = 1000
+
+        response = openai_client.client.chat.completions.create(**api_params)
+        content = response.choices[0].message.content.strip()
+
+        if content.startswith("```"):
+            content = re.sub(r"^```[a-zA-Z]*\n", "", content)
+            content = re.sub(r"\n```$", "", content).strip()
+
+        parsed = json.loads(content)
+        themes = parsed.get('themes', [])
+
+        safe_print(f"[Pulse Themes] Generated {len(themes)} theme suggestions")
+
+        return jsonify({
+            'success': True,
+            'themes': themes,
+            'generated_at': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        safe_print(f"[API v2 ERROR] Suggest Pulse Themes: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e), 'themes': []}), 500
 
 
 def extract_domain(url):

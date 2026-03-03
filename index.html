@@ -1913,6 +1913,13 @@
                 </button>
             </div>
 
+            <!-- Search All button -->
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+                <button class="research-card-search-btn" id="gbu-search-all-btn" onclick="searchAllSources('gbu')" style="max-width: 220px; background: #272d3f;">
+                    Search All Sources at Once
+                </button>
+            </div>
+
             <!-- Research Dashboard - 3 Cards -->
             <div class="research-dashboard" id="gbuResearchDashboard" style="position: relative;">
                 <div id="skipGBUOverlay" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.9); z-index: 10; border-radius: 8px; align-items: center; justify-content: center;">
@@ -1997,6 +2004,26 @@
                     <button class="research-card-search-btn" onclick="searchSources('gbu')">Search Sources</button>
                     <p class="research-card-helper">Select source packs and search</p>
                     <div class="research-card-results" id="gbu-source-results"></div>
+                </div>
+
+                <!-- Reddit Card — only visible on The Ugly tab -->
+                <div class="research-card" id="gbu-reddit-card" style="display: none;">
+                    <div class="research-card-header">
+                        <div class="research-card-title"><span class="icon">🤖</span> Reddit Search</div>
+                        <span class="research-card-badge badge-green">Live + Dated</span>
+                    </div>
+                    <p class="research-card-description">Searches r/jewelry, r/Justrolledintotheshop, and r/mildlyinteresting directly via Reddit API — results are genuinely within the selected time window.</p>
+                    <div class="research-card-filters">
+                        <select id="gbu-reddit-time">
+                            <option value="7d">Last 7 days</option>
+                            <option value="15d">Last 15 days</option>
+                            <option value="30d" selected>Last 30 days</option>
+                            <option value="90d">Last 90 days</option>
+                        </select>
+                    </div>
+                    <button class="research-card-search-btn" onclick="searchRedditUgly()">Search Reddit</button>
+                    <p class="research-card-helper">Finds quirky, unusual, food-shaped, and novelty jewelry posts</p>
+                    <div class="research-card-results" id="gbu-reddit-results"></div>
                 </div>
             </div>
 
@@ -2138,6 +2165,13 @@
                 <span>📑 Selected: (<span id="step5SelectedCount">0</span>/5) (min 2)</span>
             </div>
 
+            <!-- Search All button -->
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+                <button class="research-card-search-btn" id="step5-search-all-btn" onclick="searchAllSources('step5')" style="max-width: 220px; background: #272d3f;">
+                    Search All Sources at Once
+                </button>
+            </div>
+
             <div class="research-dashboard" id="step5Dashboard" style="position: relative;">
                 <div id="skipOverlay" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.9); z-index: 10; border-radius: 8px; display: none; align-items: center; justify-content: center;">
                     <div style="text-align: center; padding: 30px; color: #b45309; font-weight: 600; font-size: 16px;">
@@ -2151,9 +2185,9 @@
                         <div class="research-card-title"><span class="icon">🔮</span> Perplexity Research</div>
                         <span class="research-card-badge badge-orange">AI + Citations</span>
                     </div>
-                    <p class="research-card-description">Searches via Perplexity AI, then GPT-5.2 transforms findings into actionable tips for jewelers.</p>
+                    <p class="research-card-description">Searches via Perplexity AI, then GPT-5.2 transforms findings into section-specific content.</p>
                     <div class="research-card-filters">
-                        <input type="text" id="step5-perplexity-query" placeholder="jeweler business tips">
+                        <input type="text" id="step5-perplexity-query" placeholder="gold prices, tariffs, lab-grown diamonds...">
                         <select id="step5-perplexity-time">
                             <option value="7d">Last 7 days</option>
                             <option value="15d">Last 15 days</option>
@@ -2163,6 +2197,14 @@
                     </div>
                     <button class="research-card-search-btn" onclick="searchPerplexity('step5')">Search with Perplexity</button>
                     <div class="research-card-results" id="step5-perplexity-results"></div>
+                    <!-- Industry Pulse theme suggestion (only shown on pulse tab) -->
+                    <div id="pulse-theme-section" style="display: none; margin-top: 12px; border-top: 1px solid #e5e7eb; padding-top: 12px;">
+                        <button class="research-card-search-btn" onclick="suggestPulseThemes()" id="suggest-themes-btn" style="background: #018181; margin-bottom: 8px;">
+                            Suggest Investigative Themes
+                        </button>
+                        <p style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Groups search results into 3-4 topic angles. Pick one to do a focused deep search.</p>
+                        <div id="pulse-themes-container"></div>
+                    </div>
                 </div>
 
                 <div class="research-card">
@@ -4508,9 +4550,11 @@
                 const perplexityDiv = document.getElementById('gbu-perplexity-results');
                 const insightDiv = document.getElementById('gbu-insight-results');
                 const sourceDiv = document.getElementById('gbu-source-results');
+                const redditDiv = document.getElementById('gbu-reddit-results');
                 if (perplexityDiv) gbuSearchState[oldTab].htmlCache.perplexity = perplexityDiv.innerHTML;
                 if (insightDiv) gbuSearchState[oldTab].htmlCache.insight = insightDiv.innerHTML;
                 if (sourceDiv) gbuSearchState[oldTab].htmlCache.source = sourceDiv.innerHTML;
+                if (redditDiv) gbuSearchState[oldTab].htmlCache.reddit = redditDiv.innerHTML;
                 gbuSearchState[oldTab].displayedArticles = window._displayedArticles ? [...window._displayedArticles] : [];
             }
 
@@ -4548,6 +4592,14 @@
             }
             if (sourceDiv) {
                 sourceDiv.innerHTML = newState.htmlCache.source || '<p style="color: #666; font-size: 13px; text-align: center; padding: 20px;">Search to find articles for this section</p>';
+            }
+
+            // Show Reddit card only on The Ugly tab; restore its cached results
+            const redditCard = document.getElementById('gbu-reddit-card');
+            const redditDiv = document.getElementById('gbu-reddit-results');
+            if (redditCard) redditCard.style.display = tab === 'ugly' ? 'block' : 'none';
+            if (redditDiv) {
+                redditDiv.innerHTML = newState.htmlCache.reddit || '<p style="color: #666; font-size: 13px; text-align: center; padding: 20px;">Search Reddit for quirky jewelry finds</p>';
             }
 
             // Restore displayed articles for this tab
@@ -4634,6 +4686,26 @@
             // Update header text
             document.getElementById('step5SectionTitle').textContent = titles[tab];
             document.getElementById('step5SectionDesc').textContent = descs[tab];
+
+            // Update search placeholders to reflect the active tab
+            const perplexityPlaceholders = {
+                pulse: 'gold prices, tariffs, lab-grown diamonds...',
+                partner: 'jeweler marketing tips, customer experience...',
+                news: 'jewelry industry breaking news...'
+            };
+            const sourcePlaceholders = {
+                pulse: 'investigative topic: tariffs, gold market, lab diamonds',
+                partner: 'jeweler best practices, retail tips',
+                news: 'jewelry news headlines'
+            };
+            const perplexityInput = document.getElementById('step5-perplexity-query');
+            const sourceInput = document.getElementById('step5-source-query');
+            if (perplexityInput) perplexityInput.placeholder = perplexityPlaceholders[tab] || 'jewelry industry news';
+            if (sourceInput) sourceInput.placeholder = sourcePlaceholders[tab] || 'jewelry industry news';
+
+            // Show/hide the Industry Pulse theme suggestion panel
+            const themeSection = document.getElementById('pulse-theme-section');
+            if (themeSection) themeSection.style.display = tab === 'pulse' ? 'block' : 'none';
 
             // Update selection counter
             const selectedCount = selectedArticles[articleKeys[tab]]?.length || 0;
@@ -5371,13 +5443,16 @@
             preserved.forEach(item => resultsDiv.insertBefore(item, resultsDiv.firstChild));
 
             try {
+                const step5SectionMap = { pulse: 'industry_pulse', partner: 'partner_advantage', news: 'industry_news' };
                 const response = await fetch(`${API_BASE}/api/v2/search-perplexity`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         query,
                         time_window: timeWindow,
-                        section: section === 'gbu' ? 'the_' + currentGBUTab : section
+                        section: section === 'gbu' ? 'the_' + currentGBUTab
+                               : section === 'step5' ? (step5SectionMap[currentStep5Tab] || 'industry_pulse')
+                               : section
                     })
                 });
 
@@ -5403,12 +5478,15 @@
             preserved.forEach(item => resultsDiv.insertBefore(item, resultsDiv.firstChild));
 
             try {
+                const step5SectionMap = { pulse: 'industry_pulse', partner: 'partner_advantage', news: 'industry_news' };
                 const response = await fetch(`${API_BASE}/api/v2/search-insights`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         time_window: timeWindow,
-                        section: section === 'gbu' ? 'the_' + currentGBUTab : section
+                        section: section === 'gbu' ? 'the_' + currentGBUTab
+                               : section === 'step5' ? (step5SectionMap[currentStep5Tab] || 'industry_pulse')
+                               : section
                     })
                 });
 
@@ -5437,13 +5515,16 @@
             preserved.forEach(item => resultsDiv.insertBefore(item, resultsDiv.firstChild));
 
             try {
+                const step5SectionMap = { pulse: 'industry_pulse', partner: 'partner_advantage', news: 'industry_news' };
                 const response = await fetch(`${API_BASE}/api/v2/search-sources`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         query,
                         time_window: timeWindow,
-                        section: section === 'gbu' ? 'the_' + currentGBUTab : section
+                        section: section === 'gbu' ? 'the_' + currentGBUTab
+                               : section === 'step5' ? (step5SectionMap[currentStep5Tab] || 'industry_pulse')
+                               : section
                     })
                 });
 
@@ -5451,6 +5532,112 @@
                 displayResults(section, 'source', data.results || []);
             } catch (error) {
                 resultsDiv.innerHTML = '<p style="color: #dc2626; padding: 20px;">Search failed: ' + error.message + '</p>';
+            }
+        }
+
+        async function searchRedditUgly() {
+            const timeSelect = document.getElementById('gbu-reddit-time');
+            const resultsDiv = document.getElementById('gbu-reddit-results');
+            const timeWindow = timeSelect ? timeSelect.value : '30d';
+
+            const preserved = Array.from(resultsDiv.querySelectorAll('.research-result-item[data-preserved="true"]'));
+            resultsDiv.innerHTML = '<div style="text-align: center; padding: 20px;"><div class="spinner"></div></div>';
+            preserved.forEach(item => resultsDiv.insertBefore(item, resultsDiv.firstChild));
+
+            try {
+                const response = await fetch(`${API_BASE}/api/v2/search-reddit-ugly`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ time_window: timeWindow })
+                });
+                const data = await response.json();
+                displayResults('gbu', 'reddit', data.results || []);
+            } catch (error) {
+                resultsDiv.innerHTML = '<p style="color: #dc2626; padding: 20px;">Search failed: ' + error.message + '</p>';
+            }
+        }
+
+        async function suggestPulseThemes() {
+            // Collect all currently displayed results from all step5 search cards
+            const allResults = [];
+            const seenUrls = new Set();
+            ['perplexity', 'insight', 'source'].forEach(source => {
+                const div = document.getElementById('step5-' + source + '-results');
+                if (!div) return;
+                div.querySelectorAll('.research-result-item').forEach(item => {
+                    const url = item.dataset.url;
+                    if (!url || seenUrls.has(url)) return;
+                    seenUrls.add(url);
+                    const idx = parseInt(item.getAttribute('data-article-idx'));
+                    const article = (window._displayedArticles || [])[idx];
+                    if (article) allResults.push(article);
+                });
+            });
+
+            if (allResults.length === 0) {
+                alert('Run a search first to find articles, then click this button to suggest themes.');
+                return;
+            }
+
+            const btn = document.getElementById('suggest-themes-btn');
+            const container = document.getElementById('pulse-themes-container');
+            btn.disabled = true;
+            btn.textContent = 'Analyzing themes...';
+            container.innerHTML = '<div style="text-align: center; padding: 16px;"><div class="spinner"></div></div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/v2/suggest-pulse-themes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ results: allResults })
+                });
+                const data = await response.json();
+
+                if (!data.success || !data.themes?.length) {
+                    container.innerHTML = '<p style="color: #dc2626; font-size: 13px;">Could not generate themes. Try searching for more articles first.</p>';
+                    return;
+                }
+
+                container.innerHTML = data.themes.map((theme, i) => `
+                    <div style="border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; margin-bottom: 8px; background: #f9fafb;">
+                        <div style="font-weight: 600; font-size: 14px; color: #272d3f; margin-bottom: 4px;">${theme.title}</div>
+                        <div style="font-size: 13px; color: #6b7280; margin-bottom: 8px;">${theme.description}</div>
+                        <button class="research-card-search-btn" style="background: #018181; font-size: 12px; padding: 6px 14px;" onclick="drillIntoTheme(${JSON.stringify(theme.query).replace(/'/g, '&#39;')})">
+                            Find more on this topic →
+                        </button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<p style="color: #dc2626; font-size: 13px;">Error: ' + error.message + '</p>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Suggest Investigative Themes';
+            }
+        }
+
+        function drillIntoTheme(query) {
+            const input = document.getElementById('step5-perplexity-query');
+            if (input) input.value = query;
+            searchPerplexity('step5');
+        }
+
+        async function searchAllSources(section) {
+            const allBtn = document.getElementById(section + '-search-all-btn');
+            if (allBtn) {
+                allBtn.disabled = true;
+                allBtn.textContent = 'Searching all sources...';
+            }
+            try {
+                await Promise.all([
+                    searchPerplexity(section),
+                    searchInsights(section),
+                    searchSources(section)
+                ]);
+            } finally {
+                if (allBtn) {
+                    allBtn.disabled = false;
+                    allBtn.textContent = 'Search All Sources at Once';
+                }
             }
         }
 

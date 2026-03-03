@@ -63,7 +63,7 @@ class PerplexityClient:
 
             geo_context = f" Focus on {geography}." if geography else ""
 
-            system_prompt = f"""You are a research assistant helping independent P&C insurance agents find relevant industry news and insights.
+            system_prompt = f"""You are a research assistant helping compile a monthly jewelry industry newsletter called "Stay In The Loupe."
 
 Search for {time_context} articles and news.{geo_context}
 
@@ -72,7 +72,6 @@ For each finding, provide:
 2. The source URL (must be a real, working URL)
 3. The publisher/source name
 4. A 2-3 sentence summary explaining the finding
-5. Why this matters for insurance agents and their clients
 
 Return your findings as a JSON array with this structure:
 {{
@@ -82,17 +81,26 @@ Return your findings as a JSON array with this structure:
             "url": "https://actual-source-url.com/article",
             "publisher": "Source name",
             "published_date": "YYYY-MM-DD or null if unknown",
-            "summary": "2-3 sentence summary of the article",
-            "agent_implications": "Why this matters for insurance agents"
+            "summary": "2-3 sentence summary of the article"
         }}
     ]
 }}
 
 Important:
-- Only include results with REAL, verifiable URLs
-- Focus on actionable insights for P&C insurance agents
-- Include specific data points, statistics, and rate changes when available
+- Only include results with REAL, verifiable URLs from the {time_context}
+- Focus on jewelry, gemstones, watches, fine jewelry, precious metals, and jewelry retail
+- Exclude: personnel announcements, promotions, obituaries, political news unrelated to jewelry
+- Include specific data points, statistics, and concrete details when available
 - Return exactly {max_results} results"""
+
+            # Build recency filter for Perplexity API
+            recency_map = {
+                '7d': 'week',
+                '15d': 'month',
+                '30d': 'month',
+                '90d': 'month'
+            }
+            recency_filter = recency_map.get(time_window, 'month')
 
             # Make API request
             headers = {
@@ -101,13 +109,14 @@ Important:
             }
 
             payload = {
-                "model": "sonar",  # sonar has web search built-in
+                "model": "sonar-pro",  # sonar-pro has deeper search and better recency
                 "messages": [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": query}
                 ],
                 "temperature": 0.2,
-                "max_tokens": 2000
+                "max_tokens": 2000,
+                "search_recency_filter": recency_filter
             }
 
             print(f"[Perplexity] Searching: {query[:100]}...")
@@ -260,27 +269,29 @@ Important:
         return first
 
     def _generate_agent_angle(self, sentences: list) -> str:
-        """Generate insurance agent-focused implications from content"""
+        """Generate jeweler-focused implications from content"""
         if not sentences:
-            return "Review this source for insurance industry insights"
+            return "Review this source for jewelry industry insights"
 
         content = ' '.join(sentences).lower()
 
         # Check for specific topics and provide targeted implications
-        if any(word in content for word in ['rate', 'premium', 'price', 'cost', 'increase']):
-            return "Review client policies that may be affected by these rate changes"
-        elif any(word in content for word in ['claim', 'loss', 'damage', 'liability']):
-            return "Use this insight when discussing coverage options with clients"
-        elif any(word in content for word in ['regulation', 'compliance', 'law', 'requirement']):
-            return "Ensure your agency practices align with these regulatory changes"
-        elif any(word in content for word in ['technology', 'digital', 'insurtech', 'automation']):
-            return "Assess if this technology could improve your agency operations"
-        elif any(word in content for word in ['market', 'trend', 'forecast', 'growth']):
-            return "Factor this market trend into your client conversations and prospecting"
-        elif any(word in content for word in ['catastrophe', 'disaster', 'weather', 'storm']):
-            return "Proactively contact clients in affected areas about coverage reviews"
+        if any(word in content for word in ['gold', 'silver', 'platinum', 'price', 'market']):
+            return "Consider how precious metal prices may affect your inventory purchasing and pricing strategy"
+        elif any(word in content for word in ['heist', 'theft', 'robbery', 'stolen', 'fraud']):
+            return "Review your security protocols and ensure adequate insurance coverage"
+        elif any(word in content for word in ['lab-grown', 'lab grown', 'synthetic', 'diamond']):
+            return "Stay informed on lab-grown vs. natural diamond trends affecting consumer purchasing decisions"
+        elif any(word in content for word in ['tariff', 'import', 'trade', 'supply chain']):
+            return "Assess how trade changes may impact your inventory costs and sourcing strategy"
+        elif any(word in content for word in ['trend', 'design', 'style', 'fashion', 'collection']):
+            return "Use this trend insight to guide your inventory selection and customer conversations"
+        elif any(word in content for word in ['engagement', 'wedding', 'bridal', 'ring']):
+            return "Leverage this bridal market insight to improve your engagement jewelry offerings"
+        elif any(word in content for word in ['retail', 'sales', 'revenue', 'consumer']):
+            return "Factor this retail insight into your marketing and sales strategy"
         else:
-            return "Share this industry insight with clients to demonstrate your expertise"
+            return "Share this industry insight with your team and customers to stay ahead of the market"
 
     def _parse_results(self, content: str, max_results: int) -> List[Dict]:
         """Parse JSON results from Perplexity response (legacy approach)"""
