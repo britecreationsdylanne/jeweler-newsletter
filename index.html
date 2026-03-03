@@ -2060,14 +2060,9 @@
                         <span class="research-card-badge badge-orange">Industry</span>
                     </div>
                     <p class="research-card-description">Searches curated jewelry industry sources, then GPT-5.2 extracts story angles and jeweler implications.</p>
-                    <div class="curated-sources">
+                    <div class="curated-sources" id="gbu-curated-sources">
                         <strong>Curated Sources:</strong>
                         nationaljeweler.com • jckonline.com • instoremag.com • southernjewelrynews.com • jewellermagazine.com
-                    </div>
-                    <div class="source-checkboxes">
-                        <label><input type="checkbox" checked class="gbu-source-filter" value="news"> Industry News</label>
-                        <label><input type="checkbox" class="gbu-source-filter" value="heists"> Heists & Crime</label>
-                        <label><input type="checkbox" class="gbu-source-filter" value="design"> Design Trends</label>
                     </div>
                     <div class="research-card-filters">
                         <select id="gbu-source-time">
@@ -4715,6 +4710,16 @@
                 redditDiv.innerHTML = newState.htmlCache.reddit || '<p style="color: #666; font-size: 13px; text-align: center; padding: 20px;">Search Reddit for quirky jewelry finds</p>';
             }
 
+            // Update the Source Explorer curated-sources label to show social sites on The Ugly tab
+            const curatedSources = document.getElementById('gbu-curated-sources');
+            if (curatedSources) {
+                if (tab === 'ugly') {
+                    curatedSources.innerHTML = '<strong>Curated Sources:</strong> nationaljeweler.com • jckonline.com • instoremag.com • southernjewelrynews.com<br><strong>+ Social:</strong> reddit.com • pinterest.com • tiktok.com';
+                } else {
+                    curatedSources.innerHTML = '<strong>Curated Sources:</strong> nationaljeweler.com • jckonline.com • instoremag.com • southernjewelrynews.com • jewellermagazine.com';
+                }
+            }
+
             // Restore displayed articles for this tab
             if (newState.displayedArticles && newState.displayedArticles.length > 0) {
                 window._displayedArticles = [...newState.displayedArticles];
@@ -5562,6 +5567,9 @@
             const query = queryInput.value || 'jewelry industry news';
             const timeWindow = timeSelect ? timeSelect.value : '30d';
 
+            // Capture active tab now — before the async fetch — so results land in the right cache
+            const capturedTab = section === 'gbu' ? currentGBUTab : section === 'step5' ? currentStep5Tab : null;
+
             // Track search query
             lastSearchQuery = query;
             lastSearchSource = 'perplexity';
@@ -5579,14 +5587,14 @@
                     body: JSON.stringify({
                         query,
                         time_window: timeWindow,
-                        section: section === 'gbu' ? 'the_' + currentGBUTab
-                               : section === 'step5' ? (step5SectionMap[currentStep5Tab] || 'industry_pulse')
+                        section: section === 'gbu' ? 'the_' + capturedTab
+                               : section === 'step5' ? (step5SectionMap[capturedTab] || 'industry_pulse')
                                : section
                     })
                 });
 
                 const data = await response.json();
-                displayResults(section, 'perplexity', data.results || []);
+                displayResults(section, 'perplexity', data.results || [], capturedTab);
             } catch (error) {
                 resultsDiv.innerHTML = '<p style="color: #dc2626; padding: 20px;">Search failed: ' + error.message + '</p>';
             }
@@ -5596,6 +5604,9 @@
             const timeSelect = document.getElementById(section + '-insight-time');
             const resultsDiv = document.getElementById(section + '-insight-results');
             const timeWindow = timeSelect ? timeSelect.value : '30d';
+
+            // Capture active tab now — before the async fetch — so results land in the right cache
+            const capturedTab = section === 'gbu' ? currentGBUTab : section === 'step5' ? currentStep5Tab : null;
 
             // Track search query
             lastSearchQuery = 'insights';
@@ -5613,14 +5624,14 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         time_window: timeWindow,
-                        section: section === 'gbu' ? 'the_' + currentGBUTab
-                               : section === 'step5' ? (step5SectionMap[currentStep5Tab] || 'industry_pulse')
+                        section: section === 'gbu' ? 'the_' + capturedTab
+                               : section === 'step5' ? (step5SectionMap[capturedTab] || 'industry_pulse')
                                : section
                     })
                 });
 
                 const data = await response.json();
-                displayResults(section, 'insight', data.results || []);
+                displayResults(section, 'insight', data.results || [], capturedTab);
             } catch (error) {
                 resultsDiv.innerHTML = '<p style="color: #dc2626; padding: 20px;">Search failed: ' + error.message + '</p>';
             }
@@ -5633,6 +5644,9 @@
 
             const query = queryInput ? queryInput.value : 'jewelry news';
             const timeWindow = timeSelect ? timeSelect.value : '30d';
+
+            // Capture active tab now — before the async fetch — so results land in the right cache
+            const capturedTab = section === 'gbu' ? currentGBUTab : section === 'step5' ? currentStep5Tab : null;
 
             // Track search query
             lastSearchQuery = query;
@@ -5651,14 +5665,14 @@
                     body: JSON.stringify({
                         query,
                         time_window: timeWindow,
-                        section: section === 'gbu' ? 'the_' + currentGBUTab
-                               : section === 'step5' ? (step5SectionMap[currentStep5Tab] || 'industry_pulse')
+                        section: section === 'gbu' ? 'the_' + capturedTab
+                               : section === 'step5' ? (step5SectionMap[capturedTab] || 'industry_pulse')
                                : section
                     })
                 });
 
                 const data = await response.json();
-                displayResults(section, 'source', data.results || []);
+                displayResults(section, 'source', data.results || [], capturedTab);
             } catch (error) {
                 resultsDiv.innerHTML = '<p style="color: #dc2626; padding: 20px;">Search failed: ' + error.message + '</p>';
             }
@@ -5770,25 +5784,34 @@
             }
         }
 
-        function displayResults(section, source, results) {
-            const resultsDiv = document.getElementById(section + '-' + source + '-results');
+        function displayResults(section, source, results, forTab) {
+            // Determine which tab these results belong to vs. which is currently active
+            const targetTab = forTab || (section === 'gbu' ? currentGBUTab : section === 'step5' ? currentStep5Tab : null);
+            const activeTab = section === 'gbu' ? currentGBUTab : section === 'step5' ? currentStep5Tab : null;
+            const tabChanged = targetTab && activeTab && targetTab !== activeTab;
 
-            // Preserve saved/custom article cards before clearing
-            const preservedItems = Array.from(resultsDiv.querySelectorAll('.research-result-item[data-preserved="true"]'));
-            resultsDiv.innerHTML = '';
-            preservedItems.forEach(item => resultsDiv.appendChild(item));
+            const realDiv = document.getElementById(section + '-' + source + '-results');
+            // If the tab changed while searching, write to a detached div so we don't corrupt the active tab's view
+            const resultsDiv = tabChanged ? document.createElement('div') : realDiv;
+
+            if (!tabChanged) {
+                // Preserve saved/custom article cards before clearing
+                const preservedItems = Array.from(resultsDiv.querySelectorAll('.research-result-item[data-preserved="true"]'));
+                resultsDiv.innerHTML = '';
+                preservedItems.forEach(item => resultsDiv.appendChild(item));
+            }
 
             if (results.length === 0) {
                 resultsDiv.innerHTML = '<p style="color: #666; font-size: 13px; padding: 20px; text-align: center;">No results found</p>';
-                // Save empty state to cache for GBU tabs
-                if (section === 'gbu' && gbuSearchState[currentGBUTab]) {
-                    gbuSearchState[currentGBUTab].htmlCache[source] = resultsDiv.innerHTML;
-                    gbuSearchState[currentGBUTab][source] = [];
+                // Save empty state to the correct tab's cache
+                if (section === 'gbu' && gbuSearchState[targetTab]) {
+                    gbuSearchState[targetTab].htmlCache[source] = resultsDiv.innerHTML;
+                    gbuSearchState[targetTab][source] = [];
                 }
                 // Save empty state to cache for Step5 tabs
-                if (section === 'step5' && step5SearchState[currentStep5Tab]) {
-                    step5SearchState[currentStep5Tab].htmlCache[source] = resultsDiv.innerHTML;
-                    step5SearchState[currentStep5Tab][source] = [];
+                if (section === 'step5' && step5SearchState[targetTab]) {
+                    step5SearchState[targetTab].htmlCache[source] = resultsDiv.innerHTML;
+                    step5SearchState[targetTab][source] = [];
                 }
                 return;
             }
@@ -5842,17 +5865,17 @@
                 resultsDiv.appendChild(item);
             });
 
-            // Save results to cache for GBU tabs
-            if (section === 'gbu' && gbuSearchState[currentGBUTab]) {
-                gbuSearchState[currentGBUTab].htmlCache[source] = resultsDiv.innerHTML;
-                gbuSearchState[currentGBUTab][source] = results;
-                gbuSearchState[currentGBUTab].displayedArticles = window._displayedArticles ? [...window._displayedArticles] : [];
+            // Save results to the correct tab's cache (targetTab = tab active when search started)
+            if (section === 'gbu' && gbuSearchState[targetTab]) {
+                gbuSearchState[targetTab].htmlCache[source] = resultsDiv.innerHTML;
+                gbuSearchState[targetTab][source] = results;
+                if (!tabChanged) gbuSearchState[targetTab].displayedArticles = window._displayedArticles ? [...window._displayedArticles] : [];
             }
             // Save results to cache for Step5 tabs
-            if (section === 'step5' && step5SearchState[currentStep5Tab]) {
-                step5SearchState[currentStep5Tab].htmlCache[source] = resultsDiv.innerHTML;
-                step5SearchState[currentStep5Tab][source] = results;
-                step5SearchState[currentStep5Tab].displayedArticles = window._displayedArticles ? [...window._displayedArticles] : [];
+            if (section === 'step5' && step5SearchState[targetTab]) {
+                step5SearchState[targetTab].htmlCache[source] = resultsDiv.innerHTML;
+                step5SearchState[targetTab][source] = results;
+                if (!tabChanged) step5SearchState[targetTab].displayedArticles = window._displayedArticles ? [...window._displayedArticles] : [];
             }
         }
 
