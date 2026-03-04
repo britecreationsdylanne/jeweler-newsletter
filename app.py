@@ -1094,6 +1094,124 @@ Return ONLY a JSON object:
         return jsonify({'success': False, 'error': str(e), 'themes': []}), 500
 
 
+@app.route('/api/v2/discover-pulse-themes', methods=['POST'])
+def discover_pulse_themes():
+    """
+    Industry Pulse Layer 1: Self-directed theme discovery.
+    Runs a broad Perplexity search for current jewelry industry trends,
+    then clusters results into 3-4 investigative themes with focused search queries.
+    No existing results required — this is the starting point.
+    """
+    try:
+        data = request.json or {}
+        time_window = data.get('time_window', '30d')
+
+        if not perplexity_client or not perplexity_client.is_available():
+            return jsonify({
+                'success': False,
+                'error': 'Perplexity API not configured. Add PERPLEXITY_API_KEY to .env',
+                'themes': []
+            }), 503
+
+        # Broad discovery query to surface newsworthy jewelry industry topics
+        discovery_query = (
+            "jewelry industry major trends breaking news investigative topics this month "
+            "gold prices tariffs lab-grown diamonds consumer behavior retail challenges "
+            "supply chain disruption technology market shifts"
+        )
+
+        safe_print(f"[Pulse Discovery] Running broad discovery search, time_window={time_window}")
+        search_results = perplexity_client.search(
+            query=discovery_query,
+            time_window=time_window,
+            max_results=12
+        )
+
+        if not search_results:
+            return jsonify({
+                'success': False,
+                'error': 'No results found. Try a longer time window.',
+                'themes': []
+            }), 404
+
+        # Build summary for GPT
+        results_summary = ""
+        for i, r in enumerate(search_results[:12]):
+            results_summary += f"""
+Article {i+1}:
+- Title: {r.get('title', r.get('headline', ''))}
+- Publisher: {r.get('publisher', '')}
+- Summary: {r.get('snippet', r.get('industry_data', ''))[:300]}
+- URL: {r.get('url', '')}
+"""
+
+        time_label = {'7d': 'past week', '15d': 'past 2 weeks', '30d': 'past month', '90d': 'past 3 months'}.get(time_window, 'recent period')
+
+        prompt = f"""You are an editor for "Stay In The Loupe," a monthly jewelry industry newsletter.
+The Industry Pulse section features an investigative deep-dive into a single significant topic impacting the jewelry business right now.
+
+Here are recent articles from the {time_label} of jewelry industry news:
+{results_summary}
+
+Based on these articles, identify 3-4 distinct investigative themes an editor could build a Pulse story around.
+Choose themes that are genuinely newsworthy, have real business impact on jewelers, and have enough depth for a multi-article deep-dive.
+Avoid vague themes — each should be specific enough to guide focused research.
+
+For each theme:
+1. title: A compelling 6-10 word headline for the potential story
+2. description: One sentence explaining the investigative angle and why it matters to jewelers right now
+3. query: A focused Perplexity search query to find deeper reporting on this specific topic (8-15 words, no quotes)
+4. article_urls: List of URLs from the above articles that best support this theme
+
+Return ONLY a JSON object:
+{{
+    "themes": [
+        {{
+            "title": "Theme title here",
+            "description": "One sentence description of the investigative angle and its impact on jewelers",
+            "query": "focused search query to find more articles on this topic",
+            "article_urls": ["url1", "url2"]
+        }}
+    ]
+}}"""
+
+        model_config = get_model_for_task('research_enrichment')
+        model_id = model_config.get('id', 'gpt-4o')
+        max_tokens_param = model_config.get('max_tokens_param', 'max_tokens')
+
+        api_params = {
+            "model": model_id,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.3,
+        }
+        api_params[max_tokens_param] = 1000
+
+        response = openai_client.client.chat.completions.create(**api_params)
+        content = response.choices[0].message.content.strip()
+
+        if content.startswith("```"):
+            content = re.sub(r"^```[a-zA-Z]*\n", "", content)
+            content = re.sub(r"\n```$", "", content).strip()
+
+        parsed = json.loads(content)
+        themes = parsed.get('themes', [])
+
+        safe_print(f"[Pulse Discovery] Generated {len(themes)} investigative themes from {len(search_results)} articles")
+
+        return jsonify({
+            'success': True,
+            'themes': themes,
+            'source_article_count': len(search_results),
+            'generated_at': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        safe_print(f"[API v2 ERROR] Discover Pulse Themes: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e), 'themes': []}), 500
+
+
 def extract_domain(url):
     """Extract domain from URL for publisher name"""
     if not url:

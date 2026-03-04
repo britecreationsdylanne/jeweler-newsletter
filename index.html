@@ -2249,7 +2249,29 @@
                 <span>📑 Selected: (<span id="step5SelectedCount">0</span>/5) (min 2)</span>
             </div>
 
-            <!-- Search All button -->
+            <!-- Layer 1: Industry Pulse Theme Discovery (only shown on pulse tab) -->
+            <div id="pulse-discovery-panel" style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1px solid #6ee7b7; border-radius: 10px; padding: 16px; margin-bottom: 14px;">
+                <div style="font-weight: 700; font-size: 14px; color: #065f46; margin-bottom: 4px;">🔍 Step 1: Discover This Month's Investigative Themes</div>
+                <div style="font-size: 13px; color: #047857; margin-bottom: 12px;">Scan current jewelry industry news to surface 3-4 investigative angles. Pick a theme to automatically focus all 3 search cards below.</div>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <select id="pulse-discovery-time" style="padding: 6px 10px; border: 1px solid #6ee7b7; border-radius: 6px; font-size: 13px; background: white; color: #065f46;">
+                        <option value="7d">Last 7 days</option>
+                        <option value="15d">Last 15 days</option>
+                        <option value="30d" selected>Last 30 days</option>
+                        <option value="90d">Last 3 months</option>
+                    </select>
+                    <button class="research-card-search-btn" onclick="discoverPulseThemes()" id="discover-themes-btn" style="background: #059669; max-width: 260px; margin: 0;">
+                        Discover Investigative Themes
+                    </button>
+                </div>
+                <div id="pulse-discovery-results" style="margin-top: 12px;"></div>
+                <div id="pulse-active-theme" style="display: none; margin-top: 12px; background: #065f46; color: white; border-radius: 8px; padding: 10px 14px; font-size: 13px;">
+                    <strong>Active Theme:</strong> <span id="pulse-active-theme-title"></span>
+                    <button onclick="clearPulseTheme()" style="float: right; background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 12px; padding: 0;">✕ Clear</button>
+                </div>
+            </div>
+
+            <!-- Search All button (Step 2) -->
             <div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
                 <button class="research-card-search-btn" id="step5-search-all-btn" onclick="searchAllSources('step5')" style="max-width: 220px; background: #272d3f;">
                     Search All Sources at Once
@@ -2285,12 +2307,12 @@
                     </div>
                     <button class="research-card-search-btn" onclick="searchPerplexity('step5')">Search with Perplexity</button>
                     <div class="research-card-results" id="step5-perplexity-results"></div>
-                    <!-- Industry Pulse theme suggestion (only shown on pulse tab) -->
+                    <!-- Industry Pulse theme refinement (only shown on pulse tab) -->
                     <div id="pulse-theme-section" style="display: block; margin-top: 12px; border-top: 1px solid #e5e7eb; padding-top: 12px;">
-                        <button class="research-card-search-btn" onclick="suggestPulseThemes()" id="suggest-themes-btn" style="background: #018181; margin-bottom: 8px;">
-                            Suggest Investigative Themes
+                        <button class="research-card-search-btn" onclick="suggestPulseThemes()" id="suggest-themes-btn" style="background: #018181; margin-bottom: 6px;">
+                            Refine Themes from Results
                         </button>
-                        <p style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Groups search results into 3-4 topic angles. Pick one to do a focused deep search.</p>
+                        <p style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">After searching, groups your results into 3-4 refined angles. Pick one to drill deeper.</p>
                         <div id="pulse-themes-container"></div>
                     </div>
                 </div>
@@ -4837,7 +4859,9 @@
             if (s5PInfo) s5PInfo.dataset.tooltip = step5PerplexityTooltips[tab] || step5PerplexityTooltips.pulse;
             if (s5SInfo) s5SInfo.dataset.tooltip = step5SourceTooltips[tab] || step5SourceTooltips.pulse;
 
-            // Show/hide the Industry Pulse theme suggestion panel
+            // Show/hide the Industry Pulse discovery panel and theme refinement panel
+            const discoveryPanel = document.getElementById('pulse-discovery-panel');
+            if (discoveryPanel) discoveryPanel.style.display = tab === 'pulse' ? 'block' : 'none';
             const themeSection = document.getElementById('pulse-theme-section');
             if (themeSection) themeSection.style.display = tab === 'pulse' ? 'block' : 'none';
 
@@ -5759,9 +5783,112 @@
         }
 
         function drillIntoTheme(query) {
-            const input = document.getElementById('step5-perplexity-query');
-            if (input) input.value = query;
+            const perplexityInput = document.getElementById('step5-perplexity-query');
+            const sourceInput = document.getElementById('step5-source-query');
+            if (perplexityInput) perplexityInput.value = query;
+            if (sourceInput) sourceInput.value = query;
             searchPerplexity('step5');
+        }
+
+        // Layer 1: Discover investigative themes independently via a broad Perplexity search
+        window._pulseDiscoveredThemes = [];
+
+        async function discoverPulseThemes() {
+            const btn = document.getElementById('discover-themes-btn');
+            const resultsDiv = document.getElementById('pulse-discovery-results');
+            const timeWindow = document.getElementById('pulse-discovery-time').value;
+
+            btn.disabled = true;
+            btn.textContent = 'Scanning industry trends...';
+            resultsDiv.innerHTML = '<div style="text-align: center; padding: 16px;"><div class="spinner"></div><p style="font-size: 13px; color: #047857; margin-top: 8px;">Searching jewelry industry news for investigative angles...</p></div>';
+
+            // Hide any previously active theme
+            const activeBanner = document.getElementById('pulse-active-theme');
+            if (activeBanner) activeBanner.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/v2/discover-pulse-themes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ time_window: timeWindow })
+                });
+                const data = await response.json();
+
+                if (!data.success || !data.themes?.length) {
+                    resultsDiv.innerHTML = '<p style="color: #dc2626; font-size: 13px;">Could not discover themes. Try a longer time window or check your connection.</p>';
+                    return;
+                }
+
+                window._pulseDiscoveredThemes = data.themes;
+
+                resultsDiv.innerHTML = `
+                    <p style="font-size: 12px; color: #047857; margin-bottom: 10px;">
+                        Found <strong>${data.source_article_count}</strong> articles → <strong>${data.themes.length}</strong> investigative angles.
+                        Click a theme to focus all 3 search cards:
+                    </p>
+                    ${data.themes.map((theme, i) => `
+                        <div class="pulse-theme-card" style="border: 2px solid #6ee7b7; border-radius: 8px; padding: 12px; margin-bottom: 8px; background: white; cursor: pointer; transition: all 0.15s;"
+                             onmouseover="this.style.borderColor='#059669'; this.style.background='#f0fdf4'"
+                             onmouseout="this.style.borderColor='#6ee7b7'; this.style.background='white'"
+                             onclick="selectPulseTheme(${i})">
+                            <div style="font-weight: 600; font-size: 14px; color: #065f46; margin-bottom: 4px;">${theme.title}</div>
+                            <div style="font-size: 13px; color: #374151; margin-bottom: 8px;">${theme.description}</div>
+                            <span style="display: inline-block; background: #059669; color: white; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 4px;">
+                                Research this theme →
+                            </span>
+                        </div>
+                    `).join('')}
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = '<p style="color: #dc2626; font-size: 13px;">Error: ' + error.message + '</p>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Discover Investigative Themes';
+            }
+        }
+
+        function selectPulseTheme(index) {
+            const theme = window._pulseDiscoveredThemes[index];
+            if (!theme) return;
+
+            // Pre-populate focus fields in Perplexity and Source Explorer
+            const perplexityInput = document.getElementById('step5-perplexity-query');
+            const sourceInput = document.getElementById('step5-source-query');
+            if (perplexityInput) perplexityInput.value = theme.query;
+            if (sourceInput) sourceInput.value = theme.query;
+
+            // Highlight the selected theme card
+            document.querySelectorAll('.pulse-theme-card').forEach((el, i) => {
+                el.style.borderColor = i === index ? '#059669' : '#6ee7b7';
+                el.style.background = i === index ? '#f0fdf4' : 'white';
+            });
+
+            // Show active theme banner
+            const banner = document.getElementById('pulse-active-theme');
+            const titleEl = document.getElementById('pulse-active-theme-title');
+            if (banner && titleEl) {
+                titleEl.textContent = theme.title;
+                banner.style.display = 'block';
+            }
+
+            // Scroll to the research cards so user can see the pre-filled fields
+            const dashboard = document.getElementById('step5Dashboard');
+            if (dashboard) dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function clearPulseTheme() {
+            const perplexityInput = document.getElementById('step5-perplexity-query');
+            const sourceInput = document.getElementById('step5-source-query');
+            if (perplexityInput) perplexityInput.value = '';
+            if (sourceInput) sourceInput.value = '';
+
+            document.querySelectorAll('.pulse-theme-card').forEach(el => {
+                el.style.borderColor = '#6ee7b7';
+                el.style.background = 'white';
+            });
+
+            const banner = document.getElementById('pulse-active-theme');
+            if (banner) banner.style.display = 'none';
         }
 
         async function searchAllSources(section) {
