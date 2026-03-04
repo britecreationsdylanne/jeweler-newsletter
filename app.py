@@ -672,8 +672,9 @@ def search_insights_v2():
         data = request.json
         time_window = data.get('time_window', '30d')
         exclude_urls = data.get('exclude_urls', [])
+        focus = data.get('focus', '').strip()  # Optional theme focus from Layer 1 discovery
 
-        safe_print(f"\n[API v2] Insight Builder: Searching ALL 8 signals")
+        safe_print(f"\n[API v2] Insight Builder: Searching ALL 8 signals" + (f" (focus: {focus})" if focus else ""))
 
         # Jewelry-specific signal queries
         SIGNAL_QUERIES = {
@@ -694,11 +695,12 @@ def search_insights_v2():
 
         for signal, query_terms in SIGNAL_QUERIES.items():
             try:
+                focus_line = f"\nPrioritize results that are relevant to this specific topic: {focus}" if focus else ""
                 prompt = f"""Search for recent US news about {signal.replace('_', ' ')} in jewelry industry.
 
 Find articles about the United States with data points, statistics, and business impact.
 Focus on jewelry retail and wholesale markets.
-Search terms: {query_terms}
+Search terms: {query_terms}{focus_line}
 
 Return results with title, url, publisher, published_date, and summary with key data points."""
 
@@ -1043,6 +1045,91 @@ def search_bluesky_ugly():
 
     except Exception as e:
         safe_print(f"[API v2 ERROR] Bluesky Ugly: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e), 'results': []}), 500
+
+
+@app.route('/api/v2/search-social-buzz-ugly', methods=['POST'])
+def search_social_buzz_ugly():
+    """
+    Social Buzz search for The Ugly section.
+    Uses OpenAI web search with two strategies:
+      1. site:pinterest.com — well-indexed visual content, unusual jewelry pins
+      2. Free-text viral queries — surfaces news *about* trending TikTok/Instagram jewelry moments
+    Avoids site:tiktok.com and site:instagram.com (poor indexing, thin content).
+    """
+    try:
+        data = request.json or {}
+        time_window = data.get('time_window', '30d')
+        exclude_urls = data.get('exclude_urls', [])
+
+        time_desc = {
+            '7d': 'past 7 days',
+            '15d': 'past 15 days',
+            '30d': 'past 30 days',
+            '90d': 'past 90 days',
+        }.get(time_window, 'past 30 days')
+
+        safe_print(f"\n[Social Buzz Ugly] Searching social platforms, time_window={time_window}")
+
+        queries = [
+            f"""Search site:pinterest.com for unusual bizarre quirky jewelry content.
+
+Find Pinterest pins or boards from the {time_desc} featuring unusual, novelty, food-shaped, or eyebrow-raising jewelry.
+Look for: wearable art, weird engagement rings, unexpected materials, conversation-piece jewelry.
+Return results with title, url, publisher, published_date, and summary.""",
+
+            f"""Search for jewelry that went viral or is trending on TikTok, Instagram, or social media.
+
+Find news articles or posts from the {time_desc} about:
+- Jewelry pieces that went viral on TikTok or Instagram Reels
+- Bizarre or unusual jewelry moments that blew up on social media
+- Celebrity jewelry drama trending on social platforms
+- Weird or novelty jewelry that caused a social media reaction
+Return results with title, url, publisher, published_date, and summary.""",
+
+            f"""Search for bizarre unusual quirky jewelry finds shared on social media.
+
+Find content from the {time_desc} about jewelry that is strange, funny, or conversation-worthy —
+especially items discovered thrift shopping, at estate sales, or posted for identification online.
+Return results with title, url, publisher, published_date, and summary.""",
+        ]
+
+        all_results = []
+        seen_urls = set(exclude_urls)
+
+        for q in queries:
+            if len(all_results) >= 8:
+                break
+            try:
+                results = openai_client.search_web_responses_api(q, max_results=4, exclude_urls=list(seen_urls))
+                for r in results:
+                    url = r.get('url', '')
+                    if url and url not in seen_urls:
+                        all_results.append(r)
+                        seen_urls.add(url)
+            except Exception as e:
+                safe_print(f"[Social Buzz Ugly] Query error: {e}")
+                continue
+
+        posts = transform_to_shared_schema(all_results[:8], 'social_buzz')
+
+        if posts:
+            posts = enrich_results_with_llm(posts, 'viral unusual jewelry social media', 'the_ugly')
+
+        safe_print(f"[Social Buzz Ugly] Returning {len(posts)} results")
+
+        return jsonify({
+            'success': True,
+            'results': posts,
+            'source': 'social_buzz',
+            'time_window': time_window,
+            'generated_at': datetime.now().isoformat(),
+        })
+
+    except Exception as e:
+        safe_print(f"[API v2 ERROR] Social Buzz Ugly: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e), 'results': []}), 500

@@ -2113,6 +2113,26 @@
                     <p class="research-card-helper">Finds viral jewelry moments, unusual pieces, and jewelry-adjacent social chatter</p>
                     <div class="research-card-results" id="gbu-bluesky-results"></div>
                 </div>
+
+                <!-- Social Buzz Card — only visible on The Ugly tab -->
+                <div class="research-card" id="gbu-social-buzz-card" style="display: none;">
+                    <div class="research-card-header">
+                        <div class="research-card-title"><span class="icon">📱</span> Social Buzz</div>
+                        <span class="research-card-badge badge-orange">Pinterest + Viral</span>
+                    </div>
+                    <p class="research-card-description">Searches Pinterest directly for unusual jewelry finds, plus scans for jewelry that went viral on TikTok and Instagram — surfaces social moments trade news misses.</p>
+                    <div class="research-card-filters">
+                        <select id="gbu-social-buzz-time">
+                            <option value="7d">Last 7 days</option>
+                            <option value="15d">Last 15 days</option>
+                            <option value="30d" selected>Last 30 days</option>
+                            <option value="90d">Last 90 days</option>
+                        </select>
+                    </div>
+                    <button class="research-card-search-btn" onclick="searchSocialBuzzUgly()">Search Social Buzz</button>
+                    <p class="research-card-helper">Finds weird jewelry pins, viral TikTok/Instagram moments, and unusual social finds</p>
+                    <div class="research-card-results" id="gbu-social-buzz-results"></div>
+                </div>
             </div>
 
             <!-- Bottom Progress Tracker -->
@@ -2335,6 +2355,9 @@
                         <span class="research-card-badge badge-orange">All Signals</span>
                     </div>
                     <p class="research-card-description">Scans jewelry industry signals via OpenAI, then GPT-5.2 analyzes trends and business impact.</p>
+                    <div id="step5-insight-theme-indicator" style="display: none; background: #f0fdf4; border: 1px solid #6ee7b7; border-radius: 6px; padding: 6px 10px; font-size: 12px; color: #065f46; margin-bottom: 8px;">
+                        🎯 Themed: <span id="step5-insight-theme-label"></span>
+                    </div>
                     <div class="research-card-filters">
                         <select id="step5-insight-time">
                             <option value="7d">Last 7 days</option>
@@ -4683,6 +4706,8 @@
                 if (redditDiv) gbuSearchState[oldTab].htmlCache.reddit = redditDiv.innerHTML;
                 const blueskyDivCache = document.getElementById('gbu-bluesky-results');
                 if (blueskyDivCache) gbuSearchState[oldTab].htmlCache.bluesky = blueskyDivCache.innerHTML;
+                const socialBuzzDivCache = document.getElementById('gbu-social-buzz-results');
+                if (socialBuzzDivCache) gbuSearchState[oldTab].htmlCache.social_buzz = socialBuzzDivCache.innerHTML;
                 gbuSearchState[oldTab].displayedArticles = window._displayedArticles ? [...window._displayedArticles] : [];
             }
 
@@ -4751,6 +4776,13 @@
             if (blueskyCard) blueskyCard.style.display = tab === 'ugly' ? 'block' : 'none';
             if (blueskyDiv) {
                 blueskyDiv.innerHTML = newState.htmlCache.bluesky || '<p style="color: #666; font-size: 13px; text-align: center; padding: 20px;">Search Bluesky for quirky jewelry posts</p>';
+            }
+
+            const socialBuzzCard = document.getElementById('gbu-social-buzz-card');
+            const socialBuzzDiv = document.getElementById('gbu-social-buzz-results');
+            if (socialBuzzCard) socialBuzzCard.style.display = tab === 'ugly' ? 'block' : 'none';
+            if (socialBuzzDiv) {
+                socialBuzzDiv.innerHTML = newState.htmlCache.social_buzz || '<p style="color: #666; font-size: 13px; text-align: center; padding: 20px;">Search Pinterest and viral social content for quirky jewelry</p>';
             }
 
             // Update the Source Explorer curated-sources label to show social sites on The Ugly tab
@@ -5664,15 +5696,20 @@
 
             try {
                 const step5SectionMap = { pulse: 'industry_pulse', partner: 'partner_advantage', news: 'industry_news' };
+                const insightBody = {
+                    time_window: timeWindow,
+                    section: section === 'gbu' ? 'the_' + capturedTab
+                           : section === 'step5' ? (step5SectionMap[capturedTab] || 'industry_pulse')
+                           : section
+                };
+                // Apply active pulse theme as a focus modifier for the signal queries
+                if (section === 'step5' && capturedTab === 'pulse' && window._pulseActiveTheme) {
+                    insightBody.focus = window._pulseActiveTheme.query;
+                }
                 const response = await fetch(`${API_BASE}/api/v2/search-insights`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        time_window: timeWindow,
-                        section: section === 'gbu' ? 'the_' + capturedTab
-                               : section === 'step5' ? (step5SectionMap[capturedTab] || 'industry_pulse')
-                               : section
-                    })
+                    body: JSON.stringify(insightBody)
                 });
 
                 const data = await response.json();
@@ -5765,6 +5802,28 @@
             }
         }
 
+        async function searchSocialBuzzUgly() {
+            const timeSelect = document.getElementById('gbu-social-buzz-time');
+            const resultsDiv = document.getElementById('gbu-social-buzz-results');
+            const timeWindow = timeSelect ? timeSelect.value : '30d';
+
+            const preserved = Array.from(resultsDiv.querySelectorAll('.research-result-item[data-preserved="true"]'));
+            resultsDiv.innerHTML = '<div style="text-align: center; padding: 20px;"><div class="spinner"></div></div>';
+            preserved.forEach(item => resultsDiv.insertBefore(item, resultsDiv.firstChild));
+
+            try {
+                const response = await fetch(`${API_BASE}/api/v2/search-social-buzz-ugly`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ time_window: timeWindow })
+                });
+                const data = await response.json();
+                displayResults('gbu', 'social_buzz', data.results || []);
+            } catch (error) {
+                resultsDiv.innerHTML = '<p style="color: #dc2626; padding: 20px;">Search failed: ' + error.message + '</p>';
+            }
+        }
+
         async function suggestPulseThemes() {
             // Collect all currently displayed results from all step5 search cards
             const allResults = [];
@@ -5833,6 +5892,7 @@
 
         // Layer 1: Discover investigative themes independently via a broad Perplexity search
         window._pulseDiscoveredThemes = [];
+        window._pulseActiveTheme = null; // { title, query } of the currently selected theme
 
         async function discoverPulseThemes() {
             const btn = document.getElementById('discover-themes-btn');
@@ -5892,11 +5952,22 @@
             const theme = window._pulseDiscoveredThemes[index];
             if (!theme) return;
 
+            // Store active theme for use by searchInsights
+            window._pulseActiveTheme = { title: theme.title, query: theme.query };
+
             // Pre-populate focus fields in Perplexity and Source Explorer
             const perplexityInput = document.getElementById('step5-perplexity-query');
             const sourceInput = document.getElementById('step5-source-query');
             if (perplexityInput) perplexityInput.value = theme.query;
             if (sourceInput) sourceInput.value = theme.query;
+
+            // Show theme indicator on Insight Builder card
+            const insightIndicator = document.getElementById('step5-insight-theme-indicator');
+            const insightLabel = document.getElementById('step5-insight-theme-label');
+            if (insightIndicator && insightLabel) {
+                insightLabel.textContent = theme.title;
+                insightIndicator.style.display = 'block';
+            }
 
             // Highlight the selected theme card
             document.querySelectorAll('.pulse-theme-card').forEach((el, i) => {
@@ -5918,10 +5989,15 @@
         }
 
         function clearPulseTheme() {
+            window._pulseActiveTheme = null;
+
             const perplexityInput = document.getElementById('step5-perplexity-query');
             const sourceInput = document.getElementById('step5-source-query');
             if (perplexityInput) perplexityInput.value = '';
             if (sourceInput) sourceInput.value = '';
+
+            const insightIndicator = document.getElementById('step5-insight-theme-indicator');
+            if (insightIndicator) insightIndicator.style.display = 'none';
 
             document.querySelectorAll('.pulse-theme-card').forEach(el => {
                 el.style.borderColor = '#6ee7b7';
