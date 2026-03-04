@@ -14,14 +14,19 @@ from datetime import datetime
 
 
 # Subreddits to search for The Ugly quirky/unusual jewelry content
-UGLY_SUBREDDITS = [
-    'jewelry',              # Main jewelry community — people post unusual finds
-    'Justrolledintotheshop', # Repair shops sharing weird items brought in
-    'mildlyinteresting',    # Unusual items including jewelry
-    'DIYjewelry',           # Sometimes has wild custom pieces
+# Paired with the query best suited for each community's context
+UGLY_SUBREDDIT_QUERIES = [
+    ('jewelry',               'unusual weird quirky bizarre jewelry'),
+    ('Justrolledintotheshop', 'jewelry unusual bizarre weird repair'),
+    ('mildlyinteresting',     'jewelry unusual quirky'),
+    ('DIYjewelry',            'unusual quirky wearable art bizarre'),
+    ('ATBGE',                 'jewelry ring necklace bracelet'),       # "Awful Taste But Great Execution" — high signal
+    ('ThriftStoreHauls',      'jewelry unusual vintage weird find'),
+    ('whatisthisthing',       'jewelry ring necklace bracelet'),       # Mystery jewelry ID posts
 ]
 
-# Search terms to find quirky/unusual jewelry
+# Keep legacy constants for backward compatibility
+UGLY_SUBREDDITS = [sr for sr, _ in UGLY_SUBREDDIT_QUERIES]
 UGLY_SEARCH_TERMS = [
     'unusual jewelry',
     'weird jewelry',
@@ -139,15 +144,7 @@ class RedditClient:
             print(f"[Reddit] Auth failed: {e}")
             return []
 
-        # Search each subreddit with a few different queries
-        searches = [
-            ('jewelry', 'unusual weird quirky novelty jewelry'),
-            ('jewelry', 'food shaped jewelry novelty wearable'),
-            ('Justrolledintotheshop', 'unusual jewelry bizarre'),
-            ('mildlyinteresting', 'jewelry unusual quirky wearable'),
-        ]
-
-        for subreddit, query in searches:
+        for subreddit, query in UGLY_SUBREDDIT_QUERIES:
             if len(all_posts) >= max_results:
                 break
             try:

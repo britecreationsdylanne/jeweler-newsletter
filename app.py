@@ -43,6 +43,7 @@ from backend.integrations.claude_client import ClaudeClient
 from backend.integrations.gemini_client import GeminiClient
 from backend.integrations.perplexity_client import PerplexityClient
 from backend.integrations.reddit_client import RedditClient
+from backend.integrations.bluesky_client import BlueskyClient
 
 # Import config
 from config.brand_guidelines import (
@@ -126,6 +127,8 @@ try:
     reddit_client = RedditClient()
 except Exception as e:
     print(f"[WARNING] Reddit not available: {e}")
+
+bluesky_client = BlueskyClient()  # no credentials needed
 
 # Google Cloud Storage for drafts and images
 GCS_BUCKET_NAME = 'stay-in-the-loupe-drafts'
@@ -591,7 +594,7 @@ def search_perplexity_v2():
         section_queries = {
             'the_good': 'positive uplifting jewelry news beautiful designs new collections celebrity jewelry awards achievements success stories',
             'the_bad': 'jewelry heists robbery fraud lawsuits counterfeit criminal activity negative industry news cautionary tales',
-            'the_ugly': 'bizarre quirky novelty unusual jewelry food-shaped wearable art unconventional design funny eccentric jewelry piece',
+            'the_ugly': 'bizarre unusual quirky jewelry viral jewelry moment celebrity jewelry drama weird engagement ring jewelry made from unusual materials food-shaped wearable art jewelry fail odd repair story jewelry world record unusual jewelry find',
             'industry_pulse': 'investigative analysis in-depth report current trend impacting jewelry industry gold prices tariffs lab-grown diamonds consumer behavior',
             'partner_advantage': 'actionable tips best practices how-to guide jewelry retail marketing customer experience sales strategies for jewelers',
             'industry_news': 'breaking news headlines latest announcements jewelry industry recent developments notable events'
@@ -1003,6 +1006,43 @@ def search_reddit_ugly():
 
     except Exception as e:
         safe_print(f"[API v2 ERROR] Reddit Ugly: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e), 'results': []}), 500
+
+
+@app.route('/api/v2/search-bluesky-ugly', methods=['POST'])
+def search_bluesky_ugly():
+    """
+    Bluesky search for The Ugly section.
+    Uses the public AT Protocol API — no credentials required.
+    Rotates across quirky/unusual jewelry queries and returns enriched results.
+    """
+    try:
+        data = request.json or {}
+        exclude_urls = data.get('exclude_urls', [])
+
+        safe_print(f"\n[Bluesky Ugly] Searching for quirky jewelry posts")
+
+        posts = bluesky_client.search_for_ugly(
+            max_results=8,
+            exclude_urls=exclude_urls,
+        )
+
+        if posts:
+            posts = enrich_results_with_llm(posts, 'quirky unusual jewelry', 'the_ugly')
+
+        safe_print(f"[Bluesky Ugly] Returning {len(posts)} posts")
+
+        return jsonify({
+            'success': True,
+            'results': posts,
+            'source': 'bluesky',
+            'generated_at': datetime.now().isoformat(),
+        })
+
+    except Exception as e:
+        safe_print(f"[API v2 ERROR] Bluesky Ugly: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e), 'results': []}), 500
