@@ -22,7 +22,7 @@ BLUESKY_UGLY_QUERIES = [
     'food jewelry',
 ]
 
-BASE_URL = 'https://bsky.social/xrpc'
+BASE_URL = 'https://api.bsky.app/xrpc'
 
 
 class BlueskyClient:
@@ -84,7 +84,7 @@ class BlueskyClient:
                 if len(all_posts) >= max_results:
                     break
 
-            print(f'[Bluesky] "{query}" → {len(raw_posts)} posts')
+            print(f'[Bluesky] "{query}" -> {len(raw_posts)} posts')
 
         return all_posts[:max_results]
 
