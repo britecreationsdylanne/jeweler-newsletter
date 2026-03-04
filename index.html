@@ -4707,7 +4707,7 @@
                 const blueskyDivCache = document.getElementById('gbu-bluesky-results');
                 if (blueskyDivCache) gbuSearchState[oldTab].htmlCache.bluesky = blueskyDivCache.innerHTML;
                 const socialBuzzDivCache = document.getElementById('gbu-social-buzz-results');
-                if (socialBuzzDivCache) gbuSearchState[oldTab].htmlCache.social_buzz = socialBuzzDivCache.innerHTML;
+                if (socialBuzzDivCache) gbuSearchState[oldTab].htmlCache['social-buzz'] = socialBuzzDivCache.innerHTML;
                 gbuSearchState[oldTab].displayedArticles = window._displayedArticles ? [...window._displayedArticles] : [];
             }
 
@@ -4782,7 +4782,7 @@
             const socialBuzzDiv = document.getElementById('gbu-social-buzz-results');
             if (socialBuzzCard) socialBuzzCard.style.display = tab === 'ugly' ? 'block' : 'none';
             if (socialBuzzDiv) {
-                socialBuzzDiv.innerHTML = newState.htmlCache.social_buzz || '<p style="color: #666; font-size: 13px; text-align: center; padding: 20px;">Search Pinterest and viral social content for quirky jewelry</p>';
+                socialBuzzDiv.innerHTML = newState.htmlCache['social-buzz'] || '<p style="color: #666; font-size: 13px; text-align: center; padding: 20px;">Search Pinterest and viral social content for quirky jewelry</p>';
             }
 
             // Update the Source Explorer curated-sources label to show social sites on The Ugly tab
@@ -5818,7 +5818,7 @@
                     body: JSON.stringify({ time_window: timeWindow })
                 });
                 const data = await response.json();
-                displayResults('gbu', 'social_buzz', data.results || []);
+                displayResults('gbu', 'social-buzz', data.results || []);
             } catch (error) {
                 resultsDiv.innerHTML = '<p style="color: #dc2626; padding: 20px;">Search failed: ' + error.message + '</p>';
             }
@@ -6015,11 +6015,15 @@
                 allBtn.textContent = 'Searching all sources...';
             }
             try {
-                await Promise.all([
+                const searches = [
                     searchPerplexity(section),
                     searchInsights(section),
                     searchSources(section)
-                ]);
+                ];
+                if (section === 'gbu' && currentGBUTab === 'ugly') {
+                    searches.push(searchRedditUgly(), searchBlueskyUgly(), searchSocialBuzzUgly());
+                }
+                await Promise.all(searches);
             } finally {
                 if (allBtn) {
                     allBtn.disabled = false;

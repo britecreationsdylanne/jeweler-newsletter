@@ -695,12 +695,20 @@ def search_insights_v2():
 
         for signal, query_terms in SIGNAL_QUERIES.items():
             try:
-                focus_line = f"\nPrioritize results that are relevant to this specific topic: {focus}" if focus else ""
-                prompt = f"""Search for recent US news about {signal.replace('_', ' ')} in jewelry industry.
+                if focus:
+                    prompt = f"""Search for recent US news about {focus} in the jewelry industry, specifically examining its impact on {signal.replace('_', ' ')}.
+
+Find articles about the United States with data points, statistics, and business impact.
+Focus on how {focus} relates to {signal.replace('_', ' ')} in jewelry retail and wholesale markets.
+Search terms: {focus} {signal.replace('_', ' ')} jewelry
+
+Return results with title, url, publisher, published_date, and summary with key data points."""
+                else:
+                    prompt = f"""Search for recent US news about {signal.replace('_', ' ')} in jewelry industry.
 
 Find articles about the United States with data points, statistics, and business impact.
 Focus on jewelry retail and wholesale markets.
-Search terms: {query_terms}{focus_line}
+Search terms: {query_terms}
 
 Return results with title, url, publisher, published_date, and summary with key data points."""
 
@@ -841,7 +849,7 @@ Find investigative or in-depth articles from the {time_desc} covering a signific
 Focus on: gold prices, tariffs, lab-grown diamonds, consumer behavior shifts, supply chain changes.
 Return results with title, url, publisher, published_date, and summary.""",
 
-                f"""Search for: ({site_query}) jewelry industry analysis market report tariffs gold lab-grown diamonds
+                f"""Search for: ({site_query}) {query} jewelry industry analysis market report
 
 Find analytical or investigative articles from the {time_desc} about major forces shaping the jewelry business.
 Return results with title, url, publisher, published_date, and summary.""",
