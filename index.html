@@ -3584,9 +3584,9 @@
 
         // Step 5 tab-specific search state (pulse, partner, news each have own results)
         let step5SearchState = {
-            pulse: { perplexity: [], insight: [], source: [], htmlCache: { perplexity: '', insight: '', source: '' }, displayedArticles: [] },
-            partner: { perplexity: [], insight: [], source: [], htmlCache: { perplexity: '', insight: '', source: '' }, displayedArticles: [] },
-            news: { perplexity: [], insight: [], source: [], htmlCache: { perplexity: '', insight: '', source: '' }, displayedArticles: [] }
+            pulse: { perplexity: [], insight: [], source: [], htmlCache: { perplexity: '', insight: '', source: '' }, displayedArticles: [], perplexityQuery: '', sourceQuery: '' },
+            partner: { perplexity: [], insight: [], source: [], htmlCache: { perplexity: '', insight: '', source: '' }, displayedArticles: [], perplexityQuery: '', sourceQuery: '' },
+            news: { perplexity: [], insight: [], source: [], htmlCache: { perplexity: '', insight: '', source: '' }, displayedArticles: [], perplexityQuery: '', sourceQuery: '' }
         };
 
         let skippedSections = { pulse: false, partner: false, news: false };
@@ -4831,7 +4831,7 @@
             const oldTab = currentStep5Tab;
             currentStep5Tab = tab;
 
-            // Save current tab's search results and article data before switching
+            // Save current tab's search results, input values, and article data before switching
             if (step5SearchState[oldTab]) {
                 const perplexityDiv = document.getElementById('step5-perplexity-results');
                 const insightDiv = document.getElementById('step5-insight-results');
@@ -4840,6 +4840,11 @@
                 if (insightDiv) step5SearchState[oldTab].htmlCache.insight = insightDiv.innerHTML;
                 if (sourceDiv) step5SearchState[oldTab].htmlCache.source = sourceDiv.innerHTML;
                 step5SearchState[oldTab].displayedArticles = window._displayedArticles ? [...window._displayedArticles] : [];
+                // Save query inputs so theme doesn't bleed into partner/news tabs
+                const perplexityInput = document.getElementById('step5-perplexity-query');
+                const sourceInput = document.getElementById('step5-source-query');
+                if (perplexityInput) step5SearchState[oldTab].perplexityQuery = perplexityInput.value;
+                if (sourceInput) step5SearchState[oldTab].sourceQuery = sourceInput.value;
             }
 
             // Update tab button styles
@@ -4922,7 +4927,7 @@
             const selectedCount = selectedArticles[articleKeys[tab]]?.length || 0;
             document.getElementById('step5Counter').innerHTML = `<span>📑 Selected: (<span id="step5SelectedCount">${selectedCount}</span>/${counts[tab]}) (min ${mins[tab]})</span>`;
 
-            // Restore cached search results for new tab
+            // Restore cached search results and input values for new tab
             const newState = step5SearchState[tab];
             const perplexityDiv = document.getElementById('step5-perplexity-results');
             const insightDiv = document.getElementById('step5-insight-results');
@@ -4930,6 +4935,11 @@
             if (perplexityDiv) perplexityDiv.innerHTML = newState.htmlCache.perplexity || '';
             if (insightDiv) insightDiv.innerHTML = newState.htmlCache.insight || '';
             if (sourceDiv) sourceDiv.innerHTML = newState.htmlCache.source || '';
+            // Restore this tab's own query values (keeps pulse theme from bleeding into partner/news)
+            const perplexityInputNew = document.getElementById('step5-perplexity-query');
+            const sourceInputNew = document.getElementById('step5-source-query');
+            if (perplexityInputNew) perplexityInputNew.value = newState.perplexityQuery || '';
+            if (sourceInputNew) sourceInputNew.value = newState.sourceQuery || '';
 
             // Restore displayed articles for this tab
             if (newState.displayedArticles && newState.displayedArticles.length > 0) {
