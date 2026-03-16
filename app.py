@@ -9,7 +9,7 @@ import json
 import re
 import base64
 import secrets
-from datetime import datetime
+from datetime import datetime, timedelta
 from io import BytesIO
 import pytz
 
@@ -544,6 +544,28 @@ Return ONLY the JSON array, no other text."""
         return results
 
 
+def filter_by_recency(results: list, time_window: str = '30d') -> list:
+    """Filter out articles older than the requested time window.
+    Accepts results with 'published_date' or 'published_at' in YYYY-MM-DD format.
+    Articles with no parseable date are kept (benefit of the doubt)."""
+    days_map = {'7d': 7, '15d': 15, '30d': 30, '90d': 90}
+    max_days = days_map.get(time_window, 30)
+    cutoff = datetime.now() - timedelta(days=max_days)
+    filtered = []
+    for r in results:
+        date_str = r.get('published_date') or r.get('published_at') or ''
+        if not date_str:
+            filtered.append(r)  # no date → keep it
+            continue
+        try:
+            pub_date = datetime.strptime(date_str[:10], '%Y-%m-%d')
+            if pub_date >= cutoff:
+                filtered.append(r)
+        except (ValueError, TypeError):
+            filtered.append(r)  # unparseable date → keep it
+    return filtered
+
+
 def transform_to_shared_schema(results: list, source_card: str) -> list:
     """Transform results to shared schema matching BriteCo Brief"""
     return [{
@@ -625,6 +647,9 @@ def search_perplexity_v2():
         if exclude_urls:
             search_results = [r for r in search_results if r.get('url') not in exclude_urls]
 
+        # Filter out articles older than the requested time window
+        search_results = filter_by_recency(search_results, time_window)
+
         # Take top 8 results
         results = search_results[:8]
 
@@ -693,24 +718,32 @@ def search_insights_v2():
 
         safe_print(f"[Insight Builder] Searching all 8 jewelry signals...")
 
+        # Convert time window to human-readable for prompts
+        insight_time_desc = {
+            '7d': 'past week', '15d': 'past 2 weeks',
+            '30d': 'past month', '90d': 'past 3 months'
+        }.get(time_window, 'past month')
+
         for signal, query_terms in SIGNAL_QUERIES.items():
             try:
                 if focus:
-                    prompt = f"""Search for recent US news about {focus} in the jewelry industry, specifically examining its impact on {signal.replace('_', ' ')}.
+                    prompt = f"""Search for US news from the {insight_time_desc} about {focus} in the jewelry industry, specifically examining its impact on {signal.replace('_', ' ')}.
 
+IMPORTANT: Only return articles published within the {insight_time_desc}. Do not include older articles.
 Find articles about the United States with data points, statistics, and business impact.
 Focus on how {focus} relates to {signal.replace('_', ' ')} in jewelry retail and wholesale markets.
 Search terms: {focus} {signal.replace('_', ' ')} jewelry
 
-Return results with title, url, publisher, published_date, and summary with key data points."""
+Return results with title, url, publisher, published_date (YYYY-MM-DD format), and summary with key data points."""
                 else:
-                    prompt = f"""Search for recent US news about {signal.replace('_', ' ')} in jewelry industry.
+                    prompt = f"""Search for US news from the {insight_time_desc} about {signal.replace('_', ' ')} in jewelry industry.
 
+IMPORTANT: Only return articles published within the {insight_time_desc}. Do not include older articles.
 Find articles about the United States with data points, statistics, and business impact.
 Focus on jewelry retail and wholesale markets.
 Search terms: {query_terms}
 
-Return results with title, url, publisher, published_date, and summary with key data points."""
+Return results with title, url, publisher, published_date (YYYY-MM-DD format), and summary with key data points."""
 
                 results = openai_client.search_web_responses_api(prompt, max_results=4, exclude_urls=list(seen_urls))
 
@@ -728,6 +761,10 @@ Return results with title, url, publisher, published_date, and summary with key 
                 continue
 
         safe_print(f"[Insight Builder] Total unique results: {len(all_results)}")
+
+        # Filter out articles older than the requested time window
+        all_results = filter_by_recency(all_results, time_window)
+        safe_print(f"[Insight Builder] After recency filter ({time_window}): {len(all_results)} results")
 
         # Analyze results with GPT for industry impact
         enriched_results = analyze_industry_impact(all_results)
@@ -943,6 +980,10 @@ Return results with title, url, publisher, published_date, and summary."""
             except Exception as e:
                 safe_print(f"[API v2] Source query error: {e}")
                 continue
+
+        # Filter out articles older than the requested time window
+        all_results = filter_by_recency(all_results, time_window)
+        safe_print(f"[Source Explorer] After recency filter ({time_window}): {len(all_results)} results")
 
         # Transform to shared schema
         results = transform_to_shared_schema(all_results[:8], 'explorer')
