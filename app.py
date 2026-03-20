@@ -3589,9 +3589,16 @@ def render_email_template():
         intro_html = re.sub(r'color:\s*[^;}"\']+', 'color: #ffffff', intro_html, flags=re.IGNORECASE)
         html = html.replace('{{INTRO_CONTENT}}', intro_html.strip())
 
-        # The Brite Spot
+        # The Brite Spot (layout-aware)
         html = html.replace('{{BRITE_SPOT_CONTENT}}', content.get('brite_spot', ''))
-        html = html.replace('{{BRITE_SPOT_IMAGE}}', images.get('brite_spot', {}).get('url', 'https://placehold.co/180x180/008181/white?text=Brite+Spot'))
+        brite_spot_layout = data.get('brite_spot_layout', 'wide')
+        if brite_spot_layout == 'two-squares':
+            left_url = images.get('brite_spot_left', {}).get('url', 'https://placehold.co/180x180/008181/white?text=Left')
+            right_url = images.get('brite_spot_right', {}).get('url', 'https://placehold.co/180x180/008181/white?text=Right')
+            # Replace the single image placeholder with two side-by-side images
+            html = html.replace('{{BRITE_SPOT_IMAGE}}', left_url)
+        else:
+            html = html.replace('{{BRITE_SPOT_IMAGE}}', images.get('brite_spot', {}).get('url', 'https://placehold.co/180x180/008181/white?text=Brite+Spot'))
 
         # Generate Brite Spot bullets if provided
         brite_spot_bullets = ''
@@ -3793,6 +3800,7 @@ def save_draft():
             'generatedContent': data.get('generatedContent'),
             'generatedImages': data.get('generatedImages'),
             'generatedPrompts': data.get('generatedPrompts'),
+            'briteSpotLayout': data.get('briteSpotLayout', 'wide'),
             'specialSection': data.get('specialSection'),
             'introText': data.get('introText'),
             'briteSpotTitle': data.get('briteSpotTitle'),
