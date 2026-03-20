@@ -3635,7 +3635,7 @@ def render_email_template():
         html = html.replace('{{THE_UGLY_COPY}}', the_ugly.get('copy', ''))
         html = html.replace('{{THE_UGLY_URL}}', the_ugly.get('url', '#'))
 
-        # Industry News bullets — headline is hyperlinked to source URL
+        # Industry News bullets — link a relevant phrase to source URL
         industry_news = content.get('industry_news', {})
         bullets = industry_news.get('bullets', [])
         news_bullets_html = ''
@@ -3643,11 +3643,18 @@ def render_email_template():
             text = bullet.get('text', bullet) if isinstance(bullet, dict) else str(bullet)
             url = bullet.get('url', '') if isinstance(bullet, dict) else ''
             padding_bottom = '16px' if i < len(bullets) - 1 else '0'
-            # If URL available and text doesn't already contain an <a> tag, wrap the headline in a link
+            # If URL available and text doesn't already contain an <a> tag,
+            # link the first phrase (up to first comma/semicolon or ~6 words)
             if url and '<a ' not in text:
-                linked_text = f'<a href="{url}" style="color: #008181; text-decoration: underline;">{text}</a>'
-            elif url:
-                linked_text = f'{text}'
+                import re as _re
+                m = _re.match(r'^(.{15,}?(?:[,;:\u2014]|(?:\s+\S+){5,6}\b))', text)
+                if m:
+                    phrase = _re.sub(r'[,;:\u2014]\s*$', '', m.group(1))
+                    linked_text = f'<a href="{url}" style="color: #008181; text-decoration: underline;">{phrase}</a>{text[len(phrase):]}'
+                else:
+                    linked_text = f'<a href="{url}" style="color: #008181; text-decoration: underline;">{text}</a>'
+            elif '<a ' in text:
+                linked_text = text
             else:
                 linked_text = text
             news_bullets_html += f'''

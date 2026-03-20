@@ -7958,7 +7958,7 @@
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="10" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>`;
             });
 
-            // Build Industry News HTML — wrap headline in link if source URL available
+            // Build Industry News HTML — link a relevant phrase if source URL available
             let newsHtml = '';
             newsBullets.forEach(b => {
                 let bulletText = b.text || '';
@@ -7968,9 +7968,17 @@
                     /\[([^\]]+)\]\(([^)]+)\)/g,
                     '<a href="$2" target="_blank" style="color:#008182;text-decoration:underline;">$1</a>'
                 );
-                // If bullet has a source URL and text doesn't already contain a link, wrap entire text in a link
+                // If bullet has a source URL and text doesn't already contain a link,
+                // link the first meaningful phrase (up to first comma, semicolon, or ~6 words)
                 if (bulletUrl && !bulletText.includes('<a ')) {
-                    bulletText = `<a href="${bulletUrl}" target="_blank" style="color:#008182;text-decoration:underline;">${bulletText}</a>`;
+                    const match = bulletText.match(/^(.{15,}?(?:[,;:\u2014]|(?:\s+\S+){5,6}\b))/);
+                    if (match) {
+                        const phrase = match[1].replace(/[,;:\u2014]\s*$/, '');
+                        bulletText = `<a href="${bulletUrl}" target="_blank" style="color:#008182;text-decoration:underline;">${phrase}</a>` + bulletText.slice(phrase.length);
+                    } else {
+                        // Short bullet — link the whole thing
+                        bulletText = `<a href="${bulletUrl}" target="_blank" style="color:#008182;text-decoration:underline;">${bulletText}</a>`;
+                    }
                 }
                 newsHtml += `
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
@@ -8090,7 +8098,7 @@ u + .body .section-header, u + .body .section-header font, u + .body .section-he
             <tbody>
                 <tr>
                     <td align="center" style="padding: 50px 45px;">
-                        <h1 style="margin: 0 0 20px 0; font-family: Montserrat, Georgia, serif; font-size: 32px; line-height: 38px; font-weight: 700; color: #ffffff; font-style: italic;">Stay In The Loupe</h1>
+                        <h1 style="margin: 0 0 20px 0; font-family: Montserrat, Georgia, serif; font-size: 32px; line-height: 38px; font-weight: 700; color: #ffffff;">Stay In The Loupe</h1>
                         <p style="margin: 0 0 28px 0; font-family: Montserrat, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 24px; font-weight: 400; color: #ffffff;">${introHero}</p>
                         <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation">
                             <tbody>
