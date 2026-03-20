@@ -6545,15 +6545,16 @@
                 }
             }
 
-            // Industry News — dynamic bullet fields
+            // Industry News — dynamic bullet fields (include source URL)
             if (!skippedSections.news) {
                 const bullets = [];
                 const bulletsContainer = document.getElementById(prefix + 'news-bullets-container');
                 if (bulletsContainer) {
                     bulletsContainer.querySelectorAll('.dynamic-field-item').forEach((item, idx) => {
                         const bulletEl = document.getElementById(prefix + 'news-bullet-' + idx);
+                        const urlEl = document.getElementById(prefix + 'news-bullet-' + idx + '-url');
                         if (bulletEl) {
-                            bullets.push({ text: bulletEl.innerHTML.trim() });
+                            bullets.push({ text: bulletEl.innerHTML.trim(), url: urlEl ? urlEl.value.trim() : '' });
                         }
                     });
                 }
@@ -6633,16 +6634,18 @@
             container.innerHTML = '';
             bullets.forEach((b, idx) => {
                 let text = b.text || b.headline || (typeof b === 'string' ? b : '');
+                const url = b.url || '';
                 if (typeof text === 'string') {
                     text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g,
                         '<a href="$2" target="_blank" style="color: #018181; text-decoration: underline;">$1</a>');
                 }
                 const bulletId = `${prefix}-news-bullet-${idx}`;
+                const urlId = `${prefix}-news-bullet-${idx}-url`;
                 const item = document.createElement('div');
                 item.className = 'dynamic-field-item';
                 item.dataset.bulletIndex = idx;
                 item.innerHTML = `
-                    <button class="dynamic-remove-btn" onclick="this.closest('.dynamic-field-item').remove()" title="Remove">&times;</button>
+                    <button class="dynamic-remove-btn" onclick="this.closest('.dynamic-field-item').remove(); updateNewsSources('${prefix}');" title="Remove">&times;</button>
                     <div class="field-group">
                         <label class="field-label">Bullet ${idx + 1}</label>
                         <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('${bulletId}')" type="button">🔗 Insert Link</button></div>
@@ -6655,10 +6658,38 @@
                             </div>
                         </div>
                         <div class="editable" contenteditable="true" id="${bulletId}"></div>
+                        <label class="field-label" style="margin-top:6px;font-size:11px;color:#888;">Source URL</label>
+                        <input type="text" id="${urlId}" class="bullet-source-url" value="${url.replace(/"/g, '&quot;')}" placeholder="https://... (article link for this bullet)" style="width:100%;padding:5px 8px;font-size:12px;border:1px solid #ddd;border-radius:4px;color:#666;" onchange="updateNewsSources('${prefix}')">
                     </div>`;
                 container.appendChild(item);
                 document.getElementById(bulletId).innerHTML = text;
             });
+            // Sync sources display after rendering
+            updateNewsSources(prefix);
+        }
+
+        // Update the Industry News sources display from bullet URL fields
+        function updateNewsSources(prefix) {
+            const container = document.getElementById(prefix + '-news-bullets-container');
+            const sourcesEl = document.getElementById(prefix + '-news-sources');
+            if (!container || !sourcesEl) return;
+            const urls = [];
+            container.querySelectorAll('.dynamic-field-item').forEach((item, idx) => {
+                const urlInput = item.querySelector('.bullet-source-url');
+                const bulletEl = document.getElementById(prefix + '-news-bullet-' + idx);
+                const url = urlInput ? urlInput.value.trim() : '';
+                const text = bulletEl ? bulletEl.textContent.trim().substring(0, 80) : `Bullet ${idx + 1}`;
+                if (url) urls.push({ title: text, url: url });
+            });
+            if (urls.length === 0) { sourcesEl.innerHTML = ''; return; }
+            let html = '<strong>Sources:</strong><br>';
+            urls.forEach(art => {
+                html += `<div style="margin: 8px 0;">
+                    <a href="${art.url}" target="_blank">${art.title}</a>
+                    <code>${art.url}</code>
+                </div>`;
+            });
+            sourcesEl.innerHTML = html;
         }
 
         // Helper: copy innerHTML between two elements
@@ -6776,11 +6807,12 @@
             if (!container) return;
             const idx = container.querySelectorAll('.dynamic-field-item').length;
             const bulletId = `${prefix}-news-bullet-${idx}`;
+            const urlId = `${prefix}-news-bullet-${idx}-url`;
             const item = document.createElement('div');
             item.className = 'dynamic-field-item';
             item.dataset.bulletIndex = idx;
             item.innerHTML = `
-                <button class="dynamic-remove-btn" onclick="this.closest('.dynamic-field-item').remove()" title="Remove">&times;</button>
+                <button class="dynamic-remove-btn" onclick="this.closest('.dynamic-field-item').remove(); updateNewsSources('${prefix}');" title="Remove">&times;</button>
                 <div class="field-group">
                     <label class="field-label">Bullet ${idx + 1}</label>
                     <div class="link-toolbar"><button class="link-toolbar-btn" onclick="showLinkPopover('${bulletId}')" type="button">🔗 Insert Link</button></div>
@@ -6793,6 +6825,8 @@
                         </div>
                     </div>
                     <div class="editable" contenteditable="true" id="${bulletId}"></div>
+                    <label class="field-label" style="margin-top:6px;font-size:11px;color:#888;">Source URL</label>
+                    <input type="text" id="${urlId}" class="bullet-source-url" value="" placeholder="https://... (article link for this bullet)" style="width:100%;padding:5px 8px;font-size:12px;border:1px solid #ddd;border-radius:4px;color:#666;" onchange="updateNewsSources('${prefix}')">
                 </div>`;
             container.appendChild(item);
         }
@@ -6868,13 +6902,20 @@
                 renderSourceUrls('review-partner-sources', selectedArticles.partner_advantage);
             }
 
-            // Industry News - dynamic bullets
+            // Industry News - dynamic bullets (merge URLs from selectedArticles if missing)
             if (skippedSections.news) {
                 const nc = document.getElementById('review-news-bullets-container');
                 if (nc) nc.innerHTML = '<em style="color: #92400e;">Section skipped</em>';
             } else if (generatedContent.industry_news) {
-                renderDynamicBullets('review', generatedContent.industry_news.bullets || []);
-                renderSourceUrls('review-news-sources', selectedArticles.industry_news);
+                const rawBullets = generatedContent.industry_news.bullets || [];
+                const newsArticles = selectedArticles.industry_news || [];
+                const mergedBullets = rawBullets.map((b, i) => {
+                    if (!b.url && newsArticles[i]) {
+                        return { ...b, url: newsArticles[i].url || newsArticles[i].source_url || '' };
+                    }
+                    return b;
+                });
+                renderDynamicBullets('review', mergedBullets);
             }
 
             // Populate sandboxes
@@ -7707,8 +7748,17 @@
 
             // Read all content from review sub-fields (DOM is source of truth)
             const intro = getDomHTML('review-intro') || '';
-            // Force links in hero intro to white (teal text on teal bg is invisible)
-            const introHero = intro.replace(/color:\s*#[0-9a-fA-F]{6}/g, 'color: #ffffff');
+            // Clean intro for hero: strip block-level tags (div/p) that break <p> nesting,
+            // force all colors to white, and preserve only <a>/<span>/<br> tags
+            let introHero = intro
+                .replace(/<\/div>\s*<div[^>]*>/gi, '<br>')    // div breaks → <br>
+                .replace(/<div[^>]*>/gi, '')                   // opening div
+                .replace(/<\/div>/gi, '')                      // closing div
+                .replace(/<\/p>\s*<p[^>]*>/gi, '<br>')         // p breaks → <br>
+                .replace(/<p[^>]*>/gi, '')                     // opening p
+                .replace(/<\/p>/gi, '')                        // closing p
+                .replace(/color:\s*[^;}"']+/gi, 'color: #ffffff')  // force all colors white
+                .trim();
             const briteSpotTitle = getDomText('review-britespot-title') || '';
             let briteSpotBody = getDomHTML('review-britespot-body') || '';
             const goodTitle = getDomText('review-good-subtitle') || '';
@@ -7749,13 +7799,14 @@
                 });
             }
 
-            // Read news bullets from dynamic fields
+            // Read news bullets from dynamic fields (include source URL)
             const newsBullets = [];
             const bulletsContainer = document.getElementById('review-news-bullets-container');
             if (bulletsContainer) {
                 bulletsContainer.querySelectorAll('.dynamic-field-item').forEach((item, idx) => {
                     const bulletEl = document.getElementById('review-news-bullet-' + idx);
-                    if (bulletEl) newsBullets.push({ text: bulletEl.innerHTML.trim() });
+                    const urlEl = document.getElementById('review-news-bullet-' + idx + '-url');
+                    if (bulletEl) newsBullets.push({ text: bulletEl.innerHTML.trim(), url: urlEl ? urlEl.value.trim() : '' });
                 });
             }
 
@@ -7813,15 +7864,20 @@
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="10" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>`;
             });
 
-            // Build Industry News HTML
+            // Build Industry News HTML — wrap headline in link if source URL available
             let newsHtml = '';
             newsBullets.forEach(b => {
                 let bulletText = b.text || '';
+                const bulletUrl = b.url || '';
                 // Convert markdown links to HTML if needed
                 bulletText = bulletText.replace(
                     /\[([^\]]+)\]\(([^)]+)\)/g,
                     '<a href="$2" target="_blank" style="color:#008182;text-decoration:underline;">$1</a>'
                 );
+                // If bullet has a source URL and text doesn't already contain a link, wrap entire text in a link
+                if (bulletUrl && !bulletText.includes('<a ')) {
+                    bulletText = `<a href="${bulletUrl}" target="_blank" style="color:#008182;text-decoration:underline;">${bulletText}</a>`;
+                }
                 newsHtml += `
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
 <tr>
@@ -7938,16 +7994,9 @@ u + .body .section-header, u + .body .section-header font, u + .body .section-he
         <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
             <tbody>
                 <tr>
-                    <td align="center" style="padding: 40px 20px;">
-                        <h1 style="margin: 0; font-family: Montserrat, Helvetica, Arial, sans-serif; font-size: 40px; line-height: 44px; font-weight: 600; color: #ffffff;">Stay In The Loupe</h1>
-                        <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
-                            <tbody>
-                                <tr>
-                                    <td height="30" style="font-size: 1px; line-height: 1px;">&nbsp;</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <p style="margin: 0 0 30px 0; font-family: Montserrat, Helvetica, Arial, sans-serif; font-size: 16px; line-height: 28px; font-weight: 400; color: #ffffff; max-width: 480px;">${introHero}</p>
+                    <td align="center" style="padding: 50px 45px;">
+                        <h1 style="margin: 0 0 20px 0; font-family: Montserrat, Georgia, serif; font-size: 32px; line-height: 38px; font-weight: 700; color: #ffffff; font-style: italic;">Stay In The Loupe</h1>
+                        <p style="margin: 0 0 28px 0; font-family: Montserrat, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 24px; font-weight: 400; color: #ffffff;">${introHero}</p>
                         <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation">
                             <tbody>
                                 <tr>
@@ -8367,14 +8416,16 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 });
             }
 
-            // News bullets — save count + each bullet
+            // News bullets — save count + each bullet + source URL
             const bulletsContainer = document.getElementById(prefix + 'news-bullets-container');
             if (bulletsContainer) {
                 const bulletItems = bulletsContainer.querySelectorAll('.dynamic-field-item');
                 reviewHTML['news-bullet-count'] = bulletItems.length;
                 bulletItems.forEach((item, idx) => {
                     const bulletEl = document.getElementById(prefix + 'news-bullet-' + idx);
+                    const urlEl = document.getElementById(prefix + 'news-bullet-' + idx + '-url');
                     reviewHTML['news-bullet-' + idx] = bulletEl ? bulletEl.innerHTML : '';
+                    reviewHTML['news-bullet-' + idx + '-url'] = urlEl ? urlEl.value : '';
                 });
             }
 
@@ -8603,12 +8654,12 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                         renderDynamicTips('review', tips);
                     }
 
-                    // Restore news bullets dynamically
+                    // Restore news bullets dynamically (including source URLs)
                     const bulletCount = savedHTML['news-bullet-count'] || 0;
                     if (bulletCount > 0) {
                         const bullets = [];
                         for (let i = 0; i < bulletCount; i++) {
-                            bullets.push({ text: savedHTML['news-bullet-' + i] || '' });
+                            bullets.push({ text: savedHTML['news-bullet-' + i] || '', url: savedHTML['news-bullet-' + i + '-url'] || '' });
                         }
                         renderDynamicBullets('review', bullets);
                     }
@@ -8657,6 +8708,17 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 if (generatedContent && Object.keys(generatedContent).length > 0 && (step === 1 || step === 2 || step === 3 || step === 4 || step === 5 || step === 6)) {
                     step = '6b';
                 }
+
+                // Restore step 8 UI (prompts) without regenerating
+                if (generatedPrompts && Object.keys(generatedPrompts).length > 0) {
+                    document.getElementById('promptGenerationLoading').style.display = 'none';
+                    document.getElementById('promptEditing').style.display = 'block';
+                }
+                // Restore step 9 UI (images) without regenerating
+                if (generatedImages && Object.keys(generatedImages).length > 0) {
+                    displayGeneratedImages();
+                }
+
                 if (step === '6b' || step === '7b') {
                     showStep(step);
                 } else {
@@ -8933,14 +8995,15 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
                 }
             }
 
-            // News bullets — read from review dynamic fields, render into fc
+            // News bullets — read from review dynamic fields (include URLs), render into fc
             if (!skippedSections.news) {
                 const reviewBulletsContainer = document.getElementById('review-news-bullets-container');
                 if (reviewBulletsContainer) {
                     const bullets = [];
                     reviewBulletsContainer.querySelectorAll('.dynamic-field-item').forEach((item, idx) => {
                         const bulletEl = document.getElementById('review-news-bullet-' + idx);
-                        if (bulletEl) bullets.push({ text: bulletEl.innerHTML.trim() });
+                        const urlEl = document.getElementById('review-news-bullet-' + idx + '-url');
+                        if (bulletEl) bullets.push({ text: bulletEl.innerHTML.trim(), url: urlEl ? urlEl.value.trim() : '' });
                     });
                     if (bullets.length > 0) renderDynamicBullets('fc', bullets);
                 }

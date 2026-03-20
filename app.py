@@ -3168,7 +3168,10 @@ def export_to_docs():
                 for bullet in news['bullets']:
                     if isinstance(bullet, dict):
                         bullet_html = bullet.get('text', '')
-                        # Prepend bullet marker
+                        bullet_url = bullet.get('url', '')
+                        # If URL present and text doesn't already have an <a> tag, wrap it
+                        if bullet_url and '<a ' not in bullet_html:
+                            bullet_html = f'<a href="{bullet_url}">{bullet_html}</a>'
                         add_rich_text(f"• {bullet_html}")
                     else:
                         add_rich_text(f"• {bullet}")
@@ -3577,8 +3580,14 @@ def render_email_template():
         html = html.replace('{{YEAR}}', str(year))
         html = html.replace('{{PREHEADER}}', preheader)
 
-        # Intro content
-        html = html.replace('{{INTRO_CONTENT}}', content.get('intro', 'Welcome to this month\'s edition!'))
+        # Intro content — strip block-level tags and force colors to white for teal bg
+        intro_html = content.get('intro', 'Welcome to this month\'s edition!')
+        intro_html = re.sub(r'</div>\s*<div[^>]*>', '<br>', intro_html, flags=re.IGNORECASE)
+        intro_html = re.sub(r'</?div[^>]*>', '', intro_html, flags=re.IGNORECASE)
+        intro_html = re.sub(r'</p>\s*<p[^>]*>', '<br>', intro_html, flags=re.IGNORECASE)
+        intro_html = re.sub(r'</?p[^>]*>', '', intro_html, flags=re.IGNORECASE)
+        intro_html = re.sub(r'color:\s*[^;}"\']+', 'color: #ffffff', intro_html, flags=re.IGNORECASE)
+        html = html.replace('{{INTRO_CONTENT}}', intro_html.strip())
 
         # The Brite Spot
         html = html.replace('{{BRITE_SPOT_CONTENT}}', content.get('brite_spot', ''))
@@ -3619,21 +3628,28 @@ def render_email_template():
         html = html.replace('{{THE_UGLY_COPY}}', the_ugly.get('copy', ''))
         html = html.replace('{{THE_UGLY_URL}}', the_ugly.get('url', '#'))
 
-        # Industry News bullets
+        # Industry News bullets — headline is hyperlinked to source URL
         industry_news = content.get('industry_news', {})
         bullets = industry_news.get('bullets', [])
         news_bullets_html = ''
         for i, bullet in enumerate(bullets[:5]):
             text = bullet.get('text', bullet) if isinstance(bullet, dict) else str(bullet)
-            url = bullet.get('url', '#') if isinstance(bullet, dict) else '#'
+            url = bullet.get('url', '') if isinstance(bullet, dict) else ''
             padding_bottom = '16px' if i < len(bullets) - 1 else '0'
+            # If URL available and text doesn't already contain an <a> tag, wrap the headline in a link
+            if url and '<a ' not in text:
+                linked_text = f'<a href="{url}" style="color: #008181; text-decoration: underline;">{text}</a>'
+            elif url:
+                linked_text = f'{text}'
+            else:
+                linked_text = text
             news_bullets_html += f'''
             <tr>
                 <td style="padding-right: 12px; padding-top: 2px;" valign="top" width="32">
                     <img alt="" src="https://brite.co/wp-content/uploads/2025/09/tickk.png" style="display: block; width: 24px; height: auto;" width="24" />
                 </td>
                 <td style="padding-bottom: {padding_bottom};" valign="top">
-                    <p class="dark-text-secondary" style="margin: 0; font-family: Montserrat, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 24px; font-weight: 400; color: #3B3B3B;">{text} <a href="{url}" style="color: #008181; text-decoration: underline;">Read more</a></p>
+                    <p class="dark-text-secondary" style="margin: 0; font-family: Montserrat, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 24px; font-weight: 400; color: #3B3B3B;">{linked_text}</p>
                 </td>
             </tr>'''
         html = html.replace('{{INDUSTRY_NEWS_BULLETS}}', news_bullets_html)
