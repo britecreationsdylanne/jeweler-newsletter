@@ -63,6 +63,12 @@ class PerplexityClient:
 
             geo_context = f" Focus on {geography}." if geography else ""
 
+            # Add date cutoff to query for more precise recency filtering
+            from datetime import datetime, timedelta
+            days_map = {'7d': 7, '15d': 15, '30d': 30, '90d': 90}
+            max_days = days_map.get(time_window, 30)
+            cutoff_date = (datetime.now() - timedelta(days=max_days)).strftime('%Y-%m-%d')
+
             system_prompt = f"""You are a research assistant helping compile a monthly jewelry industry newsletter called "Stay In The Loupe."
 
 Search for {time_context} articles and news.{geo_context}
@@ -91,6 +97,8 @@ Important:
 - Focus on jewelry, gemstones, watches, fine jewelry, precious metals, and jewelry retail
 - Exclude: personnel announcements, promotions, obituaries, political news unrelated to jewelry
 - Include specific data points, statistics, and concrete details when available
+- Prefer open-access trade publications and press releases over paywalled mainstream media
+- AVOID these paywalled sources: wsj.com, bloomberg.com, nytimes.com, ft.com, businessinsider.com, washingtonpost.com, economist.com, barrons.com, thetimes.co.uk, telegraph.co.uk
 - Return exactly {max_results} results"""
 
             # Build recency filter for Perplexity API
@@ -112,7 +120,7 @@ Important:
                 "model": "sonar-pro",  # sonar-pro has deeper search and better recency
                 "messages": [
                     {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": query}
+                    {"role": "user", "content": f"after:{cutoff_date} {query}"}
                 ],
                 "temperature": 0.2,
                 "max_tokens": 2000,

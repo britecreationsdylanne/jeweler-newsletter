@@ -544,6 +544,28 @@ Return ONLY the JSON array, no other text."""
         return results
 
 
+PAYWALL_DOMAINS = [
+    'wsj.com', 'bloomberg.com', 'nytimes.com', 'ft.com', 'businessinsider.com',
+    'washingtonpost.com', 'economist.com', 'barrons.com', 'thetimes.co.uk',
+    'telegraph.co.uk', 'latimes.com', 'bostonglobe.com'
+]
+
+
+def filter_paywalled(results: list) -> list:
+    """Remove results from known paywalled domains."""
+    from urllib.parse import urlparse
+    filtered = []
+    for r in results:
+        url = r.get('url', '')
+        try:
+            domain = urlparse(url).netloc.lower().replace('www.', '')
+            if not any(domain == pw or domain.endswith('.' + pw) for pw in PAYWALL_DOMAINS):
+                filtered.append(r)
+        except Exception:
+            filtered.append(r)
+    return filtered
+
+
 def filter_by_recency(results: list, time_window: str = '30d') -> list:
     """Filter out articles older than the requested time window.
     Accepts results with 'published_date' or 'published_at' in YYYY-MM-DD format.
@@ -647,7 +669,8 @@ def search_perplexity_v2():
         if exclude_urls:
             search_results = [r for r in search_results if r.get('url') not in exclude_urls]
 
-        # Filter out articles older than the requested time window
+        # Filter out paywalled sources and articles older than the requested time window
+        search_results = filter_paywalled(search_results)
         search_results = filter_by_recency(search_results, time_window)
 
         # Take top 8 results
@@ -762,9 +785,10 @@ Return results with title, url, publisher, published_date (YYYY-MM-DD format), a
 
         safe_print(f"[Insight Builder] Total unique results: {len(all_results)}")
 
-        # Filter out articles older than the requested time window
+        # Filter out paywalled sources and articles older than the requested time window
+        all_results = filter_paywalled(all_results)
         all_results = filter_by_recency(all_results, time_window)
-        safe_print(f"[Insight Builder] After recency filter ({time_window}): {len(all_results)} results")
+        safe_print(f"[Insight Builder] After recency/paywall filter ({time_window}): {len(all_results)} results")
 
         # Analyze results with GPT for industry impact
         enriched_results = analyze_industry_impact(all_results)
@@ -981,9 +1005,10 @@ Return results with title, url, publisher, published_date, and summary."""
                 safe_print(f"[API v2] Source query error: {e}")
                 continue
 
-        # Filter out articles older than the requested time window
+        # Filter out paywalled sources and articles older than the requested time window
+        all_results = filter_paywalled(all_results)
         all_results = filter_by_recency(all_results, time_window)
-        safe_print(f"[Source Explorer] After recency filter ({time_window}): {len(all_results)} results")
+        safe_print(f"[Source Explorer] After recency/paywall filter ({time_window}): {len(all_results)} results")
 
         # Transform to shared schema
         results = transform_to_shared_schema(all_results[:8], 'explorer')
