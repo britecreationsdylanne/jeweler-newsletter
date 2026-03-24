@@ -7848,7 +7848,8 @@
                 .replace(/<\/p>\s*<p[^>]*>/gi, '<br>')         // p breaks → <br>
                 .replace(/<p[^>]*>/gi, '')                     // opening p
                 .replace(/<\/p>/gi, '')                        // closing p
-                .replace(/color:\s*[^;}"']+/gi, 'color: #ffffff')  // force all colors white
+                .replace(/background-color:\s*[^;}"']+;?/gi, '')     // strip background colors
+                .replace(/(?<![\w-])color:\s*[^;}"']+/gi, 'color: #ffffff')  // force text colors white
                 .trim();
             const briteSpotTitle = getDomText('review-britespot-title') || '';
             let briteSpotBody = getDomHTML('review-britespot-body') || '';
