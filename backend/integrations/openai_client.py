@@ -8,6 +8,8 @@ from typing import Dict, List, Optional
 from openai import OpenAI
 import json
 
+from backend.url_validator import filter_valid_urls
+
 
 class OpenAIClient:
     """Wrapper for OpenAI API calls"""
@@ -434,6 +436,8 @@ No extra keys. No commentary outside JSON."""
                     break
 
             print(f"[OpenAI Responses API] FINAL: Returned {len(cleaned)} articles after dedup")
+            cleaned = filter_valid_urls(cleaned, url_key="url")
+            print(f"[OpenAI Responses API] After URL validation: {len(cleaned)} articles")
             print(f"{'='*60}\n")
             return cleaned
 

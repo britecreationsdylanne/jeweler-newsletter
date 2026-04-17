@@ -11,6 +11,8 @@ import requests
 from typing import List, Dict
 from datetime import datetime
 
+from backend.url_validator import filter_valid_urls
+
 
 class PerplexityClient:
     """Client for Perplexity API"""
@@ -171,6 +173,8 @@ Important:
                 r['category'] = 'research'
 
             print(f"[Perplexity] Found {len(results)} results")
+            results = filter_valid_urls(results, url_key="url")
+            print(f"[Perplexity] After URL validation: {len(results)} results")
             return results
 
         except requests.exceptions.Timeout:
