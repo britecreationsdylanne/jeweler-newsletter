@@ -3158,18 +3158,27 @@ def export_to_docs():
             if isinstance(pulse, dict):
                 add_text(clean(pulse.get('title', '')))
                 add_rich_text(pulse.get('intro', ''))
-                h3_1_title = clean(pulse.get('h3_1_title', ''))
-                if h3_1_title:
-                    add_text(h3_1_title, bold=True)
-                add_rich_text(pulse.get('h3_1_content', ''))
-                h3_2_title = clean(pulse.get('h3_2_title', ''))
-                if h3_2_title:
-                    add_text(h3_2_title, bold=True)
-                add_rich_text(pulse.get('h3_2_content', ''))
-                h3_3_title = clean(pulse.get('h3_3_title', ''))
-                if h3_3_title:
-                    add_text(h3_3_title, bold=True)
-                add_rich_text(pulse.get('h3_3_content', ''))
+
+                subheadings = pulse.get('subheadings', [])
+                if isinstance(subheadings, list) and subheadings:
+                    # New format: dynamic subheadings array (supports any count)
+                    for sh in subheadings:
+                        if isinstance(sh, dict):
+                            sh_title = clean(sh.get('title', ''))
+                            if sh_title:
+                                add_text(sh_title, bold=True)
+                            add_rich_text(sh.get('content', ''))
+                else:
+                    # Legacy format: h3_N_title / h3_N_content keys
+                    for n in range(1, 6):
+                        h_title = clean(pulse.get(f'h3_{n}_title', ''))
+                        h_content = pulse.get(f'h3_{n}_content', '')
+                        if not h_title and not h_content:
+                            continue
+                        if h_title:
+                            add_text(h_title, bold=True)
+                        if h_content:
+                            add_rich_text(h_content)
             else:
                 add_rich_text(pulse)
 
