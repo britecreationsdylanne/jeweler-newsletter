@@ -8016,6 +8016,12 @@
                 .trim();
             const briteSpotTitle = getDomText('review-britespot-title') || '';
             let briteSpotBody = getDomHTML('review-britespot-body') || '';
+            // Normalize spacing: give nested <p> consistent paragraph spacing so
+            // <br>-separated lines (e.g. "Luxury booth: ..." / "JCK booth: ...")
+            // don't visually cram against preceding paragraphs.
+            if (briteSpotBody) {
+                briteSpotBody = briteSpotBody.replace(/<p(\s[^>]*)?>/gi, '<p style="margin:0 0 14px 0;">');
+            }
             const goodTitle = getDomText('review-good-subtitle') || '';
             const goodBody = getDomHTML('review-good-copy') || '';
             const badTitle = getDomText('review-bad-subtitle') || '';
@@ -8113,7 +8119,7 @@
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
 <tr>
 <td style="padding-right:12px;vertical-align:top;" valign="top" width="76"><img alt="✓" src="https://storage.googleapis.com/stay-in-the-loupe-images/assets/checkmark-new.png" style="display:block;width:72px;height:auto;" width="72" /></td>
-<td style="vertical-align:top;" valign="top">
+<td style="padding-top:15px;vertical-align:top;" valign="top">
 <p style="margin:0 0 4px 0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:24px;font-weight:600;color:#008182;">${tip.title || ''}</p>
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${tip.content || ''}</p>
 </td>
@@ -8148,7 +8154,7 @@
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
 <tr>
 <td style="padding-right:12px;vertical-align:top;" valign="top" width="76"><img alt="✓" src="https://storage.googleapis.com/stay-in-the-loupe-images/assets/checkmark-new.png" style="display:block;width:72px;height:auto;" width="72" /></td>
-<td style="vertical-align:top;" valign="top">
+<td style="padding-top:15px;vertical-align:top;" valign="top">
 <p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${bulletText}</p>
 </td>
 </tr>
