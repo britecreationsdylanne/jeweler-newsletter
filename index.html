@@ -8016,11 +8016,13 @@
                 .trim();
             const briteSpotTitle = getDomText('review-britespot-title') || '';
             let briteSpotBody = getDomHTML('review-britespot-body') || '';
-            // Normalize spacing: give nested <p> consistent paragraph spacing so
-            // <br>-separated lines (e.g. "Luxury booth: ..." / "JCK booth: ...")
-            // don't visually cram against preceding paragraphs.
+            // Match the vertical rhythm of Industry Pulse / Partner Advantage,
+            // which use a single <p> with no internal margins. Flatten nested
+            // <p> margins in the user-typed body so BriteSpot flows with the
+            // wrapper's 26px line-height instead of adding browser-default
+            // 1em paragraph gaps on top.
             if (briteSpotBody) {
-                briteSpotBody = briteSpotBody.replace(/<p(\s[^>]*)?>/gi, '<p style="margin:0 0 14px 0;">');
+                briteSpotBody = briteSpotBody.replace(/<p(\s[^>]*)?>/gi, '<p style="margin:0;">');
             }
             const goodTitle = getDomText('review-good-subtitle') || '';
             const goodBody = getDomHTML('review-good-copy') || '';
