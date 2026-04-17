@@ -3731,6 +3731,58 @@
             12: 'Ontraport'
         };
 
+        // Strip inline styles / classes / font tags from pasted HTML so pasted
+        // content inherits the newsletter's Montserrat styling instead of dragging
+        // in Calibri/Arial/12pt from Word or Google Docs.
+        function sanitizeEditableHTML(html) {
+            if (!html || typeof html !== 'string') return '';
+            const tmpl = document.createElement('template');
+            tmpl.innerHTML = html;
+
+            tmpl.content.querySelectorAll('*').forEach(el => {
+                el.removeAttribute('style');
+                el.removeAttribute('class');
+                el.removeAttribute('face');
+                el.removeAttribute('size');
+                el.removeAttribute('color');
+                el.removeAttribute('bgcolor');
+                el.removeAttribute('align');
+            });
+
+            // Unwrap presentational wrappers — after attr strip they carry no meaning
+            Array.from(tmpl.content.querySelectorAll('font, span')).forEach(el => {
+                const parent = el.parentNode;
+                if (!parent) return;
+                while (el.firstChild) parent.insertBefore(el.firstChild, el);
+                parent.removeChild(el);
+            });
+
+            return tmpl.innerHTML;
+        }
+
+        // Delegated paste handler: clean pasted content before it lands in any
+        // contenteditable field (.editable and .sandbox-body cover all of them).
+        document.addEventListener('paste', function(e) {
+            const target = e.target.closest && e.target.closest('.editable, .sandbox-body');
+            if (!target) return;
+            e.preventDefault();
+            const cd = e.clipboardData || window.clipboardData;
+            if (!cd) return;
+            const html = cd.getData('text/html');
+            let cleaned;
+            if (html) {
+                cleaned = sanitizeEditableHTML(html);
+            } else {
+                const text = cd.getData('text/plain') || '';
+                cleaned = text
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/\n/g, '<br>');
+            }
+            document.execCommand('insertHTML', false, cleaned);
+        });
+
         // Initialize on load (OAuth handles auth)
         document.addEventListener('DOMContentLoaded', initApp);
 
@@ -7939,7 +7991,8 @@
             }
             function getDomHTML(id) {
                 const el = document.getElementById(id);
-                return el ? el.innerHTML.trim() : '';
+                if (!el) return '';
+                return sanitizeEditableHTML(el.innerHTML).trim();
             }
 
             // Read all content from review sub-fields (DOM is source of truth)
@@ -8305,7 +8358,7 @@ currentBsLayout === 'portrait' ? `
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="20" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 <!-- Copy -->
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td style="padding:0 15px;">
-<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:16px;line-height:28px;font-weight:400;color:#3B3B3B;">${briteSpotBody}</p>
+<p style="margin:0;font-family:Montserrat,Helvetica,Arial,sans-serif;font-size:15px;line-height:26px;font-weight:400;color:#3B3B3B;">${briteSpotBody}</p>
 </td></tr></table>
 <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"><tr><td height="25" style="font-size:1px;line-height:1px;">&nbsp;</td></tr></table>
 </td></tr>
