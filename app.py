@@ -260,7 +260,7 @@ def enrich_results_with_llm(results: list, original_query: str, section: str = '
 
     try:
         model_config = get_model_for_task('research_enrichment')
-        model_id = model_config.get('id', 'gpt-5.2')
+        model_id = model_config.get('id', 'gpt-5.5')
         max_tokens_param = model_config.get('max_tokens_param', 'max_tokens')
 
         safe_print(f"[Enrichment] Using model: {model_id} for section: {section}")
@@ -378,7 +378,7 @@ def analyze_industry_impact(results: list) -> list:
 
     try:
         model_config = get_model_for_task('research_enrichment')
-        model_id = model_config.get('id', 'gpt-5.2')
+        model_id = model_config.get('id', 'gpt-5.5')
         max_tokens_param = model_config.get('max_tokens_param', 'max_tokens')
 
         safe_print(f"[Insight Builder] Analyzing {len(results)} results with {model_id}...")
@@ -468,7 +468,7 @@ def analyze_story_angles(results: list, user_query: str) -> list:
 
     try:
         model_config = get_model_for_task('research_enrichment')
-        model_id = model_config.get('id', 'gpt-5.2')
+        model_id = model_config.get('id', 'gpt-5.5')
         max_tokens_param = model_config.get('max_tokens_param', 'max_tokens')
 
         safe_print(f"[Source Explorer] Analyzing {len(results)} results with {model_id}...")
@@ -1477,7 +1477,7 @@ Provide a concise summary (75-100 words) covering the key facts and why it matte
 
                     try:
                         response = openai_client.client.chat.completions.create(
-                            model="gpt-5.2",
+                            model="gpt-5.5",
                             messages=[{"role": "user", "content": prompt}],
                             temperature=0.5,
                             max_completion_tokens=200
@@ -1520,7 +1520,7 @@ Write in a professional but engaging tone."""
 
             try:
                 response = openai_client.client.chat.completions.create(
-                    model="gpt-5.2",
+                    model="gpt-5.5",
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.5,
                     max_completion_tokens=500
@@ -1638,7 +1638,7 @@ Keep the core message. STRICTLY stay within {spec['max_words']} words. Output ON
         except Exception as e:
             safe_print(f"[API] Claude error, falling back to OpenAI: {e}")
             response = openai_client.client.chat.completions.create(
-                model="gpt-5.2",
+                model="gpt-5.5",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
                 max_completion_tokens=500
@@ -2451,7 +2451,7 @@ Output ONLY the image generation prompt, nothing else."""
             try:
                 response = claude_client.generate_content(
                     prompt=prompt_request,
-                    model="claude-opus-4-5-20251101",
+                    model="claude-opus-4-8",
                     max_tokens=150,
                     temperature=0.5
                 )

@@ -164,7 +164,7 @@ class TestClaudeClientInit:
         from backend.integrations.claude_client import ClaudeClient
         client = ClaudeClient(api_key="sk-test-fake")
         assert client.api_key == "sk-test-fake"
-        assert client.default_model == "claude-opus-4-5-20251101"
+        assert client.default_model == "claude-opus-4-8"
 
 
 class TestClaudeEstimateCost:
