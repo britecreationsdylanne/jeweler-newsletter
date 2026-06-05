@@ -2526,16 +2526,53 @@ RULES:
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+def _image_backends_status():
+    """Return (openai_ok, gemini_ok) for the two image generation backends."""
+    openai_ok = bool(openai_client and getattr(openai_client, 'client', None))
+    gemini_ok = bool(gemini_client and gemini_client.is_available())
+    return openai_ok, gemini_ok
+
+
+def generate_image_with_fallback(prompt, aspect_ratio='1:1', quality='medium'):
+    """
+    Generate an image using OpenAI gpt-image-2 (primary), falling back to
+    Gemini Nano Banana if OpenAI is unavailable or errors.
+
+    Returns a dict with at least 'image_data' (base64 PNG), matching the shape
+    of both client generate_image() methods. Raises if no backend can produce one.
+    """
+    openai_ok, gemini_ok = _image_backends_status()
+
+    # Primary: OpenAI gpt-image-2
+    if openai_ok:
+        try:
+            result = openai_client.generate_image(
+                prompt=prompt, aspect_ratio=aspect_ratio, quality=quality
+            )
+            if result and result.get('image_data'):
+                return result
+            safe_print("[IMAGE] gpt-image-2 returned no data; falling back to Gemini")
+        except Exception as e:
+            safe_print(f"[IMAGE] gpt-image-2 failed ({e}); falling back to Gemini")
+
+    # Fallback: Gemini Nano Banana
+    if gemini_ok:
+        return gemini_client.generate_image(prompt=prompt, aspect_ratio=aspect_ratio)
+
+    raise RuntimeError("No image generation backend available (OpenAI and Gemini both unavailable)")
+
+
 @app.route('/api/generate-images', methods=['POST'])
 def generate_images():
-    """Generate images using Gemini"""
+    """Generate images using OpenAI gpt-image-2 (primary) with Gemini fallback"""
     try:
         data = request.json
 
-        # Check if Gemini client is available
-        if not gemini_client or not gemini_client.is_available():
-            safe_print("[API ERROR] Gemini client not available")
-            return jsonify({'success': False, 'error': 'Gemini image generation not available'}), 500
+        # Need at least one image backend available
+        openai_ok, gemini_ok = _image_backends_status()
+        if not openai_ok and not gemini_ok:
+            safe_print("[API ERROR] No image generation backend available")
+            return jsonify({'success': False, 'error': 'No image generation backend available'}), 500
 
         # Handle single-image request (from special section)
         single_prompt = data.get('prompt')
@@ -2543,7 +2580,7 @@ def generate_images():
         if single_prompt and single_section:
             safe_print(f"\n[API] Single image request for {single_section}")
             try:
-                result = gemini_client.generate_image(
+                result = generate_image_with_fallback(
                     prompt=single_prompt,
                     aspect_ratio="16:9"
                 )
@@ -2598,8 +2635,8 @@ def generate_images():
 
             try:
                 aspect_ratio = ASPECT_RATIOS.get(section, '1:1')
-                # Use default model (gemini-2.5-flash-image) from gemini_client
-                result = gemini_client.generate_image(
+                # OpenAI gpt-image-2 primary, Gemini fallback
+                result = generate_image_with_fallback(
                     prompt=prompt,
                     aspect_ratio=aspect_ratio
                 )
@@ -2662,7 +2699,7 @@ def resize_image(base64_data, target_size):
 
 @app.route('/api/generate-single-image', methods=['POST'])
 def generate_single_image():
-    """Generate a single image using Gemini"""
+    """Generate a single image using OpenAI gpt-image-2 (primary) with Gemini fallback"""
     try:
         data = request.json
         prompt = data.get('prompt', '')
@@ -2671,9 +2708,10 @@ def generate_single_image():
         if not prompt:
             return jsonify({'success': False, 'error': 'No prompt provided'}), 400
 
-        # Check if Gemini client is available
-        if not gemini_client or not gemini_client.is_available():
-            return jsonify({'success': False, 'error': 'Gemini image generation not available'}), 500
+        # Need at least one image backend available
+        openai_ok, gemini_ok = _image_backends_status()
+        if not openai_ok and not gemini_ok:
+            return jsonify({'success': False, 'error': 'No image generation backend available'}), 500
 
         safe_print(f"\n[API] Regenerating image for {section}...")
 
@@ -2698,7 +2736,7 @@ def generate_single_image():
         }
 
         aspect_ratio = ASPECT_RATIOS.get(section, '1:1')
-        result = gemini_client.generate_image(
+        result = generate_image_with_fallback(
             prompt=prompt,
             aspect_ratio=aspect_ratio
         )
