@@ -2451,9 +2451,8 @@ Output ONLY the image generation prompt, nothing else."""
             try:
                 response = claude_client.generate_content(
                     prompt=prompt_request,
-                    model="claude-opus-4-5-20251101",
-                    max_tokens=150,
-                    temperature=0.5
+                    model="claude-opus-4-8",
+                    max_tokens=150
                 )
 
                 prompts[section] = {

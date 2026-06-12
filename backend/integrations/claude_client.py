@@ -18,7 +18,7 @@ class ClaudeClient:
             raise ValueError("ANTHROPIC_API_KEY not found in environment")
 
         self.client = Anthropic(api_key=self.api_key)
-        self.default_model = "claude-opus-4-5-20251101"  # Claude Opus 4.5 (frontier model for writing)
+        self.default_model = "claude-opus-4-8"  # Claude Opus 4.8 (frontier model for writing)
 
     def generate_content(
         self,
@@ -36,7 +36,7 @@ class ClaudeClient:
             system_prompt: System instructions
             temperature: Creativity (0-1)
             max_tokens: Max response length
-            model: Model to use (defaults to claude-3-5-sonnet)
+            model: Model to use (defaults to claude-opus-4-8)
 
         Returns:
             dict with content, model, tokens, cost_estimate, latency_ms
@@ -49,10 +49,11 @@ class ClaudeClient:
         messages = [{"role": "user", "content": prompt}]
 
         # Call Claude API
+        # NOTE: temperature/top_p/top_k are removed on Opus 4.7/4.8 (400 error),
+        # so the temperature kwarg is intentionally NOT forwarded to the API.
         response = self.client.messages.create(
             model=model_name,
             max_tokens=max_tokens,
-            temperature=temperature,
             system=system_prompt if system_prompt else "",
             messages=messages
         )
@@ -84,16 +85,23 @@ class ClaudeClient:
     def _estimate_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:
         """Estimate cost based on model pricing"""
 
+        model_lower = model.lower()
+
+        # Claude Opus 4.6/4.7/4.8 pricing ($5 / $25 per 1M tokens)
+        # Must be checked before the generic "opus" branch below.
+        if "opus-4-8" in model_lower or "opus-4-7" in model_lower or "opus-4-6" in model_lower:
+            input_cost = (input_tokens / 1_000_000) * 5.00  # $5 per 1M input tokens
+            output_cost = (output_tokens / 1_000_000) * 25.00  # $25 per 1M output tokens
         # Claude 3.5 Sonnet pricing (as of 2025)
-        if "sonnet" in model.lower():
+        elif "sonnet" in model_lower:
             input_cost = (input_tokens / 1_000_000) * 3.00  # $3 per 1M input tokens
             output_cost = (output_tokens / 1_000_000) * 15.00  # $15 per 1M output tokens
         # Claude 3 Haiku (cheaper option)
-        elif "haiku" in model.lower():
+        elif "haiku" in model_lower:
             input_cost = (input_tokens / 1_000_000) * 0.25
             output_cost = (output_tokens / 1_000_000) * 1.25
-        # Claude 3 Opus (premium)
-        elif "opus" in model.lower():
+        # Claude 3 / Opus 4.5 (premium)
+        elif "opus" in model_lower:
             input_cost = (input_tokens / 1_000_000) * 15.00
             output_cost = (output_tokens / 1_000_000) * 75.00
         else:
@@ -132,7 +140,6 @@ Return as JSON array with this structure:
             response = self.client.messages.create(
                 model=self.default_model,
                 max_tokens=2000,
-                temperature=0.3,
                 messages=[{"role": "user", "content": search_prompt}],
                 tools=[{
                     "type": "web_search_20250305",

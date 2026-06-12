@@ -61,7 +61,7 @@ _FAKE_PERPLEXITY_RESULTS = [
 
 _FAKE_CLAUDE_RESPONSE = {
     "content": "<p>Mock newsletter content for testing.</p>",
-    "model": "claude-opus-4-5-20251101",
+    "model": "claude-opus-4-8",
     "tokens": 200,
     "input_tokens": 150,
     "output_tokens": 50,

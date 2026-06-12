@@ -164,7 +164,7 @@ class TestClaudeClientInit:
         from backend.integrations.claude_client import ClaudeClient
         client = ClaudeClient(api_key="sk-test-fake")
         assert client.api_key == "sk-test-fake"
-        assert client.default_model == "claude-opus-4-5-20251101"
+        assert client.default_model == "claude-opus-4-8"
 
 
 class TestClaudeEstimateCost:
@@ -173,16 +173,16 @@ class TestClaudeEstimateCost:
         self.client = ClaudeClient(api_key="sk-test-fake")
 
     def test_opus_cost_is_higher_than_haiku(self):
-        opus = self.client._estimate_cost("claude-opus-4-5", 1000, 1000)
+        opus = self.client._estimate_cost("claude-opus-4-8", 1000, 1000)
         haiku = self.client._estimate_cost("claude-haiku-3", 1000, 1000)
         assert opus > haiku
 
     def test_cost_is_positive(self):
-        cost = self.client._estimate_cost("claude-opus-4-5", 500, 500)
+        cost = self.client._estimate_cost("claude-opus-4-8", 500, 500)
         assert cost > 0
 
     def test_zero_tokens_returns_zero(self):
-        cost = self.client._estimate_cost("claude-opus-4-5", 0, 0)
+        cost = self.client._estimate_cost("claude-opus-4-8", 0, 0)
         assert cost == 0.0
 
     def test_sonnet_pricing(self):
@@ -191,6 +191,6 @@ class TestClaudeEstimateCost:
         assert abs(cost - 18.0) < 0.01
 
     def test_opus_pricing(self):
-        cost = self.client._estimate_cost("claude-opus-4-5", 1_000_000, 1_000_000)
-        # $15/M input + $75/M output = $90 for 1M each
-        assert abs(cost - 90.0) < 0.01
+        cost = self.client._estimate_cost("claude-opus-4-8", 1_000_000, 1_000_000)
+        # $5/M input + $25/M output = $30 for 1M each
+        assert abs(cost - 30.0) < 0.01

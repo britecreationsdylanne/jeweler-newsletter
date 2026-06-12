@@ -189,7 +189,7 @@ class TestCheckBrandGuidelines:
             "generate_content",
             return_value={
                 "content": '{"suggestions": []}',
-                "model": "claude-opus-4-5-20251101",
+                "model": "claude-opus-4-8",
                 "tokens": 50,
                 "cost_estimate": "$0.00",
                 "latency_ms": 50,
@@ -208,7 +208,7 @@ class TestCheckBrandGuidelines:
             "generate_content",
             return_value={
                 "content": '{"suggestions": [{"section": "intro", "issue": "tone", "original": "x", "suggested": "y", "reason": "z"}]}',
-                "model": "claude-opus-4-5-20251101",
+                "model": "claude-opus-4-8",
                 "tokens": 80,
                 "cost_estimate": "$0.00",
                 "latency_ms": 60,
