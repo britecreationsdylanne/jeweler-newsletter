@@ -154,6 +154,45 @@ def safe_print(text):
         print(text.encode('ascii', 'replace').decode('ascii'))
 
 
+def extract_json(content):
+    """Robustly parse a JSON object/array from an LLM response.
+
+    Handles markdown code fences, prose preamble/trailing text, and embedded
+    control characters (strict=False). Raises json.JSONDecodeError if nothing
+    parseable is found. NOTE: this cannot recover truncated output (e.g. a
+    response cut off by max_tokens) — give the model enough tokens to finish.
+    """
+    if not content:
+        raise json.JSONDecodeError("empty content", "", 0)
+
+    text = content.strip()
+
+    # Strip markdown fences if present
+    if '```json' in text:
+        text = text.split('```json', 1)[1].split('```', 1)[0].strip()
+    elif text.startswith('```'):
+        text = re.sub(r'^```[a-zA-Z]*\n', '', text)
+        text = re.sub(r'\n```$', '', text).strip()
+
+    # Direct parse first (lenient about control chars inside strings)
+    try:
+        return json.loads(text, strict=False)
+    except json.JSONDecodeError:
+        pass
+
+    # Salvage: find the outermost JSON object or array and parse that
+    for open_ch, close_ch in (('{', '}'), ('[', ']')):
+        start = text.find(open_ch)
+        end = text.rfind(close_ch)
+        if start != -1 and end > start:
+            try:
+                return json.loads(text[start:end + 1], strict=False)
+            except json.JSONDecodeError:
+                continue
+
+    raise json.JSONDecodeError("no parseable JSON found", text[:200], 0)
+
+
 # ============================================================================
 # OAUTH AUTHENTICATION ROUTES
 # ============================================================================
@@ -1867,17 +1906,12 @@ Return JSON:
                     response = claude_client.generate_content(
                         prompt=gbu_prompt,
                         system_prompt=gbu_system,
-                        max_tokens=200,
+                        max_tokens=600,
                         temperature=0.7
                     )
 
                     content = response.get('content', '{}')
-                    if '```json' in content:
-                        content = content.split('```json')[1].split('```')[0].strip()
-                    elif '```' in content:
-                        content = content.split('```')[1].split('```')[0].strip()
-
-                    generated[section_key] = json.loads(content)
+                    generated[section_key] = extract_json(content)
 
                 except Exception as e:
                     safe_print(f"  Error generating {section_key}: {e}")
@@ -1969,19 +2003,14 @@ Return JSON:
                     response = claude_client.generate_content(
                         prompt=pulse_prompt,
                         system_prompt=pulse_system,
-                        max_tokens=800,
+                        max_tokens=2500,
                         temperature=0.6
                     )
 
                     content = response.get('content', '{}')
                     safe_print(f"  Industry Pulse raw response: {content[:200]}...")
 
-                    if '```json' in content:
-                        content = content.split('```json')[1].split('```')[0].strip()
-                    elif '```' in content:
-                        content = content.split('```')[1].split('```')[0].strip()
-
-                    parsed = json.loads(content)
+                    parsed = extract_json(content)
                     generated['industry_pulse'] = parsed
                     safe_print(f"  Industry Pulse generated successfully: {parsed.get('title', 'No title')}")
 
@@ -2070,17 +2099,12 @@ Return JSON:
                 response = claude_client.generate_content(
                     prompt=partner_prompt,
                     system_prompt=partner_system,
-                    max_tokens=800,
+                    max_tokens=2500,
                     temperature=0.6
                 )
 
                 content = response.get('content', '{}')
-                if '```json' in content:
-                    content = content.split('```json')[1].split('```')[0].strip()
-                elif '```' in content:
-                    content = content.split('```')[1].split('```')[0].strip()
-
-                generated['partner_advantage'] = json.loads(content)
+                generated['partner_advantage'] = extract_json(content)
 
             except Exception as e:
                 safe_print(f"  Error generating partner_advantage: {e}")
@@ -2164,17 +2188,12 @@ Return JSON only:
                 response = claude_client.generate_content(
                     prompt=news_prompt,
                     system_prompt=news_system,
-                    max_tokens=600,
+                    max_tokens=1500,
                     temperature=0.8
                 )
 
                 content = response.get('content', '{}')
-                if '```json' in content:
-                    content = content.split('```json')[1].split('```')[0].strip()
-                elif '```' in content:
-                    content = content.split('```')[1].split('```')[0].strip()
-
-                generated['industry_news'] = json.loads(content)
+                generated['industry_news'] = extract_json(content)
 
             except Exception as e:
                 safe_print(f"  Error generating industry_news: {e}")
@@ -2223,7 +2242,7 @@ Output ONLY the intro text, 2-3 sentences."""
                     prompt=intro_prompt,
                     system_prompt=intro_system,
                     temperature=0.7,
-                    max_tokens=150
+                    max_tokens=400
                 )
                 generated['intro'] = intro_result['content'].strip()
                 safe_print(f"    Intro generated: {len(generated['intro'].split())} words")
@@ -2263,14 +2282,9 @@ Output JSON with "title" (max 10 words) and "body" (max 100 words):
                     prompt=brite_spot_prompt,
                     system_prompt=brite_spot_system,
                     temperature=0.6,
-                    max_tokens=200
+                    max_tokens=600
                 )
-                content_str = brite_result['content'].strip()
-                if '```json' in content_str:
-                    content_str = content_str.split('```json')[1].split('```')[0].strip()
-                elif '```' in content_str:
-                    content_str = content_str.split('```')[1].split('```')[0].strip()
-                brite_json = json.loads(content_str)
+                brite_json = extract_json(brite_result['content'])
                 generated['brite_spot'] = brite_json
                 safe_print(f"    Brite Spot generated: {brite_json.get('title', 'No title')}")
             except Exception as e:
@@ -2452,7 +2466,7 @@ Output ONLY the image generation prompt, nothing else."""
                 response = claude_client.generate_content(
                     prompt=prompt_request,
                     model="claude-opus-4-8",
-                    max_tokens=150
+                    max_tokens=400
                 )
 
                 prompts[section] = {
@@ -2625,13 +2639,9 @@ def generate_images():
             'partner_advantage': '16:9'
         }
 
-        for section, prompt_data in prompts.items():
-            prompt = prompt_data.get('prompt', '')
-            if not prompt:
-                continue
-
+        def _generate_one(section, prompt):
+            """Generate + resize a single section image. Returns (section, dict)."""
             safe_print(f"  Generating image for {section}...")
-
             try:
                 aspect_ratio = ASPECT_RATIOS.get(section, '1:1')
                 # OpenAI gpt-image-2 primary, Gemini fallback
@@ -2647,21 +2657,30 @@ def generate_images():
                     target_size = IMAGE_SIZES.get(section, (180, 180))
                     image_data = resize_image(image_data, target_size)
 
-                images[section] = {
+                safe_print(f"    Generated image for {section}")
+                return section, {
                     'url': f"data:image/png;base64,{image_data}" if image_data else '',
                     'prompt': prompt
                 }
-                safe_print(f"    Generated image for {section}")
-
             except Exception as e:
                 safe_print(f"  Error generating image for {section}: {e}")
                 import traceback
                 traceback.print_exc()
-                images[section] = {
-                    'url': '',
-                    'prompt': prompt,
-                    'error': str(e)
-                }
+                return section, {'url': '', 'prompt': prompt, 'error': str(e)}
+
+        # Generate all images concurrently. gpt-image-2 takes ~50-70s each, so
+        # running 6 sequentially (~5.5 min) blows past Cloud Run's request
+        # timeout. Fan them out so wall-clock is roughly one image, not six.
+        from concurrent.futures import ThreadPoolExecutor
+
+        # Cap at 3 concurrent: enough to keep wall-clock well under the request
+        # timeout (~2 batches for 6 sections) without hammering gpt-image's low
+        # rate limit or spiking memory with all 6 PNGs in flight at once.
+        jobs = [(section, pd.get('prompt', '')) for section, pd in prompts.items() if pd.get('prompt', '')]
+        if jobs:
+            with ThreadPoolExecutor(max_workers=min(3, len(jobs))) as executor:
+                for section, result in executor.map(lambda args: _generate_one(*args), jobs):
+                    images[section] = result
 
         return jsonify({
             'success': True,
