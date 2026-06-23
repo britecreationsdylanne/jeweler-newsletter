@@ -3776,7 +3776,27 @@ def render_email_template():
         # Partner Advantage
         pa = content.get('partner_advantage', {})
         html = html.replace('{{PARTNER_ADVANTAGE_SUBHEADER}}', pa.get('subheader', 'Tips for Success'))
-        html = html.replace('{{PARTNER_ADVANTAGE_INTRO}}', pa.get('intro', ''))
+        # Force inline teal on PA intro links. These are the only links in the
+        # email relying on the <style> block's `a { color: #008181 }` rule, which
+        # Gmail strips — so they render default blue. Add inline color to any
+        # anchor here that lacks one, matching every other teal link.
+        def _teal_anchor(m):
+            tag = m.group(0)
+            if re.search(r'style\s*=\s*["\']', tag, re.IGNORECASE):
+                # Inject color into the existing style attribute.
+                return re.sub(
+                    r'(style\s*=\s*["\'])',
+                    lambda s: s.group(1) + 'color: #008181; text-decoration: underline; ',
+                    tag, count=1, flags=re.IGNORECASE
+                )
+            # No style attribute — add one before the closing >.
+            return tag[:-1].rstrip() + ' style="color: #008181; text-decoration: underline;">'
+        pa_intro = re.sub(
+            r'<a\b(?![^>]*\bcolor\s*:)[^>]*?>',
+            _teal_anchor,
+            pa.get('intro', '')
+        )
+        html = html.replace('{{PARTNER_ADVANTAGE_INTRO}}', pa_intro)
         html = html.replace('{{PARTNER_ADVANTAGE_IMAGE}}', images.get('partner_advantage', {}).get('url', 'https://placehold.co/180x180/31D7CA/white?text=Tips'))
 
         # Partner Advantage tips
