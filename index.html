@@ -4427,6 +4427,17 @@
                     generatedImages = data.images;
                     updateProgress(6);
 
+                    // Auto-save right after the initial image generation so the freshly
+                    // generated images are persisted immediately. A disconnect after the
+                    // long image gen would otherwise lose them. Non-blocking: a save
+                    // failure must not stop the user from reviewing the images.
+                    try {
+                        await saveDraft();
+                        console.log('[Image Gen] Draft auto-saved after image generation');
+                    } catch (e) {
+                        console.warn('[Image Gen] Auto-save after image generation failed:', e);
+                    }
+
                     // Display images in review step
                     displayGeneratedImages();
                     showStep(9);
