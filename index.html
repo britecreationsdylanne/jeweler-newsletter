@@ -5373,6 +5373,24 @@
         }
 
         // Add custom link to search results and re-render
+        // Escape untrusted values (scraped article metadata, LLM output) before
+        // interpolating into innerHTML, to prevent DOM XSS. Display text only —
+        // the surrounding template markup and its onclick handlers are trusted.
+        function escapeHTML(s) {
+            if (s == null) return '';
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+        // Allow only http(s) URLs in href; block javascript:, data:, etc.
+        function safeUrl(u) {
+            const s = String(u == null ? '' : u).trim();
+            return /^https?:\/\//i.test(s) ? escapeHTML(s) : '#';
+        }
+
         function addCustomLinkToResults(section, article) {
             let resultsDiv;
             let stateCache;
@@ -5407,17 +5425,17 @@
                 <div class="research-result-header">
                     <span class="research-result-badge" style="background: #059669; color: white;">CUSTOM</span>
                     <div class="research-result-meta">
-                        <span>${article.publisher}</span>
-                        <a href="${article.url}" target="_blank" onclick="event.stopPropagation()">Source →</a>
+                        <span>${escapeHTML(article.publisher)}</span>
+                        <a href="${safeUrl(article.url)}" target="_blank" onclick="event.stopPropagation()">Source →</a>
                         <input type="checkbox" class="research-result-checkbox" onclick="handleCheckboxClick(this, event)">
                         <button class="dots-btn" onclick="event.stopPropagation(); toggleDotsMenu(this, ${customArticleIdx})">⋮</button>
                     </div>
                 </div>
-                <div class="research-result-title">${article.headline}</div>
+                <div class="research-result-title">${escapeHTML(article.headline)}</div>
                 ${article.snippet ? `
                     <div class="research-result-keydata">
                         <div class="research-result-keydata-label">SUMMARY</div>
-                        <p>${article.snippet.substring(0, 250)}${article.snippet.length > 250 ? '...' : ''}</p>
+                        <p>${escapeHTML(article.snippet.substring(0, 250))}${article.snippet.length > 250 ? '...' : ''}</p>
                     </div>
                 ` : ''}
             `;
@@ -6264,25 +6282,25 @@
                 }
                 item.innerHTML = `
                     <div class="research-result-header">
-                        <span class="research-result-badge ${badgeClass}">${impact}</span>
+                        <span class="research-result-badge ${badgeClass}">${escapeHTML(impact)}</span>
                         <div class="research-result-meta">
-                            <span>${r.publisher || ''}</span>
-                            <a href="${r.url || '#'}" target="_blank" onclick="event.stopPropagation()">Source →</a>
+                            <span>${escapeHTML(r.publisher || '')}</span>
+                            <a href="${safeUrl(r.url)}" target="_blank" onclick="event.stopPropagation()">Source →</a>
                             <input type="checkbox" class="research-result-checkbox" onclick="handleCheckboxClick(this, event)">
                             <button class="dots-btn" ${isSaved ? 'style="color: #f59e0b;"' : ''} onclick="event.stopPropagation(); toggleDotsMenu(this, ${articleIdx})">⋮</button>
                         </div>
                     </div>
-                    <div class="research-result-title">${headline}</div>
+                    <div class="research-result-title">${escapeHTML(headline)}</div>
                     ${keyData ? `
                         <div class="research-result-keydata">
                             <div class="research-result-keydata-label">KEY DATA</div>
-                            <p>${keyData.substring(0, 250)}${keyData.length > 250 ? '...' : ''}</p>
+                            <p>${escapeHTML(keyData.substring(0, 250))}${keyData.length > 250 ? '...' : ''}</p>
                         </div>
                     ` : ''}
                     ${action ? `
                         <div class="research-result-action">
                             <div class="research-result-action-label">ACTION</div>
-                            <p>${action}</p>
+                            <p>${escapeHTML(action)}</p>
                         </div>
                     ` : ''}
                 `;
@@ -8811,8 +8829,13 @@ u + .body .section-header, u + .body .section-header font, u + .body .section-he
                     })
                 });
                 console.log('[Draft] Saved (reviewHTML keys:', Object.keys(reviewHTML).join(', ') + ')');
-                // Refresh drafts list so the card appears/updates immediately
-                loadDrafts();
+                // Only refresh the drafts grid if it's actually on-screen. During
+                // editing/autosave the grid is hidden, so re-listing it (which reads
+                // every draft blob from GCS) would be wasted work on each keystroke pause.
+                const _draftsGrid = document.getElementById('draftsGrid');
+                if (_draftsGrid && _draftsGrid.offsetParent !== null) {
+                    loadDrafts();
+                }
             } catch (e) {
                 console.error('[Draft] Save failed:', e);
             }

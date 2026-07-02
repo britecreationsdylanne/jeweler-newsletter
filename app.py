@@ -60,7 +60,10 @@ from config.brand_guidelines import (
 from config.model_config import get_model_for_task
 
 # Initialize Flask app
-app = Flask(__name__, static_folder='.', static_url_path='')
+# static_folder disabled: the frontend uses only absolute/data URLs, and a
+# root-mapped static folder ('.') would serve source files (app.py, etc.)
+# unauthenticated. index.html is served explicitly by serve_index().
+app = Flask(__name__, static_folder=None)
 CORS(app)
 
 # Fix for running behind Cloud Run's proxy - ensures correct HTTPS URLs
@@ -93,6 +96,40 @@ CLICKUP_LINK_FIELD_ID = 'e4129c72-f566-490d-a939-9aff1726fabc'
 def get_current_user():
     """Get current authenticated user from session"""
     return session.get('user')
+
+# Auth-exempt paths (no login required): health check + the OAuth flow itself.
+# The '/' route enforces its own auth (redirects to login).
+AUTH_EXEMPT_PATHS = {'/health', '/auth/login', '/auth/callback', '/auth/logout'}
+
+@app.before_request
+def require_auth():
+    """Require a valid session for all /api/* routes.
+
+    Cloud Run is deployed with --allow-unauthenticated, so without this gate the
+    entire API is reachable by anyone with the URL. Google OAuth only gated the
+    HTML page, not the endpoints behind it.
+    """
+    if request.path in AUTH_EXEMPT_PATHS:
+        return None
+    if request.path.startswith('/api/'):
+        if 'user' not in session:
+            return jsonify({'error': 'Authentication required'}), 401
+    return None
+
+def filter_allowed_recipients(recipients):
+    """Keep only @ALLOWED_DOMAIN recipients so the SendGrid endpoints cannot be
+    used to email arbitrary external addresses from our sending domain.
+    Returns (allowed, rejected)."""
+    allowed, rejected = [], []
+    for r in (recipients or []):
+        addr = (r or '').strip()
+        if not addr:
+            continue
+        if addr.lower().endswith('@' + ALLOWED_DOMAIN.lower()):
+            allowed.append(addr)
+        else:
+            rejected.append(addr)
+    return allowed, rejected
 
 # Initialize AI clients with error handling
 openai_client = None
@@ -1498,10 +1535,9 @@ def research_articles():
                     continue
                 safe_print(f"  Researching {section}: {len(article_data)} articles...")
 
-                researched_list = []
-                for i, art in enumerate(article_data[:5]):  # Limit to first 5
+                def _research_list_article(art):
                     if not art or not isinstance(art, dict):
-                        continue
+                        return None
                     title = art.get('title', '')
                     url = art.get('url', '')
                     snippet = art.get('snippet', '')
@@ -1521,19 +1557,34 @@ Provide a concise summary (75-100 words) covering the key facts and why it matte
                             temperature=0.5,
                             max_completion_tokens=200
                         )
-                        researched_list.append({
+                        return {
                             'title': title,
                             'url': url,
                             'research': response.choices[0].message.content.strip()
-                        })
+                        }
                     except Exception as e:
-                        safe_print(f"    Error researching article {i+1}: {e}")
-                        researched_list.append({
+                        safe_print(f"    Error researching article: {e}")
+                        return {
                             'title': title,
                             'url': url,
                             'research': snippet
-                        })
+                        }
 
+                # Enrich the section's articles concurrently — each is an
+                # independent GPT call. Order preserved by index; invalid/failed
+                # articles are skipped exactly as before.
+                from concurrent.futures import ThreadPoolExecutor, as_completed
+                _arts = article_data[:5]
+                _slots = [None] * len(_arts)
+                with ThreadPoolExecutor(max_workers=min(5, len(_arts) or 1)) as _ex:
+                    _futs = {_ex.submit(_research_list_article, a): i for i, a in enumerate(_arts)}
+                    for _f in as_completed(_futs):
+                        _i = _futs[_f]
+                        try:
+                            _slots[_i] = _f.result()
+                        except Exception as _e:
+                            safe_print(f"    Error researching article {_i+1}: {_e}")
+                researched_list = [x for x in _slots if x]
                 researched[section] = researched_list
                 continue
 
@@ -2428,9 +2479,10 @@ def generate_image_prompts():
 
         prompts = {}
 
-        for section, content in sections.items():
+        def _gen_image_prompt(item):
+            section, content = item
             if not content:
-                continue
+                return None
 
             safe_print(f"  - Creating image prompt for {section}")
 
@@ -2469,17 +2521,29 @@ Output ONLY the image generation prompt, nothing else."""
                     max_tokens=400
                 )
 
-                prompts[section] = {
+                return section, {
                     'prompt': response.get('content', '').strip(),
                     'title': title
                 }
 
             except Exception as e:
                 safe_print(f"  Error generating prompt for {section}: {e}")
-                prompts[section] = {
+                return section, {
                     'prompt': f"Photorealistic professional jewelry photography, elegant luxury display with soft lighting, high-end retail aesthetic, {title}, stock photo quality",
                     'title': title
                 }
+
+        # Generate the per-section image prompts concurrently — each is an
+        # independent Opus call and order is irrelevant (keyed by section name).
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        _prompt_items = list(sections.items())
+        if _prompt_items:
+            with ThreadPoolExecutor(max_workers=min(6, len(_prompt_items))) as _ex:
+                _futs = [_ex.submit(_gen_image_prompt, it) for it in _prompt_items]
+                for _f in as_completed(_futs):
+                    _r = _f.result()
+                    if _r:
+                        prompts[_r[0]] = _r[1]
 
         safe_print(f"[API] Generated {len(prompts)} image prompts")
 
@@ -2903,6 +2967,9 @@ def send_preview():
     try:
         data = request.json
         recipients = data.get('recipients', [])
+        recipients, _rejected = filter_allowed_recipients(recipients)
+        if _rejected:
+            safe_print(f"[SEND] Blocked non-@{ALLOWED_DOMAIN} recipients: {_rejected}")
         subject = data.get('subject', 'Stay In The Loupe Preview')
         html_content = data.get('html', '')
 
@@ -2979,6 +3046,9 @@ def export_to_docs():
         title = data.get('title', f"{year} {month} - Jeweler Newsletter")
         send_email = data.get('send_email', False)
         recipients = data.get('recipients', [])
+        recipients, _rejected = filter_allowed_recipients(recipients)
+        if _rejected:
+            safe_print(f"[SEND] Blocked non-@{ALLOWED_DOMAIN} recipients: {_rejected}")
 
         safe_print(f"[API] Exporting to Google Docs: {title}")
 
@@ -3443,6 +3513,9 @@ def send_doc_notification():
     try:
         data = request.json
         recipients = data.get('recipients', [])
+        recipients, _rejected = filter_allowed_recipients(recipients)
+        if _rejected:
+            safe_print(f"[SEND] Blocked non-@{ALLOWED_DOMAIN} recipients: {_rejected}")
         doc_url = data.get('doc_url', '')
         month = data.get('month', '')
         year = data.get('year', datetime.now().year)
@@ -4331,7 +4404,8 @@ def clickup_search_tasks():
         resp = req.get(
             f'https://api.clickup.com/api/v2/list/{CLICKUP_LIST_ID}/task',
             headers={'Authorization': CLICKUP_API_TOKEN},
-            params={'subtasks': 'false', 'statuses[]': 'to do'}
+            params={'subtasks': 'false', 'statuses[]': 'to do'},
+            timeout=15
         )
         resp.raise_for_status()
         tasks = resp.json().get('tasks', [])
@@ -4366,7 +4440,8 @@ def clickup_attach_draft():
                 'Authorization': CLICKUP_API_TOKEN,
                 'Content-Type': 'application/json'
             },
-            json={'value': doc_url}
+            json={'value': doc_url},
+            timeout=15
         )
         resp.raise_for_status()
         return jsonify({'success': True, 'message': 'Draft link attached to ClickUp task'})
