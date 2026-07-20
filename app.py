@@ -3159,82 +3159,97 @@ def export_to_docs():
             if not html_str:
                 return
 
-            # Parse HTML to extract text segments and links
-            # Replace <br> and </p> with newlines first
+            # Normalize <br> and </p> to newlines (strip <p> openers)
             text = re.sub(r'<br\s*/?>', '\n', html_str)
-            text = re.sub(r'</p>\s*', '\n\n', text)
-            text = re.sub(r'<p[^>]*>', '', text)
+            text = re.sub(r'</p>\s*', '\n\n', text, flags=re.IGNORECASE)
+            text = re.sub(r'<p[^>]*>', '', text, flags=re.IGNORECASE)
 
-            # Find all <a> tags and their positions
-            link_pattern = re.compile(r'<a[^>]*href=["\']([^"\']*)["\'][^>]*>(.*?)</a>', re.IGNORECASE)
-            segments = []
-            last_end = 0
+            def _unescape(s):
+                return (s.replace('&nbsp;', ' ').replace('&amp;', '&').replace('&lt;', '<')
+                         .replace('&gt;', '>').replace('&quot;', '"').replace('&#39;', "'")
+                         .replace('&#x27;', "'"))
+
+            def _strip_tags(s):
+                return re.sub(r'<[^>]+>', '', s)
+
+            # Robust link matcher: href with optional quotes; link text may span newlines.
+            link_pattern = re.compile(
+                r'<a\b[^>]*?\bhref\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s">]+))[^>]*>(.*?)</a>',
+                re.IGNORECASE | re.DOTALL)
+
+            # Build the final plain text AND the link spans in ONE pass so a link's
+            # character range can never drift out of alignment with the inserted text.
+            # (The previous version stripped/collapsed the text AFTER computing link
+            # positions, so a leading break shifted every link onto the wrong words —
+            # Google Docs then applied the hyperlink to the wrong range and the phrases
+            # rendered as plain, unclickable text.)
+            parts, links, length, last_end = [], [], 0, 0
             for m in link_pattern.finditer(text):
-                # Text before link
-                before = re.sub(r'<[^>]+>', '', text[last_end:m.start()])
+                before = re.sub(r'\n{3,}', '\n\n', _unescape(_strip_tags(text[last_end:m.start()])))
                 if before:
-                    segments.append({'text': before, 'url': None})
-                # Link text
-                link_text = re.sub(r'<[^>]+>', '', m.group(2))
-                segments.append({'text': link_text, 'url': m.group(1)})
+                    parts.append(before)
+                    length += len(before)
+                url = _unescape((m.group(1) or m.group(2) or m.group(3) or '')).strip()
+                link_text = _unescape(_strip_tags(m.group(4)))
+                if link_text:
+                    start = length
+                    parts.append(link_text)
+                    length += len(link_text)
+                    if url:
+                        links.append((start, length, url))
                 last_end = m.end()
-            # Remaining text after last link
-            after = re.sub(r'<[^>]+>', '', text[last_end:])
-            if after:
-                segments.append({'text': after, 'url': None})
+            tail = re.sub(r'\n{3,}', '\n\n', _unescape(_strip_tags(text[last_end:])))
+            if tail:
+                parts.append(tail)
+                length += len(tail)
 
-            if not segments:
+            full_text = ''.join(parts)
+            if not full_text.strip():
                 return
 
-            # Build full plain text string
-            full_text = ''.join(s['text'] for s in segments).strip()
-            # Decode HTML entities
-            full_text = full_text.replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>')
-            full_text = full_text.replace('&quot;', '"').replace('&#39;', "'").replace('&nbsp;', ' ')
-            full_text = re.sub(r'\n{3,}', '\n\n', full_text)
-            if not full_text:
-                return
+            # Trim surrounding whitespace, shifting/clamping link spans to match.
+            lead = len(full_text) - len(full_text.lstrip())
+            if lead:
+                full_text = full_text[lead:]
+                links = [(max(0, s - lead), max(0, e - lead), u) for (s, e, u) in links]
+            trimmed = len(full_text.rstrip())
+            full_text = full_text[:trimmed]
+            links = [(s, min(e, trimmed), u) for (s, e, u) in links if s < trimmed]
 
-            full_text += '\n\n'
+            insert_text = full_text + '\n\n'
             start_index = index_offset[0]
 
             requests_list.append({
                 'insertText': {
                     'location': {'index': start_index},
-                    'text': full_text
+                    'text': insert_text
                 }
             })
 
             if bold:
                 requests_list.append({
                     'updateTextStyle': {
-                        'range': {'startIndex': start_index, 'endIndex': start_index + len(full_text) - 1},
+                        'range': {'startIndex': start_index, 'endIndex': start_index + len(insert_text) - 1},
                         'textStyle': {'bold': True},
                         'fields': 'bold'
                     }
                 })
 
-            # Apply hyperlinks to the correct character ranges
-            pos = start_index
-            for seg in segments:
-                # Decode entities in segment text for length calculation
-                seg_text = seg['text'].replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>')
-                seg_text = seg_text.replace('&quot;', '"').replace('&#39;', "'").replace('&nbsp;', ' ')
-                seg_len = len(seg_text)
-                if seg['url'] and seg_len > 0:
+            # Apply each hyperlink to its exact character range (spans already aligned).
+            for (s, e, url) in links:
+                if e > s:
                     requests_list.append({
                         'updateTextStyle': {
-                            'range': {'startIndex': pos, 'endIndex': pos + seg_len},
+                            'range': {'startIndex': start_index + s, 'endIndex': start_index + e},
                             'textStyle': {
-                                'link': {'url': seg['url']},
+                                'link': {'url': url},
                                 'foregroundColor': {'color': {'rgbColor': {'red': 0.0, 'green': 0.51, 'blue': 0.51}}}
                             },
                             'fields': 'link,foregroundColor'
                         }
                     })
-                pos += seg_len
 
-            index_offset[0] = start_index + len(full_text)
+            index_offset[0] = start_index + len(insert_text)
 
         # Add content sections
         add_text(title, heading=True)
