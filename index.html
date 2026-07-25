@@ -4389,7 +4389,15 @@
         }
 
         // Generate images from edited prompts
-        async function generateImagesFromPrompts() {
+        async function generateImagesFromPrompts(forceRegenerate = false) {
+            // If images already exist and we're not explicitly regenerating, just show
+            // them instead of re-running the slow, paid image generation. Navigating back
+            // and forward through the steps must not silently regenerate finished images.
+            if (!forceRegenerate && generatedImages && Object.keys(generatedImages).length > 0) {
+                displayGeneratedImages();
+                showStep(9);
+                return;
+            }
             try {
                 showStep('8b');
 
