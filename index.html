@@ -3900,6 +3900,23 @@
             document.querySelectorAll('.month-card').forEach(c => c.classList.remove('selected'));
             element.classList.add('selected');
             document.getElementById('monthNextBtn').disabled = false;
+
+            // If this is a fresh session (nothing built yet) and a saved draft exists
+            // for this month by the current user, resume it. Otherwise selecting a month
+            // starts blank, and navigating forward would autosave an empty state and then
+            // regenerate images that were already made. Only when memory is empty — never
+            // override work already in progress this session.
+            const memoryEmpty = (!generatedContent || Object.keys(generatedContent).length === 0)
+                             && (!generatedImages || Object.keys(generatedImages).length === 0);
+            if (memoryEmpty && Array.isArray(savedDrafts) && savedDrafts.length) {
+                const mine = ((window.AUTH_USER && window.AUTH_USER.email) || '').toLowerCase();
+                const match = savedDrafts.find(d =>
+                    (d.month || '').toLowerCase() === month.toLowerCase()
+                    && (!mine || (d.lastSavedBy || '').toLowerCase() === mine));
+                if (match && match.filename) {
+                    loadDraft(match.filename);
+                }
+            }
         }
 
         function startOver() {
@@ -8915,10 +8932,12 @@ u + .body .section-header, u + .body .section-header font, u + .body .section-he
             }
         }
 
+        let savedDrafts = [];
         async function loadDrafts() {
             try {
                 const response = await fetch(`${API_BASE}/api/list-drafts`);
                 const data = await response.json();
+                savedDrafts = (data.success && Array.isArray(data.drafts)) ? data.drafts : [];
                 if (data.success && data.drafts && data.drafts.length > 0) {
                     const grid = document.getElementById('draftsGrid');
                     const empty = document.getElementById('draftsEmpty');

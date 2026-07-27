@@ -4026,6 +4026,27 @@ def save_draft():
 
         bucket = gcs_client.bucket(GCS_BUCKET_NAME)
         blob = bucket.blob(blob_name)
+
+        # Never let an autosave that arrived with empty heavy fields wipe what is
+        # already saved. A page reload leaves the client's in-memory state blank;
+        # a subsequent autosave (fired on step transitions) would otherwise
+        # overwrite the stored images/content/prompts with nothing -> permanent
+        # loss, and the image step then regenerates. If an incoming heavy field is
+        # empty but the stored draft has it, keep the stored value.
+        def _is_empty(v):
+            return not v or (isinstance(v, (dict, list)) and len(v) == 0)
+
+        _heavy_keys = ('generatedImages', 'generatedContent', 'generatedPrompts', 'reviewHTML')
+        if any(_is_empty(draft.get(k)) for k in _heavy_keys):
+            try:
+                existing = json.loads(blob.download_as_text())
+                for key in _heavy_keys:
+                    if _is_empty(draft.get(key)) and not _is_empty(existing.get(key)):
+                        draft[key] = existing[key]
+                        safe_print(f"[DRAFT SAVE] preserved existing '{key}' (incoming was empty)")
+            except Exception as e:
+                safe_print(f"[DRAFT SAVE] no prior draft to preserve from: {e}")
+
         blob.upload_from_string(json.dumps(draft), content_type='application/json')
         return jsonify({'success': True, 'file': blob_name})
 
