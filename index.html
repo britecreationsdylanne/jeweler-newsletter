@@ -8257,7 +8257,7 @@ ${ssData.ctaUrl ? `<table border="0" cellpadding="0" cellspacing="0" role="prese
 
             const ssPosition = ssData?.position || 'after-news';
 
-            return `<!DOCTYPE html>
+            const _emailHtml = `<!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
 <meta charset="UTF-8">
@@ -8552,6 +8552,7 @@ ${ssPosition === 'after-news' ? specialSectionHtml : ''}
 </table>
 </body>
 </html>`;
+            return forceTealLinks(_emailHtml);
         }
 
         // Push to Ontraport
@@ -9388,6 +9389,21 @@ u + .body .section-header, u + .body .section-header font, u + .body .section-he
         function markdownLinksToHtml(str) {
             if (!str) return '';
             return str.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: #008181; text-decoration: underline;">$1</a>');
+        }
+
+        // Force teal on content anchors that have no color of their own, so links
+        // survive Gmail stripping the <style> a{} rule (which would otherwise make
+        // them render default blue). Anchors that already carry a color (buttons,
+        // the gray news-bullet links) are left untouched.
+        function forceTealLinks(html) {
+            if (!html) return html;
+            return String(html).replace(/<a\b([^>]*)>/gi, function(m, attrs) {
+                if (/\bcolor\s*:/i.test(attrs)) return m;
+                if (/\bstyle\s*=/i.test(attrs)) {
+                    return m.replace(/style\s*=\s*(["'])/i, 'style=$1color: #008181; text-decoration: underline; ');
+                }
+                return '<a' + attrs + ' style="color: #008181; text-decoration: underline;">';
+            });
         }
 
         function populateFinalCopy() {
