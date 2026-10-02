@@ -3670,7 +3670,10 @@ def push_to_ontraport():
 
         payload = {
             'objectID': ONTRAPORT_CONFIG['object_id'],
+            # Ontraport stores the message's display name in 'alias'; 'name' is
+            # kept for backward compatibility with the original payload.
             'name': f'Stay In The Loupe {month.title()}',
+            'alias': f'Stay In The Loupe {month.title()}',
             'subject': subject,
             'type': 'e-mail',
             'transactional_email': '0',
@@ -3691,18 +3694,52 @@ def push_to_ontraport():
             timeout=30
         )
 
-        if response.status_code == 200:
-            result = response.json()
-            safe_print(f"[ONTRAPORT] Success!")
-            return jsonify({
-                'success': True,
-                'message': 'Newsletter pushed to Ontraport',
-                'data': result
-            })
-        else:
+        if response.status_code != 200:
             error_msg = f"Ontraport API error: {response.status_code} - {response.text}"
             safe_print(f"[ONTRAPORT ERROR] {error_msg}")
             return jsonify({'success': False, 'error': error_msg}), 500
+
+        result = response.json()
+        safe_print(f"[ONTRAPORT] Success! (Contacts message)")
+
+        # Create an identical copy of the message for each additional object
+        # type (e.g. Appraisal Users) so the same issue can be sent to them
+        # without rebuilding it by hand in Ontraport. A copy failing does not
+        # fail the push; it is reported back as a warning.
+        copies = []
+        warnings = []
+        for target in ONTRAPORT_CONFIG.get('copy_to_object_types', []):
+            copy_payload = dict(payload)
+            copy_payload['object_type_id'] = str(target['id'])
+            copy_payload['name'] = f"{payload['name']} ({target['label']})"
+            copy_payload['alias'] = copy_payload['name']
+            try:
+                copy_resp = req.post(ontraport_url, headers=headers, data=copy_payload, timeout=30)
+                if copy_resp.status_code == 200:
+                    copy_data = copy_resp.json().get('data', {})
+                    copies.append({
+                        'object_type_id': str(target['id']),
+                        'label': target['label'],
+                        'message_id': copy_data.get('id'),
+                        'name': copy_payload['name'],
+                    })
+                    safe_print(f"[ONTRAPORT] Success! ({target['label']} copy, id={copy_data.get('id')})")
+                else:
+                    msg = f"{target['label']} copy failed: {copy_resp.status_code} - {copy_resp.text[:200]}"
+                    warnings.append(msg)
+                    safe_print(f"[ONTRAPORT WARNING] {msg}")
+            except Exception as copy_err:
+                msg = f"{target['label']} copy failed: {copy_err}"
+                warnings.append(msg)
+                safe_print(f"[ONTRAPORT WARNING] {msg}")
+
+        return jsonify({
+            'success': True,
+            'message': 'Newsletter pushed to Ontraport',
+            'data': result,
+            'copies': copies,
+            'warnings': warnings,
+        })
 
     except Exception as e:
         safe_print(f"[API ERROR] {str(e)}")

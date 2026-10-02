@@ -66,7 +66,13 @@ ONTRAPORT_CONFIG = {
     "object_type_id": "0",
     "from_email": "jeweler@brite.co",
     "reply_to_email": "jeweler@brite.co",
-    "from_name": "BriteCo Insurance"
+    "from_name": "BriteCo Insurance",
+    # After the Contacts message is created, create an identical copy typed for
+    # each of these Ontraport objects so the issue can also be sent to them.
+    # 10008 = oAppraisalUser (Appraisal Users custom object).
+    "copy_to_object_types": [
+        {"id": "10008", "label": "Appraisal Users"}
+    ]
 }
 
 # Team members for preview emails

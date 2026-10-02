@@ -8721,7 +8721,14 @@ u + .body .section-header, u + .body .section-header font, u + .body .section-he
                 if (data.success) {
                     try { await saveDraft(); } catch(e) { console.warn('saveDraft after Ontraport:', e); }
                     try { await publishDraft(); } catch(e) { console.warn('publishDraft after Ontraport:', e); }
-                    alert('✅ Successfully pushed to Ontraport!');
+                    let msg = '✅ Successfully pushed to Ontraport!';
+                    if (Array.isArray(data.copies) && data.copies.length) {
+                        msg += '\n\nCopies created:\n' + data.copies.map(c => `• ${c.name} (message ID ${c.message_id})`).join('\n');
+                    }
+                    if (Array.isArray(data.warnings) && data.warnings.length) {
+                        msg += '\n\n⚠️ ' + data.warnings.join('\n⚠️ ');
+                    }
+                    alert(msg);
                 } else {
                     alert('❌ Error pushing to Ontraport:\n\n' + (data.error || 'Unknown error'));
                 }
