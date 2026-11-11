@@ -18,7 +18,7 @@ class OpenAIClient:
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(api_key=self.api_key) if self.api_key else None
         self.default_model = os.getenv("DEFAULT_CONTENT_MODEL", "gpt-4o")
-        self.default_image_model = os.getenv("DEFAULT_IMAGE_MODEL", "gpt-image-2")
+        self.default_image_model = os.getenv("DEFAULT_IMAGE_MODEL", "gpt-image-2.6-sunburst")
 
     def generate_image(
         self,
@@ -36,19 +36,19 @@ class OpenAIClient:
             {
                 "image_data": "<base64-encoded PNG>",
                 "prompt": "...",
-                "model": "gpt-image-2",
+                "model": "gpt-image-2.6-sunburst",
                 "cost_estimate": "$0.06",
                 "generation_time_ms": 1234,
             }
         Returns None if the client has no API key configured.
         """
         if not self.client:
-            print("[gpt-image-2] OpenAI client not available - skipping image generation")
+            print("[gpt-image-2.6-sunburst] OpenAI client not available - skipping image generation")
             return None
 
         model_name = model or self.default_image_model
 
-        # Map aspect ratio -> a gpt-image-2 supported size (dims must be multiples of 16)
+        # Map aspect ratio -> a gpt-image-2.6-sunburst supported size (dims must be multiples of 16)
         size_map = {
             "1:1": "1024x1024",
             "16:9": "1536x1024",
@@ -61,8 +61,8 @@ class OpenAIClient:
 
         start_time = time.time()
         try:
-            print(f"[gpt-image-2] model={model_name} size={size} quality={quality}")
-            print(f"[gpt-image-2] Prompt: {prompt[:100]}...")
+            print(f"[gpt-image-2.6-sunburst] model={model_name} size={size} quality={quality}")
+            print(f"[gpt-image-2.6-sunburst] Prompt: {prompt[:100]}...")
 
             response = self.client.images.generate(
                 model=model_name,
@@ -77,7 +77,7 @@ class OpenAIClient:
             # gpt-image models always return base64 (b64_json), never a URL
             image_data = response.data[0].b64_json if response.data else None
             if not image_data:
-                raise ValueError("No image data in gpt-image-2 response")
+                raise ValueError("No image data in gpt-image-2.6-sunburst response")
 
             return {
                 "image_data": image_data,  # base64-encoded PNG
@@ -88,7 +88,7 @@ class OpenAIClient:
             }
 
         except Exception as e:
-            print(f"[gpt-image-2 ERROR] Image generation failed: {e}")
+            print(f"[gpt-image-2.6-sunburst ERROR] Image generation failed: {e}")
             raise
 
     def generate_content(

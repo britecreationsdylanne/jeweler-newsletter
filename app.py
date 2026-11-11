@@ -2612,7 +2612,7 @@ def _image_backends_status():
 
 def generate_image_with_fallback(prompt, aspect_ratio='1:1', quality='medium'):
     """
-    Generate an image using OpenAI gpt-image-2 (primary), falling back to
+    Generate an image using OpenAI gpt-image-2.6-sunburst (primary), falling back to
     Gemini Nano Banana if OpenAI is unavailable or errors.
 
     Returns a dict with at least 'image_data' (base64 PNG), matching the shape
@@ -2620,7 +2620,7 @@ def generate_image_with_fallback(prompt, aspect_ratio='1:1', quality='medium'):
     """
     openai_ok, gemini_ok = _image_backends_status()
 
-    # Primary: OpenAI gpt-image-2
+    # Primary: OpenAI gpt-image-2.6-sunburst
     if openai_ok:
         try:
             result = openai_client.generate_image(
@@ -2628,9 +2628,9 @@ def generate_image_with_fallback(prompt, aspect_ratio='1:1', quality='medium'):
             )
             if result and result.get('image_data'):
                 return result
-            safe_print("[IMAGE] gpt-image-2 returned no data; falling back to Gemini")
+            safe_print("[IMAGE] gpt-image-2.6-sunburst returned no data; falling back to Gemini")
         except Exception as e:
-            safe_print(f"[IMAGE] gpt-image-2 failed ({e}); falling back to Gemini")
+            safe_print(f"[IMAGE] gpt-image-2.6-sunburst failed ({e}); falling back to Gemini")
 
     # Fallback: Gemini Nano Banana
     if gemini_ok:
@@ -2641,7 +2641,7 @@ def generate_image_with_fallback(prompt, aspect_ratio='1:1', quality='medium'):
 
 @app.route('/api/generate-images', methods=['POST'])
 def generate_images():
-    """Generate images using OpenAI gpt-image-2 (primary) with Gemini fallback"""
+    """Generate images using OpenAI gpt-image-2.6-sunburst (primary) with Gemini fallback"""
     try:
         data = request.json
 
@@ -2708,7 +2708,7 @@ def generate_images():
             safe_print(f"  Generating image for {section}...")
             try:
                 aspect_ratio = ASPECT_RATIOS.get(section, '1:1')
-                # OpenAI gpt-image-2 primary, Gemini fallback
+                # OpenAI gpt-image-2.6-sunburst primary, Gemini fallback
                 result = generate_image_with_fallback(
                     prompt=prompt,
                     aspect_ratio=aspect_ratio
@@ -2732,7 +2732,7 @@ def generate_images():
                 traceback.print_exc()
                 return section, {'url': '', 'prompt': prompt, 'error': str(e)}
 
-        # Generate all images concurrently. gpt-image-2 takes ~50-70s each, so
+        # Generate all images concurrently. gpt-image-2.6-sunburst takes ~50-70s each, so
         # running 6 sequentially (~5.5 min) blows past Cloud Run's request
         # timeout. Fan them out so wall-clock is roughly one image, not six.
         from concurrent.futures import ThreadPoolExecutor
@@ -2781,7 +2781,7 @@ def resize_image(base64_data, target_size):
 
 @app.route('/api/generate-single-image', methods=['POST'])
 def generate_single_image():
-    """Generate a single image using OpenAI gpt-image-2 (primary) with Gemini fallback"""
+    """Generate a single image using OpenAI gpt-image-2.6-sunburst (primary) with Gemini fallback"""
     try:
         data = request.json
         prompt = data.get('prompt', '')

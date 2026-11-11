@@ -1,4 +1,4 @@
-"""Unit tests for image generation backend selection (OpenAI gpt-image-2 primary, Gemini fallback)."""
+"""Unit tests for image generation backend selection (OpenAI gpt-image-2.6-sunburst primary, Gemini fallback)."""
 import pytest
 
 import app as app_module
@@ -11,7 +11,7 @@ class _FakeOpenAI:
 
     def generate_image(self, prompt, aspect_ratio="1:1", quality="medium"):
         if self.mode == "ok":
-            return {"image_data": "OPENAI_B64", "model": "gpt-image-2"}
+            return {"image_data": "OPENAI_B64", "model": "gpt-image-2.6-sunburst"}
         if self.mode == "empty":
             return {"image_data": ""}
         raise RuntimeError("simulated openai failure")
